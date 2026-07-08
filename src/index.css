@@ -10,16 +10,16 @@
 
   /* Light mode tokens */
   --color-vw-muted: #64748B;
-  --color-vw-bg: #F8FAFC;
-  --color-vw-surface: #FFFFFF;
-  --color-vw-text: #0F172A;
-  --color-vw-text-muted: #94A3B8;
-  --color-vw-border: rgba(0, 0, 0, 0.06);
-  --color-vw-border-medium: rgba(0, 0, 0, 0.10);
-  --color-vw-accent: #2563EB;
-  --color-vw-accent-hover: #1D4ED8;
-  --color-vw-accent-light: rgba(37, 99, 235, 0.08);
-  --color-vw-accent-subtle: rgba(37, 99, 235, 0.04);
+  --color-vw-bg: #0A0A0A; /* Sophisticated black */
+  --color-vw-surface: #121212;
+  --color-vw-text: #FAFAFA;
+  --color-vw-text-muted: #A3A3A3;
+  --color-vw-border: rgba(255, 255, 255, 0.08);
+  --color-vw-border-medium: rgba(255, 255, 255, 0.12);
+  --color-vw-accent: #3B82F6; /* Adjusted for better visibility on dark */
+  --color-vw-accent-hover: #60A5FA;
+  --color-vw-accent-light: rgba(59, 130, 246, 0.12);
+  --color-vw-accent-subtle: rgba(59, 130, 246, 0.06);
   --color-vw-danger: #EF4444;
   --color-vw-danger-hover: #DC2626;
   --color-vw-info: #3B82F6;
@@ -45,38 +45,38 @@
 /* Dark mode overrides — supports both system preference AND manual .dark class */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --color-vw-bg: #0B1120;
-    --color-vw-surface: #131B2E;
-    --color-vw-text: #E2E8F0;
-    --color-vw-text-muted: #64748B;
-    --color-vw-muted: #94A3B8;
-    --color-vw-border: rgba(255, 255, 255, 0.06);
-    --color-vw-border-medium: rgba(255, 255, 255, 0.10);
+    --color-vw-bg: #0A0A0A;
+    --color-vw-surface: #121212;
+    --color-vw-text: #FAFAFA;
+    --color-vw-text-muted: #A3A3A3;
+    --color-vw-muted: #737373;
+    --color-vw-border: rgba(255, 255, 255, 0.08);
+    --color-vw-border-medium: rgba(255, 255, 255, 0.12);
     --color-vw-accent: #3B82F6;
     --color-vw-accent-hover: #60A5FA;
     --color-vw-accent-light: rgba(59, 130, 246, 0.12);
     --color-vw-accent-subtle: rgba(59, 130, 246, 0.06);
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
   }
 }
 
 html.dark {
-  --color-vw-bg: #0B1120;
-  --color-vw-surface: #131B2E;
-  --color-vw-text: #E2E8F0;
-  --color-vw-text-muted: #64748B;
-  --color-vw-muted: #94A3B8;
-  --color-vw-border: rgba(255, 255, 255, 0.06);
-  --color-vw-border-medium: rgba(255, 255, 255, 0.10);
+  --color-vw-bg: #0A0A0A;
+  --color-vw-surface: #121212;
+  --color-vw-text: #FAFAFA;
+  --color-vw-text-muted: #A3A3A3;
+  --color-vw-muted: #737373;
+  --color-vw-border: rgba(255, 255, 255, 0.08);
+  --color-vw-border-medium: rgba(255, 255, 255, 0.12);
   --color-vw-accent: #3B82F6;
   --color-vw-accent-hover: #60A5FA;
   --color-vw-accent-light: rgba(59, 130, 246, 0.12);
   --color-vw-accent-subtle: rgba(59, 130, 246, 0.06);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
 html.dark .card,
