@@ -64,8 +64,8 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
       },
       { threshold: 0.2 }
     )
-    obs.observe(el)
-    return () => obs.disconnect()
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
