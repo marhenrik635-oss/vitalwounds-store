@@ -289,27 +289,30 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             </Reveal>
 
             <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-8 -mx-6 px-6 scrollbar-none">
-              {APP_CARDS.map((app, i) => (
-                <Reveal key={app.name} delay={i * 100} className="snap-start shrink-0 w-[290px] sm:w-[340px] border border-vw-border bg-vw-surface p-8 rounded-2xl flex flex-col justify-between hover:border-vw-accent transition-colors">
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="w-10 h-10 bg-vw-bg border border-vw-border flex items-center justify-center rounded-xl">
-                      <Icon size={18} className="text-vw-accent" />
+              {APP_CARDS.map((app, i) => {
+                const Icon = app.icon
+                return (
+                  <Reveal key={app.name} delay={i * 100} className="snap-start shrink-0 w-[290px] sm:w-[340px] border border-vw-border bg-vw-surface p-8 rounded-2xl flex flex-col justify-between hover:border-vw-accent transition-colors">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="w-10 h-10 bg-vw-bg border border-vw-border flex items-center justify-center rounded-xl">
+                        <Icon size={18} className="text-vw-accent" />
+                      </div>
+                      {app.badge && (
+                        <span className="px-3 py-1 rounded-full bg-vw-accent/10 text-vw-accent text-[9px] font-bold tracking-wide">{app.badge}</span>
+                      )}
                     </div>
-                    {app.badge && (
-                      <span className="px-3 py-1 rounded-full bg-vw-accent/10 text-vw-accent text-[9px] font-bold tracking-wide">{app.badge}</span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-bold tracking-tight mb-2 text-vw-text">{app.name}</h3>
-                  <p className="text-sm text-vw-muted leading-relaxed mb-8">{app.desc}</p>
-                  <div className="pt-6 border-t border-vw-border/50 flex items-center justify-between">
-                    <span className="text-xl font-bold text-vw-text">{app.price}</span>
-                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                      className="text-xs font-bold uppercase tracking-widest text-vw-accent flex items-center gap-1">
-                      Beli <ChevronRight size={12} />
-                    </button>
-                  </div>
-                </Reveal>
-              ))}
+                    <h3 className="text-lg font-bold tracking-tight mb-2 text-vw-text">{app.name}</h3>
+                    <p className="text-sm text-vw-muted leading-relaxed mb-8">{app.desc}</p>
+                    <div className="pt-6 border-t border-vw-border/50 flex items-center justify-between">
+                      <span className="text-xl font-bold text-vw-text">{app.price}</span>
+                      <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                        className="text-xs font-bold uppercase tracking-widest text-vw-accent flex items-center gap-1">
+                        Beli <ChevronRight size={12} />
+                      </button>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
         </section>
