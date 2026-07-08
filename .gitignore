@@ -1,0 +1,26 @@
+# Env/Secrets
+.env
+.env.*
+*.log
+
+# Dependencies
+node_modules/
+dist/
+build/
+coverage/
+
+# Data/Cache
+database.db
+*.db
+*.sqlite
+.cache/
+temp/
+
+# Screenshots/Artifacts
+*.png
+*.jpg
+*.jpeg
+*.tar.gz
+*.7z
+test-results/
+screenshots/

@@ -1,0 +1,9 @@
+# Vitalwounds Store
+
+Vitalwounds Store menyediakan layanan premium digital otomatis 24/7.
+
+## Layanan Kami
+- [App Premium](/layanan/app-premium): Akses premium Spotify, Netflix, YouTube, Canva Pro, dll.
+- [SMM Panel](/layanan/suntik-sosmed): Boost followers, likes, views Instagram, TikTok, YouTube.
+- [Nokos OTP](/layanan/nokos): Sewa nomor virtual untuk menerima kode OTP SMS secara instan.
+- [Hubungi Kami](/contact): Layanan bantuan pelanggan.

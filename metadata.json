@@ -1,0 +1,6 @@
+{
+  "name": "Vitalwounds Store",
+  "description": "Solusi digital terbaik untuk aplikasi premium, suntik sosmed, dan nomor kosong dengan dashboard EasyAdmin.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
