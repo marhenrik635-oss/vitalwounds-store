@@ -80,8 +80,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#layanan" className="text-sm text-vw-muted hover:text-vw-text transition-colors">Layanan</a>
-            <a href="#faq" className="text-sm text-vw-muted hover:text-vw-text transition-colors">FAQ</a>
+            <a href="#layanan" className="text-sm text-vw-text-muted hover:text-vw-text transition-colors">Layanan</a>
+            <a href="#faq" className="text-sm text-vw-text-muted hover:text-vw-text transition-colors">FAQ</a>
           </nav>
 
           <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
@@ -121,20 +121,20 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
               <div className="lg:col-span-5 flex justify-center lg:justify-end">
                 <div className="w-full max-w-sm bg-vw-surface rounded-3xl p-6 sm:p-8 border border-vw-border">
-                  <div className="text-xs text-vw-muted font-medium mb-4 uppercase tracking-wider">Mulai dari</div>
-                  <div className="text-4xl sm:text-5xl font-bold tracking-tight mb-1">
-                    Rp 8.000<span className="text-sm font-normal text-vw-muted">/unit</span>
+                  <div className="font-display text-xs text-vw-text-muted font-semibold mb-4 uppercase tracking-wider">Mulai dari</div>
+                  <div className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-1 text-vw-text">
+                    Rp 8.000<span className="text-sm font-normal text-vw-text-muted">/unit</span>
                   </div>
                   <div className="mt-6 space-y-3">
                     {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
-                      <div key={item} className="flex items-center gap-3 text-sm text-vw-muted">
+                      <div key={item} className="flex items-center gap-3 text-sm text-vw-text-muted">
                         <div className="w-1.5 h-1.5 rounded-full bg-vw-accent" />
                         {item}
                       </div>
                     ))}
                   </div>
                   <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                    className="mt-6 w-full py-2.5 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
+                    className="mt-6 w-full py-3 bg-vw-accent text-white text-sm font-semibold rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
                     Mulai Belanja
                   </button>
                 </div>
@@ -224,7 +224,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                             <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center mb-4 group-hover:bg-vw-accent/[0.12] transition-colors">
                               <Icon size={18} className="text-vw-accent" />
                             </div>
-                            <h3 className="text-base font-semibold mb-1 text-vw-text">{app.name}</h3>
+                            <h3 className="font-display text-base font-semibold mb-1 text-vw-text">{app.name}</h3>
                             <p className="text-xs text-vw-text-muted leading-relaxed mb-6">{app.desc}</p>
                           </div>
                           <div className="flex items-center justify-between pt-4 border-t border-vw-border mt-auto">
@@ -249,7 +249,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <FadeIn>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.steps.title")}</h2>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.steps.title")}</h2>
               </FadeIn>
             </div>
             <div className="grid sm:grid-cols-3 gap-8 sm:gap-12 relative">
@@ -264,8 +264,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     <div className="w-14 h-14 rounded-2xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10">
                       <item.icon size={22} className="text-vw-accent" />
                     </div>
-                    <h3 className="text-base font-semibold mb-2">{item.label}</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed max-w-xs mx-auto sm:mx-0">{item.desc}</p>
+                    <h3 className="font-display text-lg font-semibold mb-2 text-vw-text">{item.label}</h3>
+                    <p className="text-sm text-vw-text-muted leading-relaxed max-w-xs mx-auto sm:mx-0">{item.desc}</p>
                   </div>
                 </FadeIn>
               ))}
@@ -279,8 +279,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
               <div className="lg:col-span-5">
                 <FadeIn>
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance mb-6">{t("landing.why.title")}</h2>
-                  <p className="text-sm text-vw-muted leading-relaxed">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
+                  <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance mb-6">{t("landing.why.title")}</h2>
+                  <p className="text-base text-vw-text-muted leading-relaxed">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
                 </FadeIn>
               </div>
               <div className="lg:col-span-7 space-y-6">
@@ -336,21 +336,21 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section id="faq" className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
           <div className="max-w-2xl mx-auto">
             <FadeIn className="mb-16">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.faq.title")}</h2>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.faq.title")}</h2>
             </FadeIn>
 
-            <div className="space-y-3">
+            <div className="divide-y divide-vw-border/60">
               {FAQS.map((faq, i) => (
-                <div key={faq.q} className="bg-vw-bg rounded-xl overflow-hidden border border-vw-border">
+                <div key={faq.q} className="py-2">
                   <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-vw-surface transition-colors">
-                    <h3 className="text-sm font-medium pr-4">{faq.q}</h3>
-                    <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-45" : ""}`}>
-                      <Plus size={13} className="text-vw-muted" />
+                    className="w-full py-4 flex items-center justify-between text-left hover:opacity-80 transition-opacity">
+                    <h3 className="font-display text-base sm:text-lg font-semibold pr-4 text-vw-text">{faq.q}</h3>
+                    <div className={`w-5 h-5 flex items-center justify-center shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-45" : ""}`}>
+                      <Plus size={14} className="text-vw-accent" />
                     </div>
                   </button>
                   <div className={`transition-all duration-300 ease-out overflow-hidden ${openFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                    <div className="px-5 pb-5 text-sm text-vw-muted leading-relaxed">{faq.a}</div>
+                    <div className="pb-4 pt-1 text-sm text-vw-text-muted leading-relaxed max-w-prose">{faq.a}</div>
                   </div>
                 </div>
               ))}
@@ -362,8 +362,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section className="py-28 sm:py-36 px-6 text-center">
           <div className="max-w-xl mx-auto">
             <FadeIn>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
-              <p className="text-sm text-vw-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
+              <p className="text-base text-vw-text-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <button onClick={() => navigateTo("auth", "dashboard")}
                   className="px-6 py-3 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
