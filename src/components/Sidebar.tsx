@@ -42,9 +42,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
       >
         {/* Logo */}
         <div className="px-5 h-16 flex items-center gap-3 border-b border-vw-border/50">
-          <div className="w-8 h-8 rounded-xl bg-vw-accent/10 flex items-center justify-center">
-            <span className="text-xs font-bold text-vw-accent">VW</span>
-          </div>
+          <img src="/logo.png" alt="Vitalwounds" className="w-8 h-8 rounded-xl object-contain bg-white" />
           <div>
             <span className="font-bold text-vw-text text-sm leading-tight block">Vitalwounds</span>
             <span className="text-[9px] tracking-[0.15em] text-vw-muted uppercase font-medium">Store Panel</span>

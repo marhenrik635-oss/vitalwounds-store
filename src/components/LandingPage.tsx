@@ -63,9 +63,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }}
             className="flex items-center gap-3 group">
-            <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg group-hover:scale-[0.97] transition-transform">
-              <span className="text-vw-bg font-bold text-xs">VW</span>
-            </div>
+            <img src="/logo.png" alt="Vitalwounds" className="w-8 h-8 rounded-lg group-hover:scale-[0.97] transition-transform object-contain bg-white" />
             <span className="font-semibold tracking-tight text-vw-text">Vitalwounds</span>
           </a>
 
@@ -386,9 +384,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg">
-                  <span className="text-vw-bg font-bold text-xs">VW</span>
-                </div>
+                <img src="/logo.png" alt="Vitalwounds" className="w-8 h-8 rounded-lg object-contain bg-white" />
                 <span className="font-semibold tracking-tight text-vw-text">Vitalwounds</span>
               </div>
               <p className="text-sm text-vw-text-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
