@@ -1,4 +1,5 @@
 import { useTheme } from "../contexts/ThemeContext"
+import { useReducedMotion } from "framer-motion"
 
 // Pre-generated star positions (stable across renders)
 const STARS = Array.from({ length: 30 }, (_, i) => ({
@@ -13,6 +14,7 @@ const STARS = Array.from({ length: 30 }, (_, i) => ({
 export default function OceanBg() {
   const { theme } = useTheme()
   const isLight = theme === "light"
+  const reduceMotion = useReducedMotion()
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
@@ -56,7 +58,7 @@ export default function OceanBg() {
                 width: s.size + "px",
                 height: s.size + "px",
                 opacity: s.opacity,
-                animation: `twinkle ${s.duration} ease-in-out ${s.delay} infinite`,
+                animation: reduceMotion ? "none" : `twinkle ${s.duration} ease-in-out ${s.delay} infinite`,
               }}
             />
           ))}
@@ -95,8 +97,10 @@ export default function OceanBg() {
             className={`transition-colors duration-1000 ${isLight ? "fill-cyan-300/45" : "fill-blue-800/35"}`}
             d="M0,180 C240,220 480,140 720,190 C960,240 1200,150 1440,200 L1440,400 L0,400 Z"
           >
-            <animateTransform attributeName="transform" type="translate"
-              values="0,0; 0,-4; 0,0" dur="6s" repeatCount="indefinite" />
+            {!reduceMotion && (
+              <animateTransform attributeName="transform" type="translate"
+                values="0,0; 0,-4; 0,0" dur="6s" repeatCount="indefinite" />
+            )}
           </path>
 
           {/* Layer 2 - mid wave */}
@@ -104,8 +108,10 @@ export default function OceanBg() {
             className={`transition-colors duration-1000 ${isLight ? "fill-blue-400/55" : "fill-blue-900/45"}`}
             d="M0,230 C320,280 640,190 960,240 C1280,290 1440,220 1440,220 L1440,400 L0,400 Z"
           >
-            <animateTransform attributeName="transform" type="translate"
-              values="0,0; 0,3; 0,0" dur="4.5s" repeatCount="indefinite" />
+            {!reduceMotion && (
+              <animateTransform attributeName="transform" type="translate"
+                values="0,0; 0,3; 0,0" dur="4.5s" repeatCount="indefinite" />
+            )}
           </path>
 
           {/* Layer 3 - front wave */}
@@ -113,8 +119,10 @@ export default function OceanBg() {
             className={`transition-colors duration-1000 ${isLight ? "fill-blue-600/65" : "fill-blue-950/55"}`}
             d="M0,280 C180,250 540,320 900,270 C1260,220 1440,280 1440,280 L1440,400 L0,400 Z"
           >
-            <animateTransform attributeName="transform" type="translate"
-              values="0,0; 0,-3; 0,0" dur="3.5s" repeatCount="indefinite" />
+            {!reduceMotion && (
+              <animateTransform attributeName="transform" type="translate"
+                values="0,0; 0,-3; 0,0" dur="3.5s" repeatCount="indefinite" />
+            )}
           </path>
 
           {/* Foam/whitecap highlights */}
@@ -123,8 +131,10 @@ export default function OceanBg() {
             d="M0,182 C240,222 480,142 720,192 C960,242 1200,152 1440,202 L1440,206 C1200,156 960,246 720,196 C480,146 240,226 0,186 Z"
             filter="url(#foam)"
           >
-            <animateTransform attributeName="transform" type="translate"
-              values="0,0; 0,-4; 0,0" dur="6s" repeatCount="indefinite" />
+            {!reduceMotion && (
+              <animateTransform attributeName="transform" type="translate"
+                values="0,0; 0,-4; 0,0" dur="6s" repeatCount="indefinite" />
+            )}
           </path>
         </svg>
       </div>
