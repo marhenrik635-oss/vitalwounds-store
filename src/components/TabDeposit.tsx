@@ -80,59 +80,58 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
 
   return (
     <div className="pb-12">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Form */}
         <div className="lg:col-span-3">
-          <div className="rounded-2xl border border-vw-border/60 bg-white p-6">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-vw-border">
-              <Wallet size={18} className="text-vw-accent" />
-              <span className="caption">Request Pengisian Saldo</span>
+          <div className="rounded-3xl border border-vw-border/80 bg-vw-surface p-8">
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-vw-border/80">
+              <Wallet size={20} className="text-vw-accent" />
+              <h2 className="font-display text-lg font-bold text-vw-text uppercase tracking-wider">Request Pengisian Saldo</h2>
             </div>
 
             {error && (
-              <div className="mb-5 px-4 py-3 rounded-xl flex items-start gap-2 text-sm bg-red-50 text-red-600">
+              <div className="mb-6 px-4 py-3 rounded-xl flex items-start gap-2 text-sm bg-red-500/10 border border-red-500/20 text-red-400">
                 <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleCreateDeposit} className="space-y-6">
+            <form onSubmit={handleCreateDeposit} className="space-y-8">
               <div>
-                <label className="caption block mb-2">Jumlah Deposit (Rp)</label>
+                <label className="font-display text-sm font-semibold text-vw-text-muted block mb-3">Jumlah Deposit (Rp)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-3 text-sm font-medium text-vw-muted">IDR</span>
+                  <span className="font-display absolute left-4 top-3.5 text-sm font-bold text-vw-text-muted">IDR</span>
                   <input type="number" value={amount || ""} onChange={e => setAmount(Number(e.target.value))}
-                    placeholder="Min Rp 10.000" required min={10000} className="input-field pl-16 font-bold" />
+                    placeholder="Min Rp 10.000" required min={10000} className="input-field pl-16 py-3.5 font-display text-base font-bold" />
                 </div>
               </div>
 
               <div>
-                <span className="caption block mb-2">Atau pilih nominal instan:</span>
+                <span className="font-display text-sm font-semibold text-vw-text-muted block mb-3">Atau pilih nominal instan:</span>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {presets.map(val => (
                     <button key={val} type="button"
                       onClick={() => setAmount(val)}
-                      className={"py-2 rounded-xl text-sm font-bold transition-all duration-150 " + (amount === val ? "btn-primary" : "btn-ghost")}>
+                      className={"py-3 rounded-xl text-sm font-bold font-display transition-all duration-150 " + (amount === val ? "btn-primary" : "btn-ghost")}>
                       {val/1000}k
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl border border-vw-border bg-emerald-50/30">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100">
-                    <QrCode size={16} className="text-emerald-600" />
-                  </div>
-                  <div>
-                    <h5 className="text-sm font-medium text-vw-text">QRIS (Semua E-Wallet & M-Banking)</h5>
-                    <span className="text-xs text-vw-muted">Scan QRIS dengan DANA, OVO, GoPay, ShopeePay, M-Banking, dll</span>
-                  </div>
+              {/* No Nested Card: Flat text layout with divider */}
+              <div className="pt-6 border-t border-vw-border/80 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-vw-accent/[0.08] shrink-0 border border-vw-accent/15">
+                  <QrCode size={20} className="text-vw-accent" />
+                </div>
+                <div>
+                  <h3 className="font-display text-sm font-bold text-vw-text mb-1">QRIS (Semua E-Wallet & M-Banking)</h3>
+                  <p className="font-display text-xs text-vw-text-muted leading-relaxed">Scan QRIS dengan DANA, OVO, GoPay, ShopeePay, M-Banking, dll</p>
                 </div>
               </div>
 
               <button type="submit" disabled={isProcessing}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 cursor-pointer disabled:opacity-50">
+                className="btn-primary w-full flex items-center justify-center gap-2 py-4 font-display font-bold text-sm cursor-pointer disabled:opacity-50">
                 {isProcessing ? <><Loader2 size={16} className="animate-spin" /> Membuat Tagihan...</>
                   : <><Wallet size={16} /> Buat Request Deposit</>}
               </button>
@@ -142,42 +141,42 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
 
         {/* Invoice Panel */}
         <div className="lg:col-span-2">
-          <div className="rounded-2xl border border-vw-border/60 bg-white p-6 h-full flex flex-col">
+          <div className="rounded-3xl border border-vw-border/80 bg-vw-surface p-8 h-full flex flex-col justify-between">
             {activeInvoice ? (
-              <>
-                <div className="pb-4 border-b border-vw-border">
-                  <span className="caption">Rincian Tagihan</span>
-                  <p className="text-sm font-bold text-vw-text mt-1 break-all font-mono">{activeInvoice.invoiceNo}</p>
+              <div className="space-y-6">
+                <div className="pb-4 border-b border-vw-border/80">
+                  <span className="font-display text-xs text-vw-text-muted font-bold uppercase tracking-wider">Rincian Tagihan</span>
+                  <p className="font-display text-base font-bold text-vw-text mt-2 break-all font-mono">{activeInvoice.invoiceNo}</p>
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center py-6">
+                <div className="flex-1 flex flex-col items-center justify-center py-6 border border-vw-border/60 rounded-2xl bg-vw-bg/30">
                   {qrImageUrl ? (
-                    <div className="p-4 rounded-2xl border border-vw-border">
+                    <div className="p-4 bg-white rounded-2xl border border-vw-border/40">
                       <img src={qrImageUrl} alt="QRIS" className="w-48 h-48 mx-auto" />
-                      <p className="text-xs text-vw-muted mt-3 text-center">Scan QRIS di atas menggunakan e-Wallet atau M-Banking favorit Anda</p>
+                      <p className="font-display text-[10px] text-zinc-500 font-semibold mt-3 text-center">Scan QRIS di atas menggunakan e-Wallet atau M-Banking favorit Anda</p>
                     </div>
                   ) : (
-                    <div className="p-4 rounded-xl w-full text-sm space-y-2 text-center bg-gray-50">
-                      <p className="font-medium text-vw-text">Menunggu QRIS...</p>
-                      <p className="text-xs text-vw-muted">QR Code akan muncul setelah request dibuat.</p>
+                    <div className="p-4 w-full text-sm space-y-2 text-center">
+                      <p className="font-display font-bold text-vw-text">Menunggu QRIS...</p>
+                      <p className="font-display text-xs text-vw-text-muted">QR Code akan muncul setelah request dibuat.</p>
                     </div>
                   )}
                 </div>
-                <div className="py-4 space-y-2 text-sm border-y border-vw-border">
+                <div className="py-4 space-y-3 text-sm border-y border-vw-border/80">
                   {[{l:"Jumlah",v:formatRupiah(activeInvoice.amount)},{l:"Metode",v:"QRIS"},{l:"Waktu",v:activeInvoice.date}].map((r,i)=>(
-                    <div key={i} className="flex justify-between"><span className="text-vw-muted">{r.l}</span><span className="font-medium text-vw-text">{r.v}</span></div>
+                    <div key={i} className="flex justify-between font-display"><span className="text-vw-text-muted font-medium">{r.l}</span><span className="font-bold text-vw-text">{r.v}</span></div>
                   ))}
                 </div>
                 <button onClick={handleCheckPayment} disabled={isChecking}
-                  className="btn-primary w-full mt-4 flex items-center justify-center gap-2 py-3 cursor-pointer disabled:opacity-50">
+                  className="btn-primary w-full mt-4 flex items-center justify-center gap-2 py-3.5 font-display font-bold text-sm cursor-pointer disabled:opacity-50">
                   {isChecking ? <><Loader2 size={16} className="animate-spin" /> Memeriksa...</>
                     : <><Check size={16} /> Cek Status Pembayaran</>}
                 </button>
-              </>
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center flex-1">
-                <Info size={40} className="text-vw-muted opacity-40 mb-4" />
-                <p className="text-base font-medium text-vw-muted">Menunggu Request</p>
-                <p className="text-sm text-vw-muted mt-1 max-w-xs">Pilih jumlah deposit di sebelah kiri.</p>
+              <div className="flex flex-col items-center justify-center py-20 text-center flex-1">
+                <Info size={44} className="text-vw-text-muted opacity-30 mb-5" />
+                <h3 className="font-display text-lg font-bold text-vw-text">Menunggu Request</h3>
+                <p className="font-display text-sm text-vw-text-muted mt-2 max-w-xs leading-relaxed">Pilih jumlah deposit di sebelah kiri untuk membuat tagihan baru.</p>
               </div>
             )}
           </div>
