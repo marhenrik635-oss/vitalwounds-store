@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare, Check } from "lucide-react"
+import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
 import type { TranslationKey } from "../i18n/translations"
 
@@ -48,12 +48,12 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   }, [])
 
   const APP_CARDS = [
-    { icon: Film, name: "Netflix Premium", desc: "Akses 4K UHD, semua konten, shared screen, garansi 30 hari.", price: "Rp 30.000", badge: "Best Seller" },
-    { icon: Music, name: "Spotify Premium", desc: "Bebas iklan, download offline, kualitas audio tinggi.", price: "Rp 15.000", badge: "Terlaris" },
-    { icon: Youtube, name: "YouTube Premium", desc: "Tanpa iklan, putar background, YouTube Music included.", price: "Rp 12.000", badge: "" },
-    { icon: Palette, name: "Canva Pro", desc: "Akses lifetime, template premium, 1TB cloud storage.", price: "Rp 25.000", badge: "Hemat" },
-    { icon: BrainCircuit, name: "ChatGPT Plus", desc: "GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.", price: "Rp 49.000", badge: "" },
-    { icon: Video, name: "CapCut Pro", desc: "Bebas watermark, semua efek pro, ekspor maksimal.", price: "Rp 18.000", badge: "" },
+    { icon: Film, name: "Netflix Premium", desc: "4K UHD, semua konten, shared screen, garansi 30 hari.", price: "Rp 30.000" },
+    { icon: Music, name: "Spotify Premium", desc: "Bebas iklan, download offline, kualitas audio tinggi.", price: "Rp 15.000" },
+    { icon: Youtube, name: "YouTube Premium", desc: "Tanpa iklan, putar background, YouTube Music included.", price: "Rp 12.000" },
+    { icon: Palette, name: "Canva Pro", desc: "Akses lifetime, template premium, 1TB cloud storage.", price: "Rp 25.000" },
+    { icon: BrainCircuit, name: "ChatGPT Plus", desc: "GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.", price: "Rp 49.000" },
+    { icon: Video, name: "CapCut Pro", desc: "Bebas watermark, semua efek pro, ekspor maksimal.", price: "Rp 18.000" },
   ]
 
   const FAQS = [
@@ -63,22 +63,14 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
     { q: "Apakah ada garansi?", a: "Ya, setiap pembelian dilindungi garansi 100% uang kembali. Jika layanan bermasalah, hubungi tim support kami." }
   ]
 
-  const WHY_US_KEYS = [
-    { title: "landing.why1.title" as TranslationKey, desc: "landing.why1.desc" as TranslationKey },
-    { title: "landing.why2.title" as TranslationKey, desc: "landing.why2.desc" as TranslationKey },
-    { title: "landing.why3.title" as TranslationKey, desc: "landing.why3.desc" as TranslationKey },
-    { title: "landing.why4.title" as TranslationKey, desc: "landing.why4.desc" as TranslationKey },
-  ]
-
   return (
     <div className="min-h-[100dvh] bg-vw-bg text-vw-text antialiased overflow-x-hidden relative">
       <div className="grain-overlay" aria-hidden="true" />
-      <div className="fixed inset-0 bg-gradient-to-b from-vw-accent/[0.03] via-transparent to-transparent pointer-events-none" aria-hidden="true" />
       <a href="#content" className="fixed -top-full left-0 z-50 px-4 py-2 bg-vw-text text-vw-bg text-xs font-semibold rounded-br-lg transition-all focus:top-0">Langsung ke konten utama</a>
 
       {/* ====== HEADER ====== */}
-      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled ? "bg-vw-bg/80 backdrop-blur-xl border-b border-vw-border" : "bg-transparent border-transparent"}`}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrolled ? "bg-vw-bg/80 backdrop-blur-xl border-b border-vw-border" : "bg-transparent"}`}>
+        <div className="max-w-6xl mx-auto px-6 h-14 md:h-16 flex items-center justify-between">
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }}
             className="flex items-center gap-2.5 group">
             <div className="w-7 h-7 bg-vw-text flex items-center justify-center rounded-sm group-hover:scale-95 transition-transform">
@@ -93,77 +85,89 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </nav>
 
           <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-            className="px-4 py-2 bg-vw-text text-vw-bg text-sm font-medium rounded-lg hover:opacity-90 active:scale-[0.97] transition-all">
+            className="px-4 py-2 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
             {isLoggedIn ? t("nav.dashboard") : t("auth.login")}
           </button>
         </div>
       </header>
 
       <main id="content">
-        {/* ====== HERO ====== */}
-        <section className="relative pt-36 pb-28 sm:pt-44 sm:pb-36 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-[2.8rem] sm:text-[4.5rem] lg:text-[5.5rem] font-bold tracking-[-0.03em] leading-[1.05] text-balance mb-6">
-                {t("landing.hero.h1")}{" "}
-                <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
-                {t("landing.hero.h1.suffix")}
-              </h1>
+        {/* ====== HERO - Asymmetric Split ====== */}
+        <section className="relative pt-16 sm:pt-20 md:pt-24 px-6 min-h-[90dvh] flex items-center">
+          <div className="max-w-6xl mx-auto w-full">
+            <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+              <div className="lg:col-span-7 space-y-6 max-w-xl">
+                <h1 className="text-[2.2rem] sm:text-[3.2rem] lg:text-[4rem] font-bold tracking-[-0.03em] leading-[1.08] text-balance">
+                  {t("landing.hero.h1")}{" "}
+                  <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
+                  {t("landing.hero.h1.suffix")}
+                </h1>
 
-              <p className="text-base sm:text-lg text-vw-muted max-w-2xl mx-auto leading-relaxed mb-10 text-balance">
-                {t("landing.hero.desc")}
-              </p>
+                <p className="text-sm sm:text-base text-vw-muted leading-relaxed max-w-lg">
+                  {t("landing.hero.desc")}
+                </p>
 
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                  className="px-6 py-3 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all inline-flex items-center gap-2">
-                  {t("landing.hero.cta")} <ArrowRight size={14} />
-                </button>
-                <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                  className="px-6 py-3 border border-vw-border text-sm font-medium rounded-lg hover:bg-vw-surface active:scale-[0.97] transition-all text-vw-muted hover:text-vw-text">
-                  {t("landing.hero.lihat")}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+                    className="px-6 py-3 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all inline-flex items-center gap-2 w-fit">
+                    {t("landing.hero.cta")} <ArrowRight size={14} />
+                  </button>
+                  <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+                    className="px-6 py-3 border border-vw-border text-sm font-medium rounded-lg hover:bg-vw-surface active:scale-[0.97] transition-all text-vw-muted hover:text-vw-text w-fit">
+                    {t("landing.hero.lihat")}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-14">
-                {["Netflix 4K", "Spotify Premium", "YouTube Premium", "Canva Pro", "ChatGPT Plus"].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-1.5 text-xs text-vw-muted">
-                    <Check size={12} className="text-vw-accent" />
-                    {item}
-                  </span>
-                ))}
+              <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                <div className="w-full max-w-sm bg-vw-surface rounded-3xl p-6 sm:p-8 border border-vw-border">
+                  <div className="text-xs text-vw-muted font-medium mb-4 uppercase tracking-wider">Mulai dari</div>
+                  <div className="text-4xl sm:text-5xl font-bold tracking-tight mb-1">
+                    Rp 8.000<span className="text-sm font-normal text-vw-muted">/unit</span>
+                  </div>
+                  <div className="mt-6 space-y-3">
+                    {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
+                      <div key={item} className="flex items-center gap-3 text-sm text-vw-muted">
+                        <div className="w-1.5 h-1.5 rounded-full bg-vw-accent" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+                    className="mt-6 w-full py-2.5 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
+                    Mulai Belanja
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ====== SERVICES ====== */}
-        <section id="layanan" className="py-24 sm:py-32 px-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-vw-accent/[0.02] via-transparent to-transparent pointer-events-none" />
-          <div className="max-w-6xl mx-auto relative">
-            <FadeIn className="mb-16 max-w-2xl">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.services.title")}</h2>
-              <p className="text-base text-vw-muted leading-relaxed">{t("landing.services.desc")}</p>
-            </FadeIn>
+        {/* ====== SERVICES - Bento Grid ====== */}
+        <section id="layanan" className="py-24 sm:py-32 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 mb-16 items-end">
+              <FadeIn>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.services.title")}</h2>
+              </FadeIn>
+              <FadeIn delay={150}>
+                <p className="text-sm text-vw-muted leading-relaxed max-w-md lg:ml-auto">{t("landing.services.desc")}</p>
+              </FadeIn>
+            </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-3 gap-5 mb-5">
               {APP_CARDS.slice(0, 3).map((app, i) => {
                 const Icon = app.icon
                 return (
-                  <FadeIn key={app.name} delay={i * 100}>
-                    <div className="bg-vw-surface rounded-2xl p-7 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center">
-                          <Icon size={20} className="text-vw-accent" />
-                        </div>
-                        {app.badge && (
-                          <span className="px-2.5 py-1 rounded-md bg-vw-accent/[0.1] text-vw-accent text-[10px] font-semibold">{app.badge}</span>
-                        )}
+                  <FadeIn key={app.name} delay={i * 80}>
+                    <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col group">
+                      <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5 group-hover:bg-vw-accent/[0.15] transition-colors">
+                        <Icon size={18} className="text-vw-accent" />
                       </div>
-                      <h3 className="text-lg font-semibold tracking-tight mb-2">{app.name}</h3>
-                      <p className="text-sm text-vw-muted leading-relaxed mb-8 flex-1">{app.desc}</p>
-                      <div className="flex items-center justify-between pt-5 border-t border-vw-border">
-                        <span className="text-xl font-bold">{app.price}<span className="text-xs font-normal text-vw-muted"> /bln</span></span>
+                      <h3 className="text-base font-semibold mb-1.5">{app.name}</h3>
+                      <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">{app.desc}</p>
+                      <div className="flex items-center justify-between pt-4 border-t border-vw-border">
+                        <span className="text-lg font-bold">{app.price}</span>
                         <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
                           className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
                           Pesan
@@ -175,41 +179,50 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               })}
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-5 mt-5">
-              {APP_CARDS.slice(3, 5).map((app, i) => {
-                const Icon = app.icon
-                return (
-                  <FadeIn key={app.name} delay={(i + 3) * 100}>
-                    <div className="bg-vw-surface rounded-2xl p-7 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
-                      <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-6">
-                        <Icon size={20} className="text-vw-accent" />
-                      </div>
-                      <h3 className="text-lg font-semibold tracking-tight mb-2">{app.name}</h3>
-                      <p className="text-sm text-vw-muted leading-relaxed mb-8 flex-1">{app.desc}</p>
-                      <div className="flex items-center justify-between pt-5 border-t border-vw-border">
-                        <span className="text-xl font-bold">{app.price}</span>
-                        <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                          className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
-                          Pesan
-                        </button>
-                      </div>
-                    </div>
-                  </FadeIn>
-                )
-              })}
-              <FadeIn delay={500}>
-                <div className="bg-gradient-to-br from-vw-accent/[0.08] to-vw-accent/[0.02] rounded-2xl p-7 border border-vw-accent/[0.08] h-full flex flex-col justify-between">
-                  <div>
-                    <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.15] flex items-center justify-center mb-6">
-                      <Video size={20} className="text-vw-accent" />
-                    </div>
-                    <h3 className="text-lg font-semibold tracking-tight mb-2">CapCut Pro</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed mb-6">Bebas watermark, semua efek pro, ekspor maksimal.</p>
+            <div className="grid sm:grid-cols-4 gap-5 mb-5">
+              <FadeIn delay={240} className="sm:col-span-2">
+                <div className="bg-vw-accent/[0.06] rounded-2xl p-6 border border-vw-accent/[0.08] h-full flex flex-col">
+                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.15] flex items-center justify-center mb-5">
+                    <Palette size={18} className="text-vw-accent" />
                   </div>
-                  <div className="flex items-center justify-between pt-5 border-t border-vw-accent/[0.1]">
-                    <span className="text-xl font-bold">Rp 18.000</span>
+                  <h3 className="text-base font-semibold mb-1.5">Canva Pro</h3>
+                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">Akses lifetime, template premium, 1TB cloud storage.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-vw-accent/[0.1]">
+                    <span className="text-lg font-bold">Rp 25.000</span>
                     <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                      className="text-sm font-medium text-vw-accent hover:text-white transition-colors bg-vw-accent/[0.1] hover:bg-vw-accent px-3 py-1.5 rounded-lg">
+                      className="text-sm font-medium bg-vw-accent text-white px-3 py-1.5 rounded-lg hover:brightness-110 transition-all">
+                      Pesan
+                    </button>
+                  </div>
+                </div>
+              </FadeIn>
+              <FadeIn delay={320}>
+                <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
+                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5">
+                    <BrainCircuit size={18} className="text-vw-accent" />
+                  </div>
+                  <h3 className="text-base font-semibold mb-1.5">ChatGPT Plus</h3>
+                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-vw-border">
+                    <span className="text-lg font-bold">Rp 49.000</span>
+                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                      className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
+                      Pesan
+                    </button>
+                  </div>
+                </div>
+              </FadeIn>
+              <FadeIn delay={400}>
+                <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
+                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5">
+                    <Video size={18} className="text-vw-accent" />
+                  </div>
+                  <h3 className="text-base font-semibold mb-1.5">CapCut Pro</h3>
+                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">Bebas watermark, semua efek pro, ekspor maksimal.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-vw-border">
+                    <span className="text-lg font-bold">Rp 18.000</span>
+                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                      className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
                       Pesan
                     </button>
                   </div>
@@ -219,29 +232,56 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </div>
         </section>
 
-        {/* ====== STEPS ====== */}
-        <section className="py-24 sm:py-32 px-6 border-t border-vw-border">
+        {/* ====== HOW IT WORKS - Full width flow ====== */}
+        <section className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <FadeIn className="max-w-md">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.steps.title")}</h2>
-                <p className="text-base text-vw-muted leading-relaxed">{t("landing.steps.desc")}</p>
+            <div className="text-center mb-16">
+              <FadeIn>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.steps.title")}</h2>
               </FadeIn>
-              <div className="space-y-8">
+            </div>
+            <div className="grid sm:grid-cols-3 gap-8 sm:gap-12 relative">
+              <div className="hidden sm:block absolute top-12 left-[16.66%] right-[16.66%] h-px bg-vw-border" aria-hidden="true" />
+              {[
+                { icon: Smartphone, label: "Daftar Akun Gratis", desc: "Buat akun dalam 1 menit. Cukup masukkan email dan buat password." },
+                { icon: Wallet, label: "Deposit Saldo", desc: "Isi saldo via QRIS, Virtual Account, E-Wallet, atau Indomaret. Instan." },
+                { icon: ArrowRight, label: "Pesan & Nikmati", desc: "Pilih produk, masukkan target, sistem proses otomatis. Selesai." },
+              ].map((item, i) => (
+                <FadeIn key={item.label} delay={i * 120}>
+                  <div className="text-center sm:text-left relative">
+                    <div className="w-14 h-14 rounded-2xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10">
+                      <item.icon size={22} className="text-vw-accent" />
+                    </div>
+                    <h3 className="text-base font-semibold mb-2">{item.label}</h3>
+                    <p className="text-sm text-vw-muted leading-relaxed max-w-xs mx-auto sm:mx-0">{item.desc}</p>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ====== WHY US - Left heading + right columns ====== */}
+        <section className="py-24 sm:py-32 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
+              <div className="lg:col-span-5">
+                <FadeIn>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance mb-6">{t("landing.why.title")}</h2>
+                  <p className="text-sm text-vw-muted leading-relaxed">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
+                </FadeIn>
+              </div>
+              <div className="lg:col-span-7 space-y-6">
                 {[
-                  { icon: Smartphone, title: "landing.step1.title", desc: "landing.step1.desc" },
-                  { icon: Wallet, title: "landing.step2.title", desc: "landing.step2.desc" },
-                  { icon: Check, title: "landing.step3.title", desc: "landing.step3.desc" },
-                ].map((item, i) => (
-                  <FadeIn key={item.title} delay={i * 120}>
-                    <div className="flex gap-5 items-start group">
-                      <div className="w-10 h-10 rounded-xl bg-vw-surface flex items-center justify-center shrink-0 group-hover:bg-vw-accent/[0.1] transition-colors">
-                        <item.icon size={18} className="text-vw-muted group-hover:text-vw-accent transition-colors" />
-                      </div>
-                      <div className="pt-1">
-                        <h3 className="font-semibold mb-1.5">{t(item.title)}</h3>
-                        <p className="text-sm text-vw-muted leading-relaxed max-w-sm">{t(item.desc)}</p>
-                      </div>
+                  { title: "landing.why1.title", desc: "landing.why1.desc", accent: true },
+                  { title: "landing.why2.title", desc: "landing.why2.desc", accent: false },
+                  { title: "landing.why3.title", desc: "landing.why3.desc", accent: false },
+                  { title: "landing.why4.title", desc: "landing.why4.desc", accent: false },
+                ].map((w, i) => (
+                  <FadeIn key={w.title} delay={i * 80}>
+                    <div className={`p-5 rounded-xl transition-colors ${w.accent ? "bg-vw-accent/[0.06] border border-vw-accent/[0.08]" : "bg-vw-surface"}`}>
+                      <h3 className="text-sm font-semibold mb-1.5">{t(w.title as TranslationKey)}</h3>
+                      <p className="text-sm text-vw-muted leading-relaxed">{t(w.desc as TranslationKey)}</p>
                     </div>
                   </FadeIn>
                 ))}
@@ -250,76 +290,55 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </div>
         </section>
 
-        {/* ====== WHY US + PAYMENT ====== */}
-        <section className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
+        {/* ====== PAYMENT - Simple row ====== */}
+        <section className="pb-24 sm:pb-32 px-6">
           <div className="max-w-6xl mx-auto">
-            <FadeIn className="mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.why.title")}</h2>
-            </FadeIn>
-
-            <div className="grid sm:grid-cols-2 gap-6 mb-20">
-              {WHY_US_KEYS.slice(0, 2).map((w, i) => (
-                <FadeIn key={w.title} delay={i * 100}>
-                  <div className="bg-vw-bg rounded-2xl p-8 h-full">
-                    <h3 className="text-lg font-semibold tracking-tight mb-3">{t(w.title)}</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed">{t(w.desc)}</p>
-                  </div>
-                </FadeIn>
-              ))}
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              {WHY_US_KEYS.slice(2, 4).map((w, i) => (
-                <FadeIn key={w.title} delay={(i + 2) * 100}>
-                  <div className="bg-vw-bg rounded-2xl p-8 h-full">
-                    <h3 className="text-lg font-semibold tracking-tight mb-3">{t(w.title)}</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed">{t(w.desc)}</p>
-                  </div>
-                </FadeIn>
-              ))}
-            </div>
-
-            <FadeIn delay={400} className="mt-20">
-              <div className="border-t border-vw-border pt-12">
-                <h3 className="text-lg font-semibold tracking-tight mb-2">{t("landing.payment.title")}</h3>
-                <p className="text-sm text-vw-muted mb-8 max-w-lg">{t("landing.payment.desc")}</p>
-                <div className="flex flex-wrap gap-3">
+            <div className="border-t border-vw-border pt-12">
+              <div className="grid lg:grid-cols-3 gap-8 items-center">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1.5">{t("landing.payment.title")}</h3>
+                  <p className="text-sm text-vw-muted leading-relaxed">{t("landing.payment.desc")}</p>
+                </div>
+                <div className="lg:col-span-2 flex flex-wrap gap-3">
                   {[
-                    { icon: Smartphone, name: "QRIS" },
-                    { icon: Banknote, name: "Transfer" },
-                    { icon: Wallet, name: "E-Wallet" },
-                    { icon: Store, name: "Retail" },
+                    { icon: Smartphone, name: "QRIS", desc: "GoPay, DANA, OVO" },
+                    { icon: Banknote, name: "Transfer Bank", desc: "BCA, Mandiri, BNI" },
+                    { icon: Wallet, name: "E-Wallet", desc: "GoPay, DANA, OVO" },
+                    { icon: Store, name: "Retail", desc: "Indomaret, Alfamart" },
                   ].map((pm) => (
-                    <div key={pm.name} className="flex items-center gap-2.5 bg-vw-bg rounded-xl px-4 py-2.5 border border-vw-border">
-                      <pm.icon size={15} className="text-vw-muted" />
-                      <span className="text-sm font-medium">{pm.name}</span>
+                    <div key={pm.name} className="flex items-center gap-3 bg-vw-surface border border-vw-border rounded-xl px-4 py-3">
+                      <pm.icon size={16} className="text-vw-accent shrink-0" />
+                      <div>
+                        <div className="text-sm font-medium">{pm.name}</div>
+                        <div className="text-[11px] text-vw-muted">{pm.desc}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </FadeIn>
+            </div>
           </div>
         </section>
 
         {/* ====== FAQ ====== */}
-        <section id="faq" className="py-24 sm:py-32 px-6">
+        <section id="faq" className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
           <div className="max-w-2xl mx-auto">
-            <FadeIn className="mb-16 text-center">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.faq.title")}</h2>
+            <FadeIn className="mb-16">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.faq.title")}</h2>
             </FadeIn>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {FAQS.map((faq, i) => (
-                <div key={faq.q} className="bg-vw-surface rounded-xl overflow-hidden">
+                <div key={faq.q} className="bg-vw-bg rounded-xl overflow-hidden border border-vw-border">
                   <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-vw-bg transition-colors">
+                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-vw-surface transition-colors">
                     <span className="text-sm font-medium pr-4">{faq.q}</span>
                     <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-45" : ""}`}>
                       <Plus size={13} className="text-vw-muted" />
                     </div>
                   </button>
                   <div className={`transition-all duration-300 ease-out overflow-hidden ${openFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                    <div className="px-6 pb-5 text-sm text-vw-muted leading-relaxed">{faq.a}</div>
+                    <div className="px-5 pb-5 text-sm text-vw-muted leading-relaxed">{faq.a}</div>
                   </div>
                 </div>
               ))}
@@ -328,21 +347,22 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== CTA ====== */}
-        <section className="py-28 sm:py-36 px-6 text-center relative overflow-hidden border-t border-vw-border">
-          <div className="absolute inset-0 bg-gradient-to-t from-vw-accent/[0.03] to-transparent pointer-events-none" />
-          <div className="max-w-2xl mx-auto relative">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
-            <p className="text-base text-vw-muted mb-10 max-w-md mx-auto">{t("landing.cta.desc")}</p>
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <button onClick={() => navigateTo("auth", "dashboard")}
-                className="px-6 py-3 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
-                {t("landing.cta.register")}
-              </button>
-              <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                className="px-6 py-3 border border-vw-border text-sm font-medium rounded-lg hover:bg-vw-surface active:scale-[0.97] transition-all text-vw-muted hover:text-vw-text">
-                {t("landing.cta.login")}
-              </button>
-            </div>
+        <section className="py-28 sm:py-36 px-6 text-center">
+          <div className="max-w-xl mx-auto">
+            <FadeIn>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
+              <p className="text-sm text-vw-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
+              <div className="flex flex-col sm:flex-row justify-center gap-3">
+                <button onClick={() => navigateTo("auth", "dashboard")}
+                  className="px-6 py-3 bg-vw-accent text-white text-sm font-medium rounded-lg hover:brightness-110 active:scale-[0.97] transition-all">
+                  {t("landing.cta.register")}
+                </button>
+                <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+                  className="px-6 py-3 border border-vw-border text-sm font-medium rounded-lg hover:bg-vw-surface active:scale-[0.97] transition-all text-vw-muted hover:text-vw-text">
+                  {t("landing.cta.login")}
+                </button>
+              </div>
+            </FadeIn>
           </div>
         </section>
       </main>
@@ -350,7 +370,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
       {/* ====== FOOTER ====== */}
       <footer className="border-t border-vw-border py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-7 h-7 bg-vw-text flex items-center justify-center rounded-sm">
@@ -361,7 +381,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <p className="text-sm text-vw-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-vw-muted uppercase tracking-wider mb-4">{t("landing.footer.layanan")}</h4>
+              <h4 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.layanan")}</h4>
               <ul className="space-y-3">
                 {["Netflix Premium", "Spotify Premium", "Canva Pro", "ChatGPT Plus"].map(l => (
                   <li key={l}><a href="#layanan" className="text-sm text-vw-muted hover:text-vw-text transition-colors">{l}</a></li>
@@ -369,17 +389,11 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-vw-muted uppercase tracking-wider mb-4">{t("landing.footer.kontak")}</h4>
+              <h4 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.kontak")}</h4>
               <ul className="space-y-3">
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted">
-                  <HeadphonesIcon size={14} />+62 812-3456-7890
-                </li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted">
-                  <Globe size={14} />@VitalwoundsStore_Bot
-                </li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted">
-                  <MessageSquare size={14} />support@vitalwounds-store.com
-                </li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><HeadphonesIcon size={14} />+62 812-3456-7890</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><Globe size={14} />@VitalwoundsStore_Bot</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><MessageSquare size={14} />support@vitalwounds-store.com</li>
               </ul>
             </div>
           </div>
