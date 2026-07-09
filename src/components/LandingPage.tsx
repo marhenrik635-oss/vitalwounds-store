@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
+import OceanBg from "./OceanBg"
 import type { TranslationKey } from "../i18n/translations"
 import { motion, useReducedMotion } from "framer-motion"
 
@@ -54,7 +55,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-vw-bg text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30">
+    <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30">
+      <OceanBg />
       <div className="grain-overlay" aria-hidden="true" />
       <a href="#content" className="fixed -top-full left-0 z-50 px-4 py-2 bg-vw-text text-vw-bg text-xs font-semibold rounded-br-lg transition-all focus:top-0">Skip to content</a>
 

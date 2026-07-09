@@ -513,6 +513,18 @@ h1, h2, h3, h4, h5, h6 {
 .card-stagger > *:nth-child(7) { animation-delay: 830ms; }
 .card-stagger > *:nth-child(8) { animation-delay: 960ms; }
 
+/* Star twinkle animation */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Ocean wave bob animation */
+@keyframes waveBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-float,
