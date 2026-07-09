@@ -13,11 +13,11 @@
   --font-display: "Outfit", sans-serif;
 
   /* Light mode tokens (forced black) */
-  --color-vw-muted: #9E9E9E;
+  --color-vw-muted: #C0C0C0;
   --color-vw-bg: #0A0A0A; /* Sophisticated black */
   --color-vw-surface: #121212;
   --color-vw-text: #FAFAFA;
-  --color-vw-text-muted: #D4D4D4;
+  --color-vw-text-muted: #E5E5E5;
   --color-vw-border: rgba(255, 255, 255, 0.08);
   --color-vw-border-medium: rgba(255, 255, 255, 0.12);
   --color-vw-accent: #3B82F6;

@@ -71,8 +71,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#layanan" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Layanan</a>
-            <a href="#faq" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">FAQ</a>
+            <a href="#layanan" className="font-display text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Layanan</a>
+            <a href="#faq" className="font-display text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">FAQ</a>
           </nav>
 
           <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
@@ -118,13 +118,13 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 className="lg:col-span-5 flex justify-center lg:justify-end"
               >
                 <div className="w-full max-w-sm bg-vw-surface rounded-[2rem] p-8 border border-vw-border shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                  <div className="font-display text-xs text-vw-text-muted font-bold uppercase tracking-wider mb-4">Mulai dari</div>
+                  <div className="font-display text-xs text-vw-text-muted font-bold uppercase tracking-widest mb-4">Mulai dari</div>
                   <div className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2 text-vw-text">
                     Rp 8.000<span className="text-sm font-normal text-vw-text-muted">/unit</span>
                   </div>
                   <div className="mt-8 space-y-4">
                     {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
-                      <div key={item} className="flex items-center gap-3.5 text-sm text-vw-text-muted font-medium">
+                      <div key={item} className="font-display flex items-center gap-3.5 text-sm text-vw-text-muted font-medium">
                         <div className="w-2 h-2 rounded-full bg-vw-accent shadow-[0_0_8px_rgba(59,130,246,0.3)]" />
                         {item}
                       </div>
@@ -166,7 +166,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                         </div>
                         <div className="flex-1 space-y-1.5">
                           <h3 className="font-display text-lg font-semibold text-vw-text">{app.name}</h3>
-                          <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{app.desc}</p>
+                          <p className="font-display text-sm text-vw-text-muted leading-relaxed max-w-prose">{app.desc}</p>
                         </div>
                         <div className="w-full sm:w-auto pt-4 sm:pt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-vw-border/80 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3">
                           <span className="font-display text-lg font-bold text-vw-text">{app.price}</span>
