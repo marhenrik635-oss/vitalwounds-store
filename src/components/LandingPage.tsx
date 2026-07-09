@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { ArrowRight, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare, ChevronRight } from "lucide-react"
+import { ArrowRight, Plus, Minus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare, ChevronRight } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
 import type { TranslationKey } from "../i18n/translations"
 
@@ -43,6 +43,7 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const [show, setShow] = useState(false)
+  const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
   useEffect(() => {
     const el = ref.current
@@ -53,6 +54,8 @@ function FadeIn({ children, className = "", delay = 0 }: { children: React.React
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
+
+  if (prefersReduced) return <div className={className}>{children}</div>
 
   return (
     <div
@@ -143,7 +146,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </nav>
 
           <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-            className="px-4 py-2 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] transition-colors">
+            className="px-4 py-2 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] active:scale-[0.97] transition-all">
             {isLoggedIn ? t("nav.dashboard") : t("auth.login")}
           </button>
         </div>
@@ -159,7 +162,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 {t("landing.hero.badge")}
               </div>
 
-              <h1 className="text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1.05] text-balance mb-6">
+              <h1 className="text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1.05] text-balance mb-6 text-wrap-balance">
                 {t("landing.hero.h1")}{" "}
                 <span className="text-[#3B82F6]">{t("landing.hero.h1.premium")}</span>{" "}
                 {t("landing.hero.h1.suffix")}
@@ -171,11 +174,11 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                  className="px-6 py-3 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] transition-colors inline-flex items-center gap-2">
+                  className="px-6 py-3 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] active:scale-[0.97] transition-all inline-flex items-center gap-2">
                   {t("landing.hero.cta")} <ArrowRight size={14} />
                 </button>
                 <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                  className="px-6 py-3 border border-white/[0.12] text-sm font-medium rounded-lg hover:bg-white/[0.04] transition-colors text-[#737373] hover:text-[#FAFAFA]">
+                  className="px-6 py-3 border border-white/[0.12] text-sm font-medium rounded-lg hover:bg-white/[0.04] active:scale-[0.97] transition-all text-[#737373] hover:text-[#FAFAFA]">
                   {t("landing.hero.lihat")}
                 </button>
               </div>
@@ -211,7 +214,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section id="layanan" className="py-20 sm:py-28 px-6 bg-white/[0.02] border-t border-white/[0.06]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{t("landing.services.title")}</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.services.title")}</h2>
               <p className="text-[#737373] max-w-xl mx-auto">{t("landing.services.desc")}</p>
             </div>
 
@@ -234,7 +237,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                       <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
                         <span className="text-lg font-semibold">{app.price}</span>
                         <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                          className="text-sm text-[#3B82F6] hover:text-[#60A5FA] transition-colors inline-flex items-center gap-1 font-medium">
+                          className="text-sm text-[#3B82F6] hover:text-[#60A5FA] active:scale-[0.97] transition-all inline-flex items-center gap-1 font-medium">
                           Beli <ChevronRight size={14} />
                         </button>
                       </div>
@@ -250,7 +253,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section className="py-20 sm:py-28 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{t("landing.steps.title")}</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.steps.title")}</h2>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-12 sm:gap-8">
@@ -273,7 +276,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section className="py-20 sm:py-28 px-6 bg-white/[0.02] border-y border-white/[0.06]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{t("landing.why.title")}</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.why.title")}</h2>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -292,7 +295,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{t("landing.payment.title")}</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.payment.title")}</h2>
               <p className="text-[#737373] max-w-xl mx-auto">{t("landing.payment.desc")}</p>
             </div>
 
@@ -317,7 +320,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <section id="faq" className="py-20 sm:py-28 px-6 bg-white/[0.02] border-y border-white/[0.06]">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">{t("landing.faq.title")}</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-balance">{t("landing.faq.title")}</h2>
             </div>
 
             <div className="space-y-3">
@@ -326,8 +329,8 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/[0.02] transition-colors">
                     <span className="text-sm font-medium pr-4">{faq.q}</span>
-                    <div className={`w-6 h-6 rounded-full border border-white/[0.08] flex items-center justify-center shrink-0 transition-transform ${openFaq === i ? "rotate-45" : ""}`}>
-                      <span className="text-[#737373] text-xs">+</span>
+                    <div className={`w-6 h-6 rounded-full border border-white/[0.08] flex items-center justify-center shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-45" : ""}`}>
+                      {openFaq === i ? <Minus size={12} className="text-[#737373]" /> : <Plus size={12} className="text-[#737373]" />}
                     </div>
                   </button>
                   <div className={`transition-all duration-300 ease-out overflow-hidden ${openFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
@@ -346,11 +349,11 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <p className="text-lg text-[#737373] mb-10 max-w-md mx-auto">{t("landing.cta.desc")}</p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <button onClick={() => navigateTo("auth", "dashboard")}
-                className="px-6 py-3 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] transition-colors">
+                className="px-6 py-3 bg-[#FAFAFA] text-[#0A0A0A] text-sm font-medium rounded-lg hover:bg-[#E5E5E5] active:scale-[0.97] transition-all">
                 {t("landing.cta.register")}
               </button>
               <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                className="px-6 py-3 border border-white/[0.12] text-sm font-medium rounded-lg hover:bg-white/[0.04] transition-colors text-[#737373] hover:text-[#FAFAFA]">
+                className="px-6 py-3 border border-white/[0.12] text-sm font-medium rounded-lg hover:bg-white/[0.04] active:scale-[0.97] transition-all text-[#737373] hover:text-[#FAFAFA]">
                 {t("landing.cta.login")}
               </button>
             </div>
