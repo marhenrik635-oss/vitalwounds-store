@@ -36,7 +36,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
         <div className="fixed inset-0 bg-black/15 z-40 lg:hidden" onClick={onToggle} />
       )}
       <aside 
-        className={`fixed inset-y-0 left-0 w-64 z-50 lg:translate-x-0 flex flex-col bg-white border-r border-vw-border/60 transition-transform duration-200 ease-in-out ${
+        className={`fixed inset-y-0 left-0 w-64 z-50 lg:translate-x-0 flex flex-col bg-vw-surface border-r border-vw-border/60 transition-transform duration-200 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
