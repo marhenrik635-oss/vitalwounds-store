@@ -12,33 +12,33 @@
   --font-sans: "Outfit", sans-serif;
   --font-display: "Outfit", sans-serif;
 
-  /* Light mode tokens (forced black) */
-  --color-vw-muted: #E0E0E0;
-  --color-vw-bg: #000000;
-  --color-vw-surface: #121212;
-  --color-vw-text: #FFFFFF;
-  --color-vw-text-muted: #E0E0E0;
-  --color-vw-border: rgba(255, 255, 255, 0.08);
-  --color-vw-border-medium: rgba(255, 255, 255, 0.12);
+  /* === LIGHT MODE (default) === */
+  --color-vw-bg: #F8F9FA;
+  --color-vw-surface: #FFFFFF;
+  --color-vw-text: #1A1A2E;
+  --color-vw-text-muted: #6B7280;
+  --color-vw-muted: #9CA3AF;
+  --color-vw-border: rgba(0, 0, 0, 0.08);
+  --color-vw-border-medium: rgba(0, 0, 0, 0.12);
   --color-vw-accent: #3B82F6;
-  --color-vw-accent-hover: #60A5FA;
-  --color-vw-accent-light: rgba(59, 130, 246, 0.12);
-  --color-vw-accent-subtle: rgba(59, 130, 246, 0.06);
+  --color-vw-accent-hover: #2563EB;
+  --color-vw-accent-light: rgba(59, 130, 246, 0.1);
+  --color-vw-accent-subtle: rgba(59, 130, 246, 0.05);
 
-  /* Shadow tokens */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
-  --shadow-btn: 0 4px 12px rgba(37, 99, 235, 0.2);
-  --shadow-btn-hover: 0 8px 24px rgba(37, 99, 235, 0.3);
+  /* Shadow tokens — light mode */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.1);
+  --shadow-btn: 0 4px 12px rgba(37, 99, 235, 0.15);
+  --shadow-btn-hover: 0 8px 24px rgba(37, 99, 235, 0.25);
 
-  /* Easing curves — NOT duration settings, just motion quality */
+  /* Easing curves */
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-smooth: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Dark mode overrides — supports both system preference AND manual .dark class */
+/* === DARK MODE — via system preference (fallback, no .light class) === */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     --color-vw-bg: #0A0A0A;
@@ -58,6 +58,7 @@
   }
 }
 
+/* === DARK MODE — manual toggle via .dark class === */
 html.dark {
   --color-vw-bg: #0A0A0A;
   --color-vw-surface: #121212;
@@ -75,15 +76,36 @@ html.dark {
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
+/* === LIGHT MODE — manual toggle via .light class (overrides system dark) === */
+html.light {
+  --color-vw-bg: #F8F9FA;
+  --color-vw-surface: #FFFFFF;
+  --color-vw-text: #1A1A2E;
+  --color-vw-text-muted: #6B7280;
+  --color-vw-muted: #9CA3AF;
+  --color-vw-border: rgba(0, 0, 0, 0.08);
+  --color-vw-border-medium: rgba(0, 0, 0, 0.12);
+  --color-vw-accent: #3B82F6;
+  --color-vw-accent-hover: #2563EB;
+  --color-vw-accent-light: rgba(59, 130, 246, 0.1);
+  --color-vw-accent-subtle: rgba(59, 130, 246, 0.05);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.1);
+  --shadow-btn: 0 4px 12px rgba(37, 99, 235, 0.15);
+  --shadow-btn-hover: 0 8px 24px rgba(37, 99, 235, 0.25);
+}
+
+/* === Dark mode: override bg-white utilities to use surface bg === */
+html.dark .bg-white,
+html.dark [class*="bg-white/"],
 html.dark .card,
 html.dark .nest-card,
 html.dark .table-wrap,
 html.dark .input-field,
 html.dark button.btn-ghost,
 html.dark select,
-html.dark [class*="btn-ghost"],
-html.dark .bg-white,
-html.dark [class*="bg-white/"] {
+html.dark [class*="btn-ghost"] {
   background-color: var(--color-vw-surface) !important;
 }
 
@@ -95,20 +117,11 @@ html.dark img[class*="invert-on-dark"] {
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* Force black theme globally */
-.bg-white, [class*="bg-white/"] {
-  background-color: var(--color-vw-surface) !important;
-}
-
-/* Also ensure text-white doesn't conflict */
-.text-white {
-  color: var(--color-vw-text) !important;
-}
-
+/* === html defaults — dynamic via CSS vars === */
 html {
   scroll-behavior: smooth;
   background-color: var(--color-vw-bg);
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 body {
@@ -373,7 +386,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0.5rem;
 }
 
-/* Staggered delay utilities — wide gaps so each element appears one by one */
+/* Staggered delay utilities */
 .delay-1 { animation-delay: 200ms; }
 .delay-2 { animation-delay: 400ms; }
 .delay-3 { animation-delay: 600ms; }
@@ -406,7 +419,7 @@ h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
 
-/* Staggered entry for lists — slow cascade, each item fades in one at a time */
+/* Staggered entry for lists */
 .stagger-enter > * {
   opacity: 0;
   animation: fadeInUp 1000ms var(--ease-out-expo) forwards;
@@ -451,7 +464,7 @@ h1, h2, h3, h4, h5, h6 {
   display: none;
 }
 
-/* === Hero entry animation — dramatic fade-in + slide ====== */
+/* === Hero entry animation === */
 @keyframes heroFadeIn {
   0%   { opacity: 0; transform: translateY(40px) scale(0.97); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -466,7 +479,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-enter-d3 { animation-delay: 400ms; }
 .hero-enter-d4 { animation-delay: 600ms; }
 
-/* Stats strip — fades in after hero with a slight push */
+/* Stats strip */
 @keyframes statsFadeIn {
   0%   { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -476,7 +489,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: statsFadeIn 700ms cubic-bezier(0.16, 1, 0.3, 1) 800ms forwards;
 }
 
-/* Section reveal — used by Reveal component for below-fold sections */
+/* Section reveal */
 @keyframes sectionReveal {
   0%   { opacity: 0; transform: translateY(36px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -486,7 +499,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: sectionReveal 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Card stagger — for grid children */
+/* Card stagger */
 .card-stagger > * {
   opacity: 0;
   animation: sectionReveal 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
