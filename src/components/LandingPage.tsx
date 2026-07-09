@@ -63,32 +63,28 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }}
             className="flex items-center gap-3 group">
-            <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg group-hover:scale-[0.97] transition-transform shadow-[0_0_8px_rgba(250,250,250,0.08)]">
+            <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg group-hover:scale-[0.97] transition-transform">
               <span className="text-vw-bg font-bold text-xs">VW</span>
             </div>
             <span className="font-semibold tracking-tight text-vw-text">Vitalwounds</span>
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#layanan" className="text-sm font-medium text-vw-muted hover:text-vw-text transition-colors">Layanan</a>
-            <a href="#faq" className="text-sm font-medium text-vw-muted hover:text-vw-text transition-colors">FAQ</a>
+            <a href="#layanan" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Layanan</a>
+            <a href="#faq" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">FAQ</a>
           </nav>
 
           <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-            className="px-5 py-2.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_12px_rgba(59,130,246,0.15)] hover:shadow-[0_0_16px_rgba(59,130,246,0.25)]">
+            className="px-5 py-2.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
             {isLoggedIn ? t("nav.dashboard") : t("auth.login")}
           </button>
         </div>
       </header>
 
       <main id="content">
-        {/* ====== HERO - Asymmetric Split ====== */}
-        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-20 px-6 min-h-[90dvh] flex items-center overflow-hidden">
-          {/* Background glow */}
-          <div className="absolute top-1/3 -left-20 w-[400px] h-[400px] rounded-full bg-vw-accent/5 blur-[100px] pointer-events-none" aria-hidden="true" />
-          <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full bg-vw-accent/[0.03] blur-[80px] pointer-events-none" aria-hidden="true" />
-
-          <div className="max-w-6xl mx-auto w-full relative z-10">
+        {/* ====== HERO ====== */}
+        <section className="relative pt-24 sm:pt-28 md:pt-32 pb-20 px-6 min-h-[90dvh] flex items-center">
+          <div className="max-w-6xl mx-auto w-full">
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               <motion.div 
                 {...(reduceMotion ? {} : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } })}
@@ -96,21 +92,21 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               >
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.05] text-balance">
                   {t("landing.hero.h1")}{" "}
-                  <span className="text-vw-accent drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]">{t("landing.hero.h1.premium")}</span>{" "}
+                  <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
                   {t("landing.hero.h1.suffix")}
                 </h1>
 
-                <p className="text-base sm:text-lg text-vw-muted leading-relaxed max-w-md">
+                <p className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-md">
                   {t("landing.hero.desc")}
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                    className="px-6 py-3.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                    className="px-6 py-3.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
                     {t("landing.hero.cta")} <ArrowRight size={16} />
                   </button>
                   <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                    className="px-6 py-3.5 border border-vw-border hover:border-vw-muted hover:bg-vw-surface text-sm font-semibold rounded-xl active:scale-[0.98] transition-all text-vw-muted hover:text-vw-text">
+                    className="px-6 py-3.5 border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface text-sm font-semibold rounded-xl active:scale-[0.98] transition-all text-vw-text-muted hover:text-vw-text">
                     {t("landing.hero.lihat")}
                   </button>
                 </div>
@@ -121,20 +117,20 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 className="lg:col-span-5 flex justify-center lg:justify-end"
               >
                 <div className="w-full max-w-sm bg-vw-surface rounded-2xl p-8 border border-vw-border">
-                  <p className="text-xs text-vw-muted font-bold mb-4">Mulai dari</p>
+                  <p className="text-xs text-vw-text-muted font-bold mb-4">Mulai dari</p>
                   <div className="text-4xl sm:text-5xl font-bold tracking-tight mb-2 text-vw-text">
-                    Rp 8.000<span className="text-sm font-normal text-vw-muted">/unit</span>
+                    Rp 8.000<span className="text-sm font-normal text-vw-text-muted">/unit</span>
                   </div>
                   <div className="mt-8 space-y-4">
                     {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
-                      <div key={item} className="flex items-center gap-3.5 text-sm text-vw-muted font-medium">
-                        <div className="w-2 h-2 rounded-full bg-vw-accent shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+                      <div key={item} className="flex items-center gap-3.5 text-sm text-vw-text-muted font-medium">
+                        <div className="w-2 h-2 rounded-full bg-vw-accent" />
                         {item}
                       </div>
                     ))}
                   </div>
                   <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                    className="mt-8 w-full py-3.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.01] active:scale-[0.98] transition-all shadow-[0_0_12px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                    className="mt-8 w-full py-3.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.01] active:scale-[0.98] transition-all">
                     Mulai Belanja
                   </button>
                 </div>
@@ -143,7 +139,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </div>
         </section>
 
-        {/* ====== SERVICES - Icon Stacked Above Heading ====== */}
+        {/* ====== SERVICES ====== */}
         <section id="layanan" className="py-24 sm:py-32 px-6 border-t border-vw-border">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 mb-20 items-end">
@@ -151,7 +147,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.services.title")}</h2>
               </motion.div>
               <motion.div {...animProps(100)}>
-                <p className="text-sm sm:text-base text-vw-muted leading-relaxed max-w-md lg:ml-auto">{t("landing.services.desc")}</p>
+                <p className="text-sm sm:text-base text-vw-text-muted leading-relaxed max-w-md lg:ml-auto">{t("landing.services.desc")}</p>
               </motion.div>
             </div>
 
@@ -163,15 +159,14 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   const Icon = app.icon
                   return (
                     <motion.div key={app.name} {...animProps(i * 100)}>
-                      <div className="bg-vw-surface rounded-2xl p-6 sm:p-8 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 group">
-                        {/* Icon stacked above heading */}
-                        <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center mb-4 group-hover:bg-vw-accent/[0.15] group-hover:shadow-[0_0_12px_rgba(59,130,246,0.1)] transition-all">
+                      <div className="bg-vw-surface rounded-2xl p-6 sm:p-8 border border-vw-border hover:border-vw-accent/30 transition-all duration-300">
+                        <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center mb-4 transition-all">
                           <Icon size={20} className="text-vw-accent" />
                         </div>
                         <div className="flex sm:flex-row flex-col sm:items-center gap-4 sm:gap-6">
                           <div className="flex-1 space-y-1.5">
                             <h3 className="text-lg font-semibold text-vw-text">{app.name}</h3>
-                            <p className="text-sm text-vw-muted leading-relaxed max-w-prose">{app.desc}</p>
+                            <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{app.desc}</p>
                           </div>
                           <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 pt-4 sm:pt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-vw-border/60">
                             <span className="text-lg font-bold text-vw-text">{app.price}</span>
@@ -193,22 +188,22 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
                 {/* Canva Pro featured */}
                 <motion.div {...animProps(150)}>
-                  <div className="bg-vw-accent/[0.03] rounded-2xl p-6 sm:p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300 group">
+                  <div className="bg-vw-accent/[0.03] rounded-2xl p-6 sm:p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300">
                     <div className="flex justify-between items-start mb-5">
-                      <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center group-hover:shadow-[0_0_12px_rgba(59,130,246,0.1)] transition-all">
+                      <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center transition-all">
                         <Palette size={20} className="text-vw-accent" />
                       </div>
                       <span className="text-[10px] font-bold text-vw-accent bg-vw-accent/[0.1] px-3 py-1 rounded-full">POPULAR</span>
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-vw-text">Canva Pro</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed mb-8 max-w-prose">Akses lifetime, template premium, 1TB cloud storage untuk kebutuhan desain profesional tanpa batas.</p>
+                    <p className="text-sm text-vw-text-muted leading-relaxed mb-8 max-w-prose">Akses lifetime, template premium, 1TB cloud storage untuk kebutuhan desain profesional tanpa batas.</p>
                     <div className="flex items-center justify-between pt-6 border-t border-vw-accent/[0.12]">
                       <div>
-                        <span className="text-[10px] text-vw-muted block mb-0.5">Harga Spesial</span>
+                        <span className="text-[10px] text-vw-text-muted block mb-0.5">Harga Spesial</span>
                         <span className="text-xl font-bold text-vw-text">Rp 25.000</span>
                       </div>
                       <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                        className="text-sm font-semibold bg-vw-accent hover:bg-vw-accent-hover text-white px-5 py-2.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_10px_rgba(59,130,246,0.12)] hover:shadow-[0_0_16px_rgba(59,130,246,0.25)]">
+                        className="text-sm font-semibold bg-vw-accent hover:bg-vw-accent-hover text-white px-5 py-2.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                         Pesan Sekarang
                       </button>
                     </div>
@@ -221,13 +216,13 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     const Icon = app.icon
                     return (
                       <motion.div key={app.name} {...animProps(200 + i * 100)} className="h-full">
-                        <div className="bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between group">
+                        <div className="bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between">
                           <div>
-                            <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center mb-4 group-hover:bg-vw-accent/[0.1] group-hover:shadow-[0_0_10px_rgba(59,130,246,0.08)] transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center mb-4 transition-all">
                               <Icon size={18} className="text-vw-accent" />
                             </div>
                             <h3 className="text-base font-semibold mb-1 text-vw-text">{app.name}</h3>
-                            <p className="text-xs text-vw-muted leading-relaxed mb-6 max-w-prose">{app.desc}</p>
+                            <p className="text-xs text-vw-text-muted leading-relaxed mb-6 max-w-prose">{app.desc}</p>
                           </div>
                           <div className="flex items-center justify-between pt-4 border-t border-vw-border/60 mt-auto">
                             <span className="text-base font-bold text-vw-text">{app.price}</span>
@@ -262,12 +257,12 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 { icon: ArrowRight, label: "Pesan & Nikmati", desc: "Pilih produk, masukkan target, sistem proses otomatis. Selesai." },
               ].map((item, i) => (
                 <motion.div key={item.label} {...animProps(i * 120)}>
-                  <div className="text-center sm:text-left relative group">
-                    <div className="w-14 h-14 rounded-2xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10 group-hover:shadow-[0_0_12px_rgba(59,130,246,0.08)] transition-all">
+                  <div className="text-center sm:text-left relative">
+                    <div className="w-14 h-14 rounded-2xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10 transition-all">
                       <item.icon size={22} className="text-vw-accent" />
                     </div>
                     <h3 className="text-lg font-semibold mb-2 text-vw-text">{item.label}</h3>
-                    <p className="text-sm text-vw-muted leading-relaxed max-w-xs mx-auto sm:mx-0">{item.desc}</p>
+                    <p className="text-sm text-vw-text-muted leading-relaxed max-w-xs mx-auto sm:mx-0">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -282,7 +277,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <div className="lg:col-span-5">
                 <motion.div {...animProps()}>
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance mb-6">{t("landing.why.title")}</h2>
-                  <p className="text-sm sm:text-base text-vw-muted leading-relaxed max-w-prose">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
+                  <p className="text-sm sm:text-base text-vw-text-muted leading-relaxed max-w-prose">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
                 </motion.div>
               </div>
               <div className="lg:col-span-7 space-y-6">
@@ -295,7 +290,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   <motion.div key={w.title} {...animProps(i * 80)}>
                     <div className={`p-6 rounded-2xl transition-colors border ${w.accent ? "bg-vw-accent/[0.04] border-vw-accent/[0.15]" : "bg-vw-surface border-vw-border"}`}>
                       <h3 className="text-base font-semibold mb-2 text-vw-text">{t(w.title as TranslationKey)}</h3>
-                      <p className="text-sm text-vw-muted leading-relaxed max-w-prose">{t(w.desc as TranslationKey)}</p>
+                      <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{t(w.desc as TranslationKey)}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -311,7 +306,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <div className="grid lg:grid-cols-3 gap-8 items-start">
                 <motion.div {...animProps()}>
                   <h3 className="text-lg font-semibold mb-2 text-vw-text">{t("landing.payment.title")}</h3>
-                  <p className="text-sm text-vw-muted leading-relaxed max-w-prose">{t("landing.payment.desc")}</p>
+                  <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{t("landing.payment.desc")}</p>
                 </motion.div>
                 <div className="lg:col-span-2 flex flex-wrap gap-4">
                   {[
@@ -325,7 +320,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                         <pm.icon size={18} className="text-vw-accent shrink-0" />
                         <div>
                           <div className="text-sm font-semibold text-vw-text">{pm.name}</div>
-                          <div className="text-[11px] font-medium text-vw-muted">{pm.desc}</div>
+                          <div className="text-[11px] font-medium text-vw-text-muted">{pm.desc}</div>
                         </div>
                       </div>
                     </motion.div>
@@ -356,7 +351,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     </div>
                   </button>
                   <div className={`transition-all duration-300 ease-out overflow-hidden ${openFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                    <div className="pb-4 pt-1 text-sm text-vw-muted leading-relaxed max-w-prose">{faq.a}</div>
+                    <div className="pb-4 pt-1 text-sm text-vw-text-muted leading-relaxed max-w-prose">{faq.a}</div>
                   </div>
                 </div>
               ))}
@@ -369,14 +364,14 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="max-w-xl mx-auto">
             <motion.div {...animProps()}>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
-              <p className="text-sm sm:text-base text-vw-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
+              <p className="text-sm sm:text-base text-vw-text-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <button onClick={() => navigateTo("auth", "dashboard")}
-                  className="px-6 py-3 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_12px_rgba(59,130,246,0.15)] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                  className="px-6 py-3 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                   {t("landing.cta.register")}
                 </button>
                 <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
-                  className="px-6 py-3 border border-vw-border hover:border-vw-muted hover:bg-vw-surface text-sm font-semibold rounded-xl active:scale-[0.98] transition-all text-vw-muted hover:text-vw-text">
+                  className="px-6 py-3 border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface text-sm font-semibold rounded-xl active:scale-[0.98] transition-all text-vw-text-muted hover:text-vw-text">
                   {t("landing.cta.login")}
                 </button>
               </div>
@@ -391,35 +386,35 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg shadow-[0_0_8px_rgba(250,250,250,0.08)]">
+                <div className="w-8 h-8 bg-vw-text flex items-center justify-center rounded-lg">
                   <span className="text-vw-bg font-bold text-xs">VW</span>
                 </div>
                 <span className="font-semibold tracking-tight text-vw-text">Vitalwounds</span>
               </div>
-              <p className="text-sm text-vw-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
+              <p className="text-sm text-vw-text-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-vw-muted mb-4">{t("landing.footer.layanan")}</p>
+              <p className="text-xs font-bold text-vw-text-muted mb-4">{t("landing.footer.layanan")}</p>
               <ul className="space-y-3">
                 {["Netflix Premium", "Spotify Premium", "Canva Pro", "ChatGPT Plus"].map(l => (
-                  <li key={l}><a href="#layanan" className="text-sm text-vw-muted hover:text-vw-text transition-colors">{l}</a></li>
+                  <li key={l}><a href="#layanan" className="text-sm text-vw-text-muted hover:text-vw-text transition-colors">{l}</a></li>
                 ))}
               </ul>
             </div>
             <div>
-              <p className="text-xs font-bold text-vw-muted mb-4">{t("landing.footer.kontak")}</p>
+              <p className="text-xs font-bold text-vw-text-muted mb-4">{t("landing.footer.kontak")}</p>
               <ul className="space-y-3">
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><HeadphonesIcon size={14} className="text-vw-accent" />+62 812-3456-7890</li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><Globe size={14} className="text-vw-accent" />@VitalwoundsStore_Bot</li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-muted"><MessageSquare size={14} className="text-vw-accent" />support@vitalwounds-store.com</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><HeadphonesIcon size={14} className="text-vw-accent" />+62 812-3456-7890</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><Globe size={14} className="text-vw-accent" />@VitalwoundsStore_Bot</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><MessageSquare size={14} className="text-vw-accent" />support@vitalwounds-store.com</li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-vw-border flex flex-col sm:flex-row justify-between items-center gap-4">
-            <span className="text-xs text-vw-muted">&copy; 2026 Vitalwounds Store. {t("landing.footer.copyright")}</span>
+            <span className="text-xs text-vw-text-muted">&copy; 2026 Vitalwounds Store. {t("landing.footer.copyright")}</span>
             <div className="flex gap-6">
-              <span className="text-xs text-vw-muted">{t("landing.footer.privacy")}</span>
-              <span className="text-xs text-vw-muted">{t("landing.footer.terms")}</span>
+              <span className="text-xs text-vw-text-muted">{t("landing.footer.privacy")}</span>
+              <span className="text-xs text-vw-text-muted">{t("landing.footer.terms")}</span>
             </div>
           </div>
         </div>
