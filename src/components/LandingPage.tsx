@@ -162,7 +162,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 {t("landing.hero.badge")}
               </div>
 
-              <h1 className="text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1.05] text-balance mb-6 text-wrap-balance">
+              <h1 className="text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1.05] text-balance mb-6">
                 {t("landing.hero.h1")}{" "}
                 <span className="text-[#3B82F6]">{t("landing.hero.h1.premium")}</span>{" "}
                 {t("landing.hero.h1.suffix")}
