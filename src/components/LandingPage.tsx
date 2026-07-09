@@ -97,7 +97,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="max-w-6xl mx-auto w-full">
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-7 space-y-6 max-w-xl">
-                <h1 className="font-display text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1] text-balance">
+                <h1 className="font-display text-[2.2rem] sm:text-[3.5rem] lg:text-[4.5rem] font-bold tracking-[-0.04em] leading-[1.1] text-balance">
                   {t("landing.hero.h1")}{" "}
                   <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
                   {t("landing.hero.h1.suffix")}
@@ -291,9 +291,9 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   { title: "landing.why4.title", desc: "landing.why4.desc", accent: false },
                 ].map((w, i) => (
                   <FadeIn key={w.title} delay={i * 80}>
-                    <div className={`p-5 rounded-xl transition-colors ${w.accent ? "bg-vw-accent/[0.06] border border-vw-accent/[0.08]" : "bg-vw-surface"}`}>
-                      <h3 className="text-sm font-semibold mb-1.5">{t(w.title as TranslationKey)}</h3>
-                      <p className="text-sm text-vw-muted leading-relaxed">{t(w.desc as TranslationKey)}</p>
+                    <div className={`p-6 rounded-2xl transition-colors ${w.accent ? "bg-vw-accent/[0.06] border border-vw-accent/[0.1]" : "bg-vw-surface border border-vw-border"}`}>
+                      <h3 className="font-display text-base font-semibold mb-2 text-vw-text">{t(w.title as TranslationKey)}</h3>
+                      <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{t(w.desc as TranslationKey)}</p>
                     </div>
                   </FadeIn>
                 ))}
