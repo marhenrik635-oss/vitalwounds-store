@@ -383,6 +383,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   const Icon = pm.icon
                   const iconBgColors = ["bg-emerald-50", "bg-blue-50", "bg-purple-50", "bg-amber-50"]
                   const iconTextColors = ["text-emerald-600", "text-blue-600", "text-purple-600", "text-amber-600"]
+                  const iconBorderColors = ["border-emerald-200", "border-blue-200", "border-purple-200", "border-amber-200"]
                   return (
                     <Reveal key={pm.key} delay={i * 100} className={`border p-6 flex items-center gap-5 rounded-2xl transition-all duration-300 hover:border-vw-accent hover:shadow-lg ${i % 2 === 0 ? 'bg-vw-surface' : 'bg-vw-surface'}`}>
                       <div className={`w-12 h-12 rounded-xl ${iconBgColors[i]} flex items-center justify-center shrink-0 border ${iconBorderColors[i]}`}>
