@@ -4,16 +4,20 @@
 @import "@fontsource/geist-sans/600.css";
 @import "@fontsource/geist-sans/700.css";
 @import "@fontsource/geist-sans/800.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
 
 @theme {
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", sans-serif;
 
   /* Light mode tokens (forced black) */
-  --color-vw-muted: #737373;
+  --color-vw-muted: #9E9E9E;
   --color-vw-bg: #0A0A0A; /* Sophisticated black */
   --color-vw-surface: #121212;
   --color-vw-text: #FAFAFA;
-  --color-vw-text-muted: #A3A3A3;
+  --color-vw-text-muted: #D4D4D4;
   --color-vw-border: rgba(255, 255, 255, 0.08);
   --color-vw-border-medium: rgba(255, 255, 255, 0.12);
   --color-vw-accent: #3B82F6;
@@ -40,8 +44,8 @@
     --color-vw-bg: #0A0A0A;
     --color-vw-surface: #121212;
     --color-vw-text: #FAFAFA;
-    --color-vw-text-muted: #A3A3A3;
-    --color-vw-muted: #737373;
+    --color-vw-text-muted: #D4D4D4;
+    --color-vw-muted: #9E9E9E;
     --color-vw-border: rgba(255, 255, 255, 0.08);
     --color-vw-border-medium: rgba(255, 255, 255, 0.12);
     --color-vw-accent: #3B82F6;
@@ -58,8 +62,8 @@ html.dark {
   --color-vw-bg: #0A0A0A;
   --color-vw-surface: #121212;
   --color-vw-text: #FAFAFA;
-  --color-vw-text-muted: #A3A3A3;
-  --color-vw-muted: #737373;
+  --color-vw-text-muted: #D4D4D4;
+  --color-vw-muted: #9E9E9E;
   --color-vw-border: rgba(255, 255, 255, 0.08);
   --color-vw-border-medium: rgba(255, 255, 255, 0.12);
   --color-vw-accent: #3B82F6;

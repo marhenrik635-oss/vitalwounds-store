@@ -97,13 +97,13 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="max-w-6xl mx-auto w-full">
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-7 space-y-6 max-w-xl">
-                <h1 className="text-[2.2rem] sm:text-[3.2rem] lg:text-[4rem] font-bold tracking-[-0.03em] leading-[1.08] text-balance">
+                <h1 className="font-display text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold tracking-[-0.04em] leading-[1] text-balance">
                   {t("landing.hero.h1")}{" "}
                   <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
                   {t("landing.hero.h1.suffix")}
                 </h1>
 
-                <p className="text-sm sm:text-base text-vw-muted leading-relaxed max-w-lg">
+                <p className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-lg">
                   {t("landing.hero.desc")}
                 </p>
 
@@ -143,91 +143,103 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </div>
         </section>
 
-        {/* ====== SERVICES - Bento Grid ====== */}
+        {/* ====== SERVICES - Asymmetric Layout ====== */}
         <section id="layanan" className="py-24 sm:py-32 px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 mb-16 items-end">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 mb-20 items-end">
               <FadeIn>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">{t("landing.services.title")}</h2>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.services.title")}</h2>
               </FadeIn>
               <FadeIn delay={150}>
-                <p className="text-sm text-vw-muted leading-relaxed max-w-md lg:ml-auto">{t("landing.services.desc")}</p>
+                <p className="text-base text-vw-text-muted leading-relaxed max-w-md lg:ml-auto">{t("landing.services.desc")}</p>
               </FadeIn>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-5 mb-5">
-              {APP_CARDS.slice(0, 3).map((app, i) => {
-                const Icon = app.icon
-                return (
-                  <FadeIn key={app.name} delay={i * 80}>
-                    <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col group">
-                      <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5 group-hover:bg-vw-accent/[0.15] transition-colors">
-                        <Icon size={18} className="text-vw-accent" />
+            {/* Asymmetric Grid Layout to break generic 3-column AI Slop */}
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Premium Streaming (Netflix, Spotify, YT) - Stacked with offset */}
+              <div className="lg:col-span-6 space-y-6">
+                <div className="text-xs uppercase tracking-wider text-vw-accent font-semibold mb-2">Entertainment Essentials</div>
+                {APP_CARDS.slice(0, 3).map((app, i) => {
+                  const Icon = app.icon
+                  return (
+                    <FadeIn key={app.name} delay={i * 100}>
+                      <div className="bg-vw-surface rounded-2xl p-8 hover:bg-vw-surface/80 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center group">
+                        <div className="w-12 h-12 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center shrink-0 group-hover:bg-vw-accent/[0.15] transition-colors">
+                          <Icon size={20} className="text-vw-accent" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <h3 className="text-lg font-semibold text-vw-text">{app.name}</h3>
+                          <p className="text-sm text-vw-text-muted leading-relaxed">{app.desc}</p>
+                        </div>
+                        <div className="w-full sm:w-auto pt-4 sm:pt-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-vw-border flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
+                          <span className="text-lg font-bold text-vw-text">{app.price}</span>
+                          <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                            className="text-xs font-semibold px-4 py-2 bg-vw-accent/[0.1] text-vw-accent rounded-lg hover:bg-vw-accent hover:text-white transition-all">
+                            Pesan
+                          </button>
+                        </div>
                       </div>
-                      <h3 className="text-base font-semibold mb-1.5">{app.name}</h3>
-                      <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">{app.desc}</p>
-                      <div className="flex items-center justify-between pt-4 border-t border-vw-border">
-                        <span className="text-lg font-bold">{app.price}</span>
-                        <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                          className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
-                          Pesan
-                        </button>
+                    </FadeIn>
+                  )
+                })}
+              </div>
+
+              {/* Right Column: Creativity & Productivity (Canva, ChatGPT, CapCut) - Multi-size offset cards */}
+              <div className="lg:col-span-6 lg:mt-12 space-y-6">
+                <div className="text-xs uppercase tracking-wider text-vw-accent font-semibold mb-2">Work & Creation</div>
+                
+                {/* Canva Pro - Asymmetric Featured Card */}
+                <FadeIn delay={200}>
+                  <div className="bg-vw-accent/[0.04] rounded-2xl p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300 flex flex-col group">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-12 h-12 rounded-xl bg-vw-accent/[0.15] flex items-center justify-center">
+                        <Palette size={20} className="text-vw-accent" />
                       </div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-vw-accent bg-vw-accent/[0.1] px-2.5 py-1 rounded-full">POPULAR</span>
                     </div>
-                  </FadeIn>
-                )
-              })}
-            </div>
+                    <h3 className="text-xl font-semibold mb-2 text-vw-text">Canva Pro</h3>
+                    <p className="text-sm text-vw-text-muted leading-relaxed mb-8">Akses lifetime, template premium, 1TB cloud storage untuk kebutuhan desain profesional tanpa batas.</p>
+                    <div className="flex items-center justify-between pt-6 border-t border-vw-accent/[0.15]">
+                      <div>
+                        <span className="text-xs text-vw-muted block">Harga Spesial</span>
+                        <span className="text-xl font-bold text-vw-text">Rp 25.000</span>
+                      </div>
+                      <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                        className="text-sm font-semibold bg-vw-accent text-white px-5 py-2.5 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all">
+                        Pesan Sekarang
+                      </button>
+                    </div>
+                  </div>
+                </FadeIn>
 
-            <div className="grid sm:grid-cols-4 gap-5 mb-5">
-              <FadeIn delay={240} className="sm:col-span-2">
-                <div className="bg-vw-accent/[0.06] rounded-2xl p-6 border border-vw-accent/[0.08] h-full flex flex-col">
-                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.15] flex items-center justify-center mb-5">
-                    <Palette size={18} className="text-vw-accent" />
-                  </div>
-                  <h3 className="text-base font-semibold mb-1.5">Canva Pro</h3>
-                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">Akses lifetime, template premium, 1TB cloud storage.</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-vw-accent/[0.1]">
-                    <span className="text-lg font-bold">Rp 25.000</span>
-                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                      className="text-sm font-medium bg-vw-accent text-white px-3 py-1.5 rounded-lg hover:brightness-110 transition-all">
-                      Pesan
-                    </button>
-                  </div>
+                {/* ChatGPT & CapCut - Side by side or stacked elegantly */}
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {APP_CARDS.slice(4, 6).map((app, i) => {
+                    const Icon = app.icon
+                    return (
+                      <FadeIn key={app.name} delay={300 + i * 100}>
+                        <div className="bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between group">
+                          <div>
+                            <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center mb-4 group-hover:bg-vw-accent/[0.12] transition-colors">
+                              <Icon size={18} className="text-vw-accent" />
+                            </div>
+                            <h3 className="text-base font-semibold mb-1 text-vw-text">{app.name}</h3>
+                            <p className="text-xs text-vw-text-muted leading-relaxed mb-6">{app.desc}</p>
+                          </div>
+                          <div className="flex items-center justify-between pt-4 border-t border-vw-border mt-auto">
+                            <span className="text-base font-bold text-vw-text">{app.price}</span>
+                            <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
+                              className="text-xs font-semibold text-vw-accent hover:text-vw-text transition-colors">
+                              Pesan
+                            </button>
+                          </div>
+                        </div>
+                      </FadeIn>
+                    )
+                  })}
                 </div>
-              </FadeIn>
-              <FadeIn delay={320}>
-                <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
-                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5">
-                    <BrainCircuit size={18} className="text-vw-accent" />
-                  </div>
-                  <h3 className="text-base font-semibold mb-1.5">ChatGPT Plus</h3>
-                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-vw-border">
-                    <span className="text-lg font-bold">Rp 49.000</span>
-                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                      className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
-                      Pesan
-                    </button>
-                  </div>
-                </div>
-              </FadeIn>
-              <FadeIn delay={400}>
-                <div className="bg-vw-surface rounded-2xl p-6 hover:bg-vw-surface/80 transition-all duration-500 h-full flex flex-col">
-                  <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center mb-5">
-                    <Video size={18} className="text-vw-accent" />
-                  </div>
-                  <h3 className="text-base font-semibold mb-1.5">CapCut Pro</h3>
-                  <p className="text-sm text-vw-muted leading-relaxed mb-6 flex-1">Bebas watermark, semua efek pro, ekspor maksimal.</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-vw-border">
-                    <span className="text-lg font-bold">Rp 18.000</span>
-                    <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "layanan/app-premium")}
-                      className="text-sm font-medium text-vw-accent hover:text-vw-text transition-colors">
-                      Pesan
-                    </button>
-                  </div>
-                </div>
-              </FadeIn>
+              </div>
             </div>
           </div>
         </section>
@@ -332,7 +344,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 <div key={faq.q} className="bg-vw-bg rounded-xl overflow-hidden border border-vw-border">
                   <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-vw-surface transition-colors">
-                    <span className="text-sm font-medium pr-4">{faq.q}</span>
+                    <h3 className="text-sm font-medium pr-4">{faq.q}</h3>
                     <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-45" : ""}`}>
                       <Plus size={13} className="text-vw-muted" />
                     </div>
@@ -381,7 +393,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <p className="text-sm text-vw-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.layanan")}</h4>
+              <h3 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.layanan")}</h3>
               <ul className="space-y-3">
                 {["Netflix Premium", "Spotify Premium", "Canva Pro", "ChatGPT Plus"].map(l => (
                   <li key={l}><a href="#layanan" className="text-sm text-vw-muted hover:text-vw-text transition-colors">{l}</a></li>
@@ -389,7 +401,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.kontak")}</h4>
+              <h3 className="text-xs font-semibold text-vw-muted mb-4">{t("landing.footer.kontak")}</h3>
               <ul className="space-y-3">
                 <li className="flex items-center gap-2.5 text-sm text-vw-muted"><HeadphonesIcon size={14} />+62 812-3456-7890</li>
                 <li className="flex items-center gap-2.5 text-sm text-vw-muted"><Globe size={14} />@VitalwoundsStore_Bot</li>
