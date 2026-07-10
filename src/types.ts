@@ -4,7 +4,7 @@ export interface UserProfile {
   phone: string;
   balance: number;
   tier: "Regular" | "Reseller" | "VIP";
-  role: "member" | "admin";
+  role: "member" | "reseller" | "admin" | "owner";
   apiKey: string;
 }
 

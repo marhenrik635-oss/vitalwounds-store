@@ -69,7 +69,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem("vw_role") === "admin");
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => { var r = localStorage.getItem("vw_role"); return r === "admin" || r === "owner"; });
 
   // Authentication states
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
@@ -92,7 +92,7 @@ export default function App() {
         .then(matched => {
           if (matched && !matched.error) {
             const role = matched.role || "member";
-            setIsAdmin(matched.username === "admin" || role === "admin");
+            setIsAdmin(matched.username === "admin" || role === "admin" || role === "owner");
             localStorage.setItem("vw_role", role);
             setUserProfile({
               username: matched.username,
@@ -339,7 +339,7 @@ export default function App() {
         setCurrentUsername(user.username);
         localStorage.setItem("vw_current_user", user.username);
         const role = user.role || "member";
-        setIsAdmin(user.username === "admin" || role === "admin");
+        setIsAdmin(user.username === "admin" || role === "admin" || role === "owner");
         localStorage.setItem("vw_role", role);
         setUserProfile({
           username: user.username, email: user.email || "", phone: user.phone || "",
@@ -416,7 +416,7 @@ export default function App() {
         setCurrentUsername(data.user.username);
         localStorage.setItem("vw_current_user", data.user.username);
         const role = data.user.role || "member";
-        setIsAdmin(data.user.username === "Vitalwounds" || role === "admin");
+        setIsAdmin(data.user.username === "Vitalwounds" || role === "admin" || role === "owner");
         localStorage.setItem("vw_role", role);
         setUserProfile({
           username: data.user.username, email: data.user.email, phone: data.user.phone || "",

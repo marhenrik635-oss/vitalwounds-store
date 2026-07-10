@@ -226,16 +226,30 @@ async function fetchRealProductDetailFromXoftware(productId) {
 }
 
 // === ADMIN MIDDLEWARE ===
+function requireOwner(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+    const token = authHeader.split(' ')[1];
+    db.get('SELECT * FROM users WHERE username = ? AND role = ?', [token, 'owner'], (err, user) => {
+        if (err || !user) {
+            return res.status(403).json({ error: 'Forbidden: Owner access required' });
+        }
+        req.adminUser = user;
+        next();
+    });
+}
+
 function requireAdmin(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
     const token = authHeader.split(' ')[1];
-    // Token is the admin username (simple auth for this app)
-    db.get('SELECT * FROM users WHERE username = ? AND role = ?', [token, 'admin'], (err, user) => {
+    db.get('SELECT * FROM users WHERE username = ? AND (role = ? OR role = ?)', [token, 'owner', 'admin'], (err, user) => {
         if (err || !user) {
-            return res.status(403).json({ error: 'Forbidden: Admin access required' });
+            return res.status(403).json({ error: 'Forbidden: Admin/Owner access required' });
         }
         req.adminUser = user;
         next();
@@ -252,39 +266,57 @@ app.get('/api/admin/check', (req, res) => {
     }
     const token = authHeader.split(' ')[1];
     db.get('SELECT role FROM users WHERE username = ?', [token], (err, user) => {
-        if (err || !user || user.role !== 'admin') {
+        if (err || !user || (user.role !== 'admin' && user.role !== 'owner')) {
             return res.json({ isAdmin: false });
         }
-        res.json({ isAdmin: true, username: token });
+        res.json({ isAdmin: true, username: token, role: user.role });
     });
 });
 
 // Dashboard stats
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
-    const stats = {};
-    db.get('SELECT COUNT(*) as total FROM users', [], (err, row) => { stats.totalUsers = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM users WHERE role = ?', ['member'], (err, row) => { stats.totalMembers = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM deposits', [], (err, row) => { stats.totalDeposits = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM deposits WHERE status = ?', ['pending'], (err, row) => { stats.pendingDeposits = row ? row.total : 0; });
-    db.get('SELECT COALESCE(SUM(amount), 0) as total FROM deposits WHERE status = ?', ['success'], (err, row) => { stats.totalRevenue = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM orders', [], (err, row) => { stats.totalOrders = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM orders WHERE status = ?', ['Processing'], (err, row) => { stats.processingOrders = row ? row.total : 0; });
-    db.get('SELECT COUNT(*) as total FROM tickets WHERE status = ?', ['Open'], (err, row) => { stats.openTickets = row ? row.total : 0; });
-    db.get('SELECT COALESCE(SUM(price), 0) as total FROM orders', [], (err, row) => { stats.totalOrderValue = row ? row.total : 0; });
-    
-    // Recent deposits
-    db.all('SELECT * FROM deposits ORDER BY createdAt DESC LIMIT 5', [], (err, rows) => { stats.recentDeposits = rows || []; });
-    // Recent orders
-    db.all('SELECT * FROM orders ORDER BY rowid DESC LIMIT 5', [], (err, rows) => { stats.recentOrders = rows || []; });
-    // Recent users
-    db.all('SELECT id, username, email, phone, balance, tier, role FROM users ORDER BY id DESC LIMIT 5', [], (err, rows) => { stats.recentUsers = rows || []; });
-    
-    // Weekly revenue (last 7 days)
-    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    db.all(`SELECT DATE(createdAt / 1000, 'unixepoch') as day, COALESCE(SUM(amount), 0) as total FROM deposits WHERE status = 'success' AND createdAt > ? GROUP BY day ORDER BY day`, [weekAgo], (err, rows) => {
-        stats.weeklyRevenue = rows || [];
-        res.json(stats);
-    });
+    var isOwner = req.adminUser.role === 'owner';
+    async function loadStats() {
+        try {
+            var results = await Promise.all([
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM users', [], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM deposits', [], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM deposits WHERE status = ?', ['pending'], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COALESCE(SUM(amount), 0) as total FROM deposits WHERE status = ?', ['success'], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM orders', [], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COALESCE(SUM(price), 0) as total FROM orders', [], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM tickets WHERE status = ?', ['Open'], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM users WHERE role = ?', ['member'], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.get('SELECT COUNT(*) as total FROM orders WHERE status = ?', ['Processing'], function(err, row) { resolve(row ? row.total : 0); }); }),
+                new Promise(function(resolve) { db.all('SELECT * FROM deposits ORDER BY createdAt DESC LIMIT 5', [], function(err, rows) { resolve(rows || []); }); }),
+                new Promise(function(resolve) { db.all('SELECT * FROM orders ORDER BY rowid DESC LIMIT 5', [], function(err, rows) { resolve(rows || []); }); }),
+                new Promise(function(resolve) { db.all('SELECT id, username, email, phone, balance, tier, role FROM users ORDER BY id DESC LIMIT 5', [], function(err, rows) { resolve(rows || []); }); })
+            ]);
+            
+            var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            db.all('SELECT DATE(createdAt / 1000, \'unixepoch\') as day, COALESCE(SUM(amount), 0) as total FROM deposits WHERE status = \'success\' AND createdAt > ? GROUP BY day ORDER BY day', [weekAgo], function(err, weeklyRows) {
+                res.json({
+                    totalUsers: results[0],
+                    totalDeposits: results[1],
+                    pendingDeposits: results[2],
+                    totalRevenue: results[3],
+                    totalOrders: results[4],
+                    totalOrderValue: results[5],
+                    openTickets: results[6],
+                    totalMembers: results[7],
+                    processingOrders: results[8],
+                    recentDeposits: results[9],
+                    recentOrders: results[10],
+                    recentUsers: results[11],
+                    weeklyRevenue: weeklyRows || [],
+                    isOwner: isOwner
+                });
+            });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    }
+    loadStats();
 });
 
 // List all users
@@ -322,6 +354,36 @@ app.post('/api/admin/users/:id/balance', requireAdmin, (req, res) => {
             res.json({ message: 'Balance updated' });
         });
     }
+});
+
+// Update user role (only owner can set role to admin)
+app.post('/api/admin/users/:id/role', requireAdmin, (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    if (!role || ['member','reseller'].indexOf(role) === -1) {
+        // Only owner can set role to admin
+        if (role === 'admin' && req.adminUser.role !== 'owner') {
+            return res.status(403).json({ error: 'Only owner can set admin role' });
+        }
+        if (role !== 'admin' && role !== 'member' && role !== 'reseller' && role !== 'owner') {
+            return res.status(400).json({ error: 'Invalid role. Must be: member, reseller, admin, or owner' });
+        }
+    }
+    // Cannot change role of another admin unless you're owner
+    db.get('SELECT role FROM users WHERE id = ?', [id], function(err, targetUser) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+        if (targetUser.role === 'owner' && req.adminUser.role !== 'owner') {
+            return res.status(403).json({ error: 'Cannot change owner role' });
+        }
+        if (targetUser.role === 'admin' && req.adminUser.role !== 'owner') {
+            return res.status(403).json({ error: 'Only owner can change admin role' });
+        }
+        db.run('UPDATE users SET role = ? WHERE id = ?', [role, id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'Role updated to ' + role });
+        });
+    });
 });
 
 // Update user tier
@@ -410,6 +472,98 @@ app.post('/api/admin/tickets/:id/reply', requireAdmin, (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ message: 'Reply added', ticket: { ...ticket, replies, status: 'Replied' } });
         });
+    });
+});
+
+// === PRODUCT PRICE MANAGEMENT ===
+
+// Get all products with pricing info (for admin price editor)
+app.get('/api/admin/products', requireAdmin, function(req, res) {
+    async function loadProducts() {
+        try {
+            var response = await axios.post(XOFTWARE_WEB_BASE_URL + '/products/list', { clientName: 'Djati', page: 1 }, {
+                headers: { 'authorization': 'Bearer ' + XOFTWARE_JWT, 'cookie': 'SRVGROUP=common', 'content-type': 'application/json' },
+                timeout: 8000
+            });
+            
+            var productsRaw = [];
+            if (response.data && response.data.data && response.data.data.data) {
+                productsRaw = response.data.data.data;
+            }
+            
+            // Get cached prices (overridden prices)
+            db.all('SELECT code, price_min, price_max FROM product_cache', [], function(dbErr, cachedRows) {
+                var priceMap = {};
+                (cachedRows || []).forEach(function(r) { priceMap[r.code] = { price_min: r.price_min, price_max: r.price_max }; });
+                
+                var result = productsRaw.map(function(p) {
+                    var originalPrice = p.price || 0;
+                    var minPrice = Math.round(originalPrice * 0.7); // 70% minimum
+                    var cached = priceMap[p.code];
+                    return {
+                        id: String(p.id),
+                        code: p.code,
+                        name: p.title,
+                        original_price: originalPrice,
+                        current_price: cached ? cached.price_min : originalPrice,
+                        min_price: minPrice,
+                        stock: p.stock || 0,
+                        is_variation: p.is_variation || false
+                    };
+                }).filter(function(p) { return p.name; }).slice(0, 50);
+                
+                res.json({ data: result });
+            });
+        } catch (e) {
+            console.error('Failed to fetch products for admin:', e.message);
+            res.status(500).json({ error: e.message });
+        }
+    }
+    loadProducts();
+});
+
+// Update product price (min 70% of original)
+app.post('/api/admin/products/:code/price', requireAdmin, function(req, res) {
+    var code = req.params.code;
+    var newPrice = req.body.price;
+    
+    if (!newPrice || newPrice < 0) {
+        return res.status(400).json({ error: 'Invalid price' });
+    }
+    
+    // First get the original price from product_cache or xoftware
+    db.get('SELECT price_min, price_max, name FROM product_cache WHERE code = ?', [code], function(err, cached) {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        async function checkAndUpdate() {
+            try {
+                var originalPrice = (cached && cached.price_min) || 0;
+                var minAllowed = Math.round(originalPrice * 0.7);
+                
+                if (req.adminUser.role !== 'owner' && newPrice < minAllowed) {
+                    return res.status(403).json({ error: 'Harga tidak boleh di bawah 70% dari harga asli (min: ' + minAllowed + ')' });
+                }
+                
+                // Update product_cache with new price
+                db.run('UPDATE product_cache SET price_min = ?, updatedAt = ? WHERE code = ?', [newPrice, Date.now(), code], function(updErr) {
+                    if (updErr) return res.status(500).json({ error: updErr.message });
+                    res.json({ message: 'Harga berhasil diperbarui', code: code, new_price: newPrice, min_allowed: minAllowed });
+                });
+            } catch (e) {
+                res.status(500).json({ error: e.message });
+            }
+        }
+        checkAndUpdate();
+    });
+});
+
+// Reset product price to original
+app.post('/api/admin/products/:code/price/reset', requireOwner, function(req, res) {
+    var code = req.params.code;
+    // Reset by setting price_min to 0 (will use original from xoftware)
+    db.run('UPDATE product_cache SET price_min = 0, updatedAt = ? WHERE code = ?', [Date.now(), code], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Harga dikembalikan ke harga asli' });
     });
 });
 
