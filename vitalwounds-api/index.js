@@ -397,10 +397,10 @@ app.post('/api/admin/users/:id/tier', requireAdmin, (req, res) => {
     });
 });
 
-// Delete user
-app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
+// Delete user (owner only)
+app.delete('/api/admin/users/:id', requireOwner, (req, res) => {
     const { id } = req.params;
-    db.run('DELETE FROM users WHERE id = ? AND role != ?', [id, 'admin'], (err) => {
+    db.run('DELETE FROM users WHERE id = ? AND role NOT IN (?, ?)', [id, 'admin', 'owner'], (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User deleted' });
     });

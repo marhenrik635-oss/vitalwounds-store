@@ -98,6 +98,7 @@ app.use(['/api', '/pay'], rawBody, function(req, res) {
       'content-type': req.headers['content-type'] || 'application/octet-stream',
       'content-length': Buffer.byteLength(req.rawBody) || 0,
       'cookie': req.headers.cookie || '',
+      'authorization': req.headers.authorization || '',
       'x-forwarded-for': req.headers['x-forwarded-for'] || req.connection.remoteAddress
     }
   };
