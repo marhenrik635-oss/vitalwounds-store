@@ -16,7 +16,7 @@ app.use(session({
   secret: process.env.KINDE_CLIENT_SECRET || 'secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS locally
+  cookie: { secure: false }
 }));
 
 const PORT = process.env.PORT || 3000;
@@ -45,6 +45,8 @@ const { kindeClient } = setupKinde(app, {
   logoutRedirectUrl: "https://vitalwounds.my.id/",
   grantType: GrantType.AUTHORIZATION_CODE
 });
+
+// No middleware for kindeClient explicitly if not required
 
 app.post('/api/snk', rawBody, function(req, res) {
   var body = req.rawBody;
