@@ -37,14 +37,14 @@ const XO_CLIENT = 'Djati';
 import { setupKinde, GrantType } from "@kinde-oss/kinde-node-express";
 import 'dotenv/config';
 
-const { kindeClient } = setupKinde(app, {
+const { kindeClient } = setupKinde({
   issuerUrl: process.env.KINDE_DOMAIN,
   clientId: process.env.KINDE_CLIENT_ID,
   clientSecret: process.env.KINDE_CLIENT_SECRET,
   redirectUrl: "https://vitalwounds.my.id/api/auth/kinde_callback",
   logoutRedirectUrl: "https://vitalwounds.my.id/",
   grantType: GrantType.AUTHORIZATION_CODE
-});
+}, app);
 
 // No middleware for kindeClient explicitly if not required
 
