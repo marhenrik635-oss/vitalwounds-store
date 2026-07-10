@@ -4,12 +4,21 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import http from 'http';
 import https from 'https';
+import session from 'express-session';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 app.use(compression());
+
+app.use(session({
+  secret: process.env.KINDE_CLIENT_SECRET || 'secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS locally
+}));
+
 const PORT = process.env.PORT || 3000;
 const API_TARGET = process.env.API_TARGET || 'http://localhost:6768';
 
@@ -25,15 +34,15 @@ const XO_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjUzNjc2OCwibmFtZ
 const XO_COOKIE = 'SRVGROUP=common';
 const XO_CLIENT = 'Djati';
 
-import { KindeClient, GrantType } from "@kinde-oss/kinde-typescript-sdk";
+import { setupKinde, GrantType } from "@kinde-oss/kinde-node-express";
 import 'dotenv/config';
 
-const kinde = new KindeClient({
-  domain: process.env.KINDE_DOMAIN,
+const { kindeClient } = setupKinde(app, {
+  issuerUrl: process.env.KINDE_DOMAIN,
   clientId: process.env.KINDE_CLIENT_ID,
   clientSecret: process.env.KINDE_CLIENT_SECRET,
-  redirectURL: "https://vitalwounds.my.id/api/auth/kinde_callback",
-  logoutRedirectURL: "https://vitalwounds.my.id/",
+  redirectUrl: "https://vitalwounds.my.id/api/auth/kinde_callback",
+  logoutRedirectUrl: "https://vitalwounds.my.id/",
   grantType: GrantType.AUTHORIZATION_CODE
 });
 
@@ -96,18 +105,18 @@ app.post('/api/snk', rawBody, function(req, res) {
 
 // --- Kinde Auth Routes ---
 app.get("/api/auth/login", async (req, res) => {
-  const loginUrl = await kinde.login(req);
+  const loginUrl = await kindeClient.login(req);
   res.redirect(loginUrl.toString());
 });
 
 app.get("/api/auth/register", async (req, res) => {
-  const registerUrl = await kinde.register(req);
+  const registerUrl = await kindeClient.register(req);
   res.redirect(registerUrl.toString());
 });
 
 app.get("/api/auth/kinde_callback", async (req, res) => {
   try {
-    await kinde.handleRedirectToApp(req, new URL(req.protocol + '://' + req.get('host') + req.originalUrl));
+    await kindeClient.handleRedirectToApp(req, new URL(req.protocol + '://' + req.get('host') + req.originalUrl));
     res.redirect("/");
   } catch (error) {
     console.error("Callback error:", error);
@@ -116,16 +125,16 @@ app.get("/api/auth/kinde_callback", async (req, res) => {
 });
 
 app.get("/api/auth/logout", async (req, res) => {
-  const logoutUrl = await kinde.logout(req);
+  const logoutUrl = await kindeClient.logout(req);
   res.redirect(logoutUrl.toString());
 });
 
 app.get("/api/auth/me", async (req, res) => {
-  const isAuthenticated = await kinde.isAuthenticated(req);
+  const isAuthenticated = await kindeClient.isAuthenticated(req);
   if (!isAuthenticated) {
     return res.status(401).json({ authenticated: false });
   }
-  const user = await kinde.getUserProfile(req);
+  const user = await kindeClient.getUserProfile(req);
   res.json({ authenticated: true, user });
 });
 

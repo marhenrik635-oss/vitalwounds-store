@@ -88,7 +88,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           <div className="max-w-6xl mx-auto w-full">
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               <motion.div 
-                {...(reduceMotion ? {} : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } })}
+                {...(reduceMotion ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } })}
                 className="lg:col-span-7 space-y-8 max-w-xl"
               >
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.05] text-balance">
@@ -114,7 +114,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               </motion.div>
 
               <motion.div 
-                {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.98 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] } })}
+                {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, transition: { duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] } })}
                 className="lg:col-span-5 flex justify-center lg:justify-end"
               >
                 <div className="w-full max-w-sm bg-vw-surface rounded-2xl p-8 border border-vw-border">
