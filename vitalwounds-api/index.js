@@ -1402,9 +1402,10 @@ app.post('/api/auth/kinder-create', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         
         if (existingByEmail) {
-            // User found by email — update info if needed, but DON'T downgrade role
-            const keepRole = (existingByEmail.role === 'admin' || existingByEmail.role === 'owner') ? existingByEmail.role : finalRole;
-            db.run('UPDATE users SET username = ?, phone = COALESCE(NULLIF(?, ''), phone), role = ? WHERE id = ?',
+            // User found by email — update info. Always use the highest priority role.
+            const rolePriority = { member: 0, reseller: 1, admin: 2, owner: 3 };
+            const keepRole = (rolePriority[finalRole] || 0) > (rolePriority[existingByEmail.role] || 0) ? finalRole : existingByEmail.role;
+            db.run(`UPDATE users SET username = ?, phone = COALESCE(NULLIF(?, ''), phone), role = ? WHERE id = ?`,
                 [username, phone || '', keepRole, existingByEmail.id], (updErr) => {
                     if (updErr) console.error('Failed to update user:', updErr.message);
                     db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE id = ?', [existingByEmail.id], (selErr, user) => {
@@ -1417,7 +1418,7 @@ app.post('/api/auth/kinder-create', (req, res) => {
             db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE username = ?', [username], (err2, existingByUsername) => {
                 if (existingByUsername) {
                     // Username exists but with different email — update email too
-                    db.run('UPDATE users SET email = ?, phone = COALESCE(NULLIF(?, ''), phone) WHERE id = ?',
+                    db.run(`UPDATE users SET email = ?, phone = COALESCE(NULLIF(?, ''), phone) WHERE id = ?`,
                         [email, phone || '', existingByUsername.id], (updErr) => {
                             if (updErr) console.error('Failed to update user:', updErr.message);
                             db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE id = ?', [existingByUsername.id], (selErr, user) => {
