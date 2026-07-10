@@ -37,19 +37,35 @@ const XO_CLIENT = 'Djati';
 import { setupKinde, GrantType } from "@kinde-oss/kinde-node-express";
 import 'dotenv/config';
 
-const { kindeClient } = setupKinde({
-  issuerBaseUrl: process.env.KINDE_DOMAIN,
-  clientId: process.env.KINDE_CLIENT_ID,
-  clientSecret: process.env.KINDE_CLIENT_SECRET,
-  redirectUrl: "https://vitalwounds.my.id/api/auth/kinde_callback",
-  postLogoutRedirectUrl: "https://vitalwounds.my.id/",
-  siteUrl: "https://vitalwounds.my.id/",
-  unAuthorisedUrl: "https://vitalwounds.my.id/",
-  secret: process.env.KINDE_CLIENT_SECRET || 'random-secret-key-at-least-32-chars-long',
-  grantType: GrantType.AUTHORIZATION_CODE
-}, app);
+// Verify KINDE env vars are loaded
+if (!process.env.KINDE_DOMAIN) {
+  console.error('[KINDE] Missing KINDE_DOMAIN env var. Check .env file.');
+  process.exit(1);
+}
 
-// No middleware for kindeClient explicitly if not required
+let kindeClient;
+try {
+  const result = setupKinde({
+    issuerBaseUrl: process.env.KINDE_DOMAIN,
+    clientId: process.env.KINDE_CLIENT_ID,
+    clientSecret: process.env.KINDE_CLIENT_SECRET,
+    redirectUrl: "https://vitalwounds.my.id/api/auth/kinde_callback",
+    postLogoutRedirectUrl: "https://vitalwounds.my.id/",
+    siteUrl: "https://vitalwounds.my.id/",
+    unAuthorisedUrl: "https://vitalwounds.my.id/",
+    secret: process.env.KINDE_CLIENT_SECRET || 'random-secret-key-at-least-32-chars-long',
+    grantType: GrantType.AUTHORIZATION_CODE
+  }, app);
+  kindeClient = result.kindeClient || result;
+  if (!kindeClient) {
+    console.error('[KINDE] Failed: setupKinde returned', result);
+    process.exit(1);
+  }
+  console.log('[KINDE] Client initialized successfully.');
+} catch (e) {
+  console.error('[KINDE] Initialization failed:', e.message);
+  process.exit(1);
+}
 
 app.post('/api/snk', rawBody, function(req, res) {
   var body = req.rawBody;
