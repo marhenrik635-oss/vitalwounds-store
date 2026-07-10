@@ -322,67 +322,198 @@ export default function App() {
       )}
 
       {/* ==========================================
-          VIEW 2: AUTH PAGE — Clean Gateway
+          VIEW 2: AUTH PAGE — Split Screen
           ========================================== */}
       {screenView === "auth" && (
-        <div className="flex-1 min-h-screen flex flex-col relative">
-          {/* Subtle grain overlay */}
-          <div className="grain-overlay" />
+        <div className="flex-1 min-h-screen flex flex-col md:flex-row relative">
+          {/* ===== LEFT: ILLUSTRATION PANEL ===== */}
+          <div className="hidden md:flex md:w-[55%] lg:w-[58%] relative overflow-hidden bg-gradient-to-br from-[#1A1A3E] via-[#1E2A5A] to-[#0F1A3E] items-center justify-center">
+            {/* Decorative gradient orbs */}
+            <div className="absolute top-[-20%] right-[-10%] w-[60%] aspect-square rounded-full bg-[#3B82F6]/10 blur-[80px]" />
+            <div className="absolute bottom-[-15%] left-[-10%] w-[50%] aspect-square rounded-full bg-[#6366F1]/8 blur-[60px]" />
+            <div className="absolute top-[30%] left-[20%] w-[30%] aspect-square rounded-full bg-[#3B82F6]/5 blur-[100px]" />
 
-          {/* Top nav */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-5">
-            <button
-              onClick={() => navigateTo("landing")}
-              className="text-xs font-medium text-vw-muted hover:text-vw-text transition-colors duration-200 cursor-pointer"
-            >
-              ← Beranda
-            </button>
-          </div>
-
-          {/* Center content */}
-          <div className="flex-1 flex flex-col items-center justify-center px-6">
-            <div className="flex flex-col items-center w-full max-w-xs">
-              {/* Logo */}
-              <div className="hero-enter">
-                <div className="w-16 h-16 rounded-[18px] bg-white shadow-elevated flex items-center justify-center overflow-hidden mb-5">
-                  <img src="/logo.png" alt="Vitalwounds" className="w-10 h-10 object-contain" />
-                </div>
+            {/* Brand watermark */}
+            <div className="absolute top-8 left-8 z-10 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <img src="/logo.png" alt="Vitalwounds" className="w-5 h-5 object-contain" />
               </div>
+              <span className="text-white/70 text-xs font-medium tracking-wide">Vitalwounds</span>
+            </div>
 
-              {/* Heading */}
-              <h1 className="hero-enter hero-enter-d1 text-[22px] font-bold text-vw-text text-center tracking-[-0.03em]">
-                Vitalwounds
-              </h1>
-              <p className="hero-enter hero-enter-d2 mt-1.5 text-[13px] text-vw-muted text-center leading-relaxed">
-                Masuk atau buat akun untuk melanjutkan
-              </p>
+            {/* SVG Illustration */}
+            <div className="relative z-10 w-full max-w-lg px-8 animate-fade-in">
+              <svg viewBox="0 0 520 480" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                {/* Grid dots */}
+                {Array.from({length: 8}, (_, i) => (
+                  Array.from({length: 8}, (_, j) => (
+                    <circle key={`dot-${i}-${j}`} cx={40 + i * 60} cy={30 + j * 55} r="1.5" fill="rgba(255,255,255,0.12)" />
+                  ))
+                ))}
 
-              {/* Buttons */}
-              <div className="hero-enter hero-enter-d3 mt-8 w-full flex flex-col gap-3">
-                <a
-                  href="/api/auth/login"
-                  className="relative w-full bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold py-3 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer shadow-btn hover:shadow-btn-hover active:scale-[0.97] overflow-hidden group animate-pulse-glow"
-                >
-                  <LogIn size={16} />
-                  <span>Masuk</span>
-                </a>
+                {/* Large central orb */}
+                <circle cx="260" cy="240" r="120" fill="url(#orbGrad1)" opacity="0.2" />
+                <circle cx="260" cy="240" r="85" fill="url(#orbGrad2)" opacity="0.3" />
+                <circle cx="260" cy="240" r="50" fill="url(#orbGrad3)" />
 
-                <a
-                  href="/api/auth/register"
-                  className="w-full bg-white hover:bg-gray-50 text-vw-text text-sm font-medium py-3 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer border border-vw-border active:scale-[0.97]"
-                >
-                  <UserPlus size={16} className="text-vw-muted" />
-                  <span>Buat Akun</span>
-                </a>
+                {/* Outer ring */}
+                <circle cx="260" cy="240" r="140" stroke="rgba(59,130,246,0.15)" strokeWidth="1" strokeDasharray="6 6" fill="none" />
+                <circle cx="260" cy="240" r="170" stroke="rgba(59,130,246,0.08)" strokeWidth="1" strokeDasharray="3 8" fill="none" />
+
+                {/* Connection lines */}
+                <g stroke="rgba(59,130,246,0.2)" strokeWidth="1.5">
+                  <line x1="260" y1="240" x2="120" y2="160" />
+                  <line x1="260" y1="240" x2="400" y2="160" />
+                  <line x1="260" y1="240" x2="130" y2="340" />
+                  <line x1="260" y1="240" x2="390" y2="340" />
+                  <line x1="260" y1="240" x2="80" y2="250" />
+                  <line x1="260" y1="240" x2="440" y2="230" />
+                </g>
+
+                {/* Node dots */}
+                <circle cx="120" cy="160" r="8" fill="rgba(96,165,250,0.5)" />
+                <circle cx="400" cy="160" r="8" fill="rgba(96,165,250,0.5)" />
+                <circle cx="130" cy="340" r="6" fill="rgba(96,165,250,0.4)" />
+                <circle cx="390" cy="340" r="6" fill="rgba(96,165,250,0.4)" />
+                <circle cx="80" cy="250" r="5" fill="rgba(96,165,250,0.3)" />
+                <circle cx="440" cy="230" r="5" fill="rgba(96,165,250,0.3)" />
+
+                {/* Abstract cards/shapes */}
+                <g>
+                  {/* Card 1 */}
+                  <rect x="80" y="80" width="28" height="20" rx="4" fill="rgba(59,130,246,0.2)" />
+                  <rect x="80" y="80" width="28" height="20" rx="4" stroke="rgba(59,130,246,0.3)" strokeWidth="1" fill="none" />
+                  <rect x="84" y="85" width="8" height="4" rx="1" fill="rgba(96,165,250,0.4)" />
+                  <rect x="84" y="92" width="16" height="3" rx="1" fill="rgba(96,165,250,0.2)" />
+
+                  {/* Card 2 */}
+                  <rect x="410" y="380" width="24" height="18" rx="4" fill="rgba(99,102,241,0.15)" />
+                  <rect x="410" y="380" width="24" height="18" rx="4" stroke="rgba(99,102,241,0.2)" strokeWidth="1" fill="none" />
+                  <rect x="414" y="384" width="6" height="4" rx="1" fill="rgba(129,140,248,0.3)" />
+
+                  {/* Card 3 */}
+                  <rect x="85" y="380" width="20" height="16" rx="3" fill="rgba(59,130,246,0.1)" />
+                  <rect x="85" y="380" width="20" height="16" rx="3" stroke="rgba(59,130,246,0.15)" strokeWidth="1" fill="none" />
+                </g>
+
+                {/* Floating dots */}
+                <circle cx="50" cy="140" r="2" fill="rgba(96,165,250,0.5)" />
+                <circle cx="470" cy="120" r="2.5" fill="rgba(129,140,248,0.4)" />
+                <circle cx="100" cy="430" r="2" fill="rgba(96,165,250,0.35)" />
+                <circle cx="460" cy="300" r="1.5" fill="rgba(96,165,250,0.4)" />
+                <circle cx="420" cy="70" r="1.5" fill="rgba(129,140,248,0.3)" />
+
+                {/* Shield/security abstract */}
+                <g transform="translate(220, 385)" opacity="0.25">
+                  <path d="M0 0 L20 0 L20 10 Q20 25 10 30 Q0 25 0 10 Z" stroke="rgba(96,165,250,0.5)" strokeWidth="1" fill="none" />
+                  <line x1="10" y1="8" x2="10" y2="18" stroke="rgba(96,165,250,0.5)" strokeWidth="1" />
+                  <line x1="6" y1="14" x2="10" y2="18" stroke="rgba(96,165,250,0.5)" strokeWidth="1" />
+                </g>
+
+                {/* Central icon abstract — star/hexagon */}
+                <g transform="translate(240, 220)" opacity="0.4">
+                  <polygon points="20,0 37,11 37,30 20,41 3,30 3,11" fill="none" stroke="rgba(96,165,250,0.6)" strokeWidth="1.5" />
+                  <polygon points="20,5 32,13 32,28 20,36 8,28 8,13" fill="none" stroke="rgba(96,165,250,0.3)" strokeWidth="1" />
+                </g>
+
+                {/* Bottom curve accent */}
+                <path d="M0 470 Q130 420 260 450 Q390 480 520 440 L520 480 L0 480 Z" fill="rgba(59,130,246,0.06)" />
+
+                {/* Gradients */}
+                <defs>
+                  <radialGradient id="orbGrad1" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient id="orbGrad2" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient id="orbGrad3" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.15" />
+                    <stop offset="50%" stopColor="#3B82F6" stopOpacity="0.08" />
+                    <stop offset="100%" stopColor="#1D4ED8" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+              </svg>
+
+              {/* Tagline overlay */}
+              <div className="text-center mt-2">
+                <p className="text-white/50 text-[10px] font-medium tracking-[0.2em] uppercase">Digital Premium Services</p>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="hero-enter hero-enter-d4 pb-6 text-center">
-            <p className="text-[11px] text-vw-muted/50 font-medium">
-              Vitalwounds Store &mdash; 2026
-            </p>
+          {/* ===== RIGHT: AUTH FORM PANEL ===== */}
+          <div className="flex-1 md:w-[45%] lg:w-[42%] bg-white dark:bg-[#121212] flex flex-col relative overflow-y-auto">
+            {/* Top nav */}
+            <div className="flex items-center justify-between px-6 py-5">
+              <button
+                onClick={() => navigateTo("landing")}
+                className="text-xs font-medium text-vw-muted hover:text-vw-text transition-colors duration-200 cursor-pointer"
+              >
+                <span className="hidden sm:inline">← Beranda</span>
+                <span className="sm:hidden">←</span>
+              </button>
+              <span className="md:hidden text-[10px] font-medium text-vw-muted/50">Vitalwounds Store</span>
+            </div>
+
+            {/* Center form */}
+            <div className="flex-1 flex items-center justify-center px-8 py-4">
+              <div className="w-full max-w-[320px]">
+                {/* Logo */}
+                <div className="hero-enter">
+                  <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-vw-accent to-[#1D4ED8] shadow-elevated flex items-center justify-center overflow-hidden mb-5">
+                    <img src="/logo.png" alt="Vitalwounds" className="w-7 h-7 object-contain brightness-0 invert" />
+                  </div>
+                </div>
+
+                {/* Heading */}
+                <h1 className="hero-enter hero-enter-d1 text-xl font-bold text-vw-text tracking-[-0.02em]">
+                  Selamat datang
+                </h1>
+                <p className="hero-enter hero-enter-d2 mt-1 text-[13px] text-vw-muted leading-relaxed">
+                  Masuk atau buat akun untuk melanjutkan
+                </p>
+
+                {/* Buttons */}
+                <div className="hero-enter hero-enter-d3 mt-8 w-full flex flex-col gap-3">
+                  <a
+                    href="/api/auth/login"
+                    className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer shadow-btn hover:shadow-btn-hover active:scale-[0.98]"
+                  >
+                    <LogIn size={15} />
+                    <span>Masuk</span>
+                  </a>
+
+                  <a
+                    href="/api/auth/register"
+                    className="w-full bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 text-vw-text text-sm font-medium py-2.5 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer border border-vw-border active:scale-[0.98]"
+                  >
+                    <UserPlus size={15} className="text-vw-muted" />
+                    <span>Buat Akun</span>
+                  </a>
+                </div>
+
+                {/* Separator */}
+                <div className="hero-enter hero-enter-d4 mt-8 flex items-center gap-3">
+                  <div className="flex-1 h-px bg-vw-border/60" />
+                  <span className="text-[10px] font-medium text-vw-muted/40 uppercase tracking-[0.1em]">Aman & Terpercaya</span>
+                  <div className="flex-1 h-px bg-vw-border/60" />
+                </div>
+
+                <p className="hero-enter hero-enter-d4 mt-3 text-[10px] text-vw-muted/40 text-center leading-relaxed">
+                  Data Anda aman dengan enkripsi end-to-end
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pb-5 text-center">
+              <p className="text-[10px] text-vw-muted/30 font-medium">
+                Vitalwounds Store &mdash; 2026
+              </p>
+            </div>
           </div>
         </div>
       )}
