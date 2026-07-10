@@ -89,7 +89,7 @@ export default function App() {
           setCurrentUsername(u.given_name || u.email);
           localStorage.setItem("vw_current_user", u.given_name || u.email);
           
-          // Sync user to local database via Kinde
+          // Sync user to local database
           fetch("/api/auth/sync", { method: "POST" })
             .then(res => res.json())
             .then(syncData => {
@@ -204,7 +204,7 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
 
       if (params.get("mode") === "reset-password") {
-        // Kinde handles password reset directly
+        // Redirect to auth provider for password reset
         window.location.href = "/api/auth/login";
       } else if (route === "/" || route === "/index.html" || route === "") {
         setScreenView("landing");
@@ -323,7 +323,7 @@ export default function App() {
       )}
 
       {/* ==========================================
-          VIEW 2: AUTH PAGE — Kinde OAuth
+          VIEW 2: AUTH PAGE
           ========================================== */}
       {screenView === "auth" && (
         <div className="flex-1 min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
@@ -350,7 +350,7 @@ export default function App() {
 
           <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
             <div className="border border-vw-border rounded-3xl bg-white p-8 sm:p-10 shadow-lg space-y-4">
-              {/* Login with Kinde */}
+              {/* Login */}
               <a
                 href="/api/auth/login"
                 className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-lg shadow-vw-accent/20 hover:scale-[1.01] active:scale-[0.98]"
@@ -359,7 +359,7 @@ export default function App() {
                 <span>Masuk</span>
               </a>
 
-              {/* Register with Kinde */}
+              {/* Register */}
               <a
                 href="/api/auth/register"
                 className="w-full border-2 border-vw-border hover:border-vw-accent/40 text-vw-text font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer hover:bg-vw-accent/5 active:scale-[0.98]"
