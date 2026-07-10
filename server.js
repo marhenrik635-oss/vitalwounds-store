@@ -38,11 +38,14 @@ import { setupKinde, GrantType } from "@kinde-oss/kinde-node-express";
 import 'dotenv/config';
 
 const { kindeClient } = setupKinde({
-  issuerUrl: process.env.KINDE_DOMAIN,
+  issuerBaseUrl: process.env.KINDE_DOMAIN,
   clientId: process.env.KINDE_CLIENT_ID,
   clientSecret: process.env.KINDE_CLIENT_SECRET,
   redirectUrl: "https://vitalwounds.my.id/api/auth/kinde_callback",
-  logoutRedirectUrl: "https://vitalwounds.my.id/",
+  postLogoutRedirectUrl: "https://vitalwounds.my.id/",
+  siteUrl: "https://vitalwounds.my.id/",
+  unAuthorisedUrl: "https://vitalwounds.my.id/",
+  secret: process.env.KINDE_CLIENT_SECRET || 'random-secret-key-at-least-32-chars-long',
   grantType: GrantType.AUTHORIZATION_CODE
 }, app);
 
