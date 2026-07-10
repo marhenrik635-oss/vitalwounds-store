@@ -135,9 +135,11 @@ app.post("/api/auth/sync", async (req, res) => {
     const email = kindeUser.email || "";
     const givenName = kindeUser.given_name || email.split('@')[0] || "user";
     
-    // Check if this is the configured admin email
+    // Check if this is the configured owner/admin email
     const adminEmail = (process.env.KINDE_ADMIN_EMAIL || "").toLowerCase();
-    const role = (adminEmail && email.toLowerCase() === adminEmail) ? "admin" : "member";
+    const isOwner = adminEmail && email.toLowerCase() === adminEmail;
+    // Owner gets full access, assign 'owner' role directly
+    const role = isOwner ? "owner" : "member";
     
     // Call backend API to find/create user
     const target = new URL(API_TARGET);
