@@ -406,9 +406,10 @@ app.delete('/api/admin/users/:id', requireOwner, (req, res) => {
     });
 });
 
-// All deposits
+// All deposits (excludes expired pending deposits)
 app.get('/api/admin/deposits', requireAdmin, (req, res) => {
-    db.all('SELECT * FROM deposits ORDER BY createdAt DESC', [], (err, rows) => {
+    var cutoff = Date.now() - 30 * 60 * 1000;
+    db.all('SELECT * FROM deposits WHERE NOT (status = ? AND createdAt < ?) ORDER BY createdAt DESC', ['pending', cutoff], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ deposits: rows || [] });
     });
@@ -436,6 +437,84 @@ app.get('/api/admin/orders', requireAdmin, (req, res) => {
     db.all('SELECT * FROM orders ORDER BY rowid DESC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ orders: rows || [] });
+    });
+});
+
+// Order stats by status (for charts) — includes daily trend data
+app.get('/api/admin/orders/stats', requireAdmin, (req, res) => {
+    Promise.all([
+        new Promise(function(resolve) {
+            db.all('SELECT status, COUNT(*) as count, COALESCE(SUM(price), 0) as revenue FROM orders GROUP BY status', [], function(err, rows) {
+                resolve(rows || []);
+            });
+        }),
+        new Promise(function(resolve) {
+            db.get('SELECT COUNT(*) as total FROM orders', [], function(err, row) {
+                resolve(row ? row.total : 0);
+            });
+        }),
+        new Promise(function(resolve) {
+            db.get('SELECT COALESCE(SUM(price), 0) as total FROM orders', [], function(err, row) {
+                resolve(row ? row.total : 0);
+            });
+        }),
+        // Daily orders for last 30 days (for line chart)
+        new Promise(function(resolve) {
+            var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            db.all("SELECT SUBSTR(date, 1, 10) as day, COUNT(*) as count, COALESCE(SUM(price), 0) as revenue FROM orders WHERE date >= ? GROUP BY day ORDER BY day", [thirtyDaysAgo], function(err, rows) {
+                resolve(rows || []);
+            });
+        }),
+    ]).then(function(results) {
+        var statusBreakdown = results[0];
+        var totalOrders = results[1];
+        var totalRevenue = results[2];
+        var dailyOrders = results[3];
+        
+        // Format status counts
+        var successCount = 0, successRevenue = 0;
+        var processingCount = 0, processingRevenue = 0;
+        var failedCount = 0, failedRevenue = 0;
+        
+        statusBreakdown.forEach(function(s) {
+            var status = (s.status || '').toLowerCase();
+            if (status === 'success') {
+                successCount = s.count;
+                successRevenue = s.revenue;
+            } else if (status === 'processing') {
+                processingCount = s.count;
+                processingRevenue = s.revenue;
+            } else {
+                failedCount += s.count;
+                failedRevenue += s.revenue;
+            }
+        });
+        
+        // Pad daily orders to last 30 days (fill missing days with 0)
+        var paddedDaily = [];
+        var now = new Date();
+        for (var i = 29; i >= 0; i--) {
+            var d = new Date(now);
+            d.setDate(d.getDate() - i);
+            var dayStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            var found = dailyOrders.find(function(r) { return r.day === dayStr; });
+            paddedDaily.push({
+                day: dayStr,
+                count: found ? found.count : 0,
+                revenue: found ? found.revenue : 0
+            });
+        }
+        
+        res.json({
+            totalOrders: totalOrders,
+            totalRevenue: totalRevenue,
+            success: { count: successCount, revenue: successRevenue },
+            processing: { count: processingCount, revenue: processingRevenue },
+            failed: { count: failedCount, revenue: failedRevenue },
+            daily: paddedDaily
+        });
+    }).catch(function(err) {
+        res.status(500).json({ error: err.message });
     });
 });
 
@@ -477,26 +556,35 @@ app.post('/api/admin/tickets/:id/reply', requireAdmin, (req, res) => {
 
 // === PRODUCT PRICE MANAGEMENT ===
 
-// Get all products with pricing info (for admin price editor)
+// Get all products with pricing info (for admin price editor) — fetch ALL pages
 app.get('/api/admin/products', requireAdmin, function(req, res) {
     async function loadProducts() {
         try {
-            var response = await axios.post(XOFTWARE_WEB_BASE_URL + '/products/list', { clientName: 'Djati', page: 1 }, {
-                headers: { 'authorization': 'Bearer ' + XOFTWARE_JWT, 'cookie': 'SRVGROUP=common', 'content-type': 'application/json' },
-                timeout: 8000
-            });
+            var allProducts = [];
+            var page = 1;
+            var totalPages = 1;
             
-            var productsRaw = [];
-            if (response.data && response.data.data && response.data.data.data) {
-                productsRaw = response.data.data.data;
-            }
+            do {
+                var response = await axios.post(XOFTWARE_WEB_BASE_URL + '/products/list', { clientName: 'Djati', page: page }, {
+                    headers: { 'authorization': 'Bearer ' + XOFTWARE_JWT, 'cookie': 'SRVGROUP=common', 'content-type': 'application/json' },
+                    timeout: 8000
+                });
+                
+                if (response.data && response.data.data && response.data.data.data) {
+                    allProducts = allProducts.concat(response.data.data.data);
+                    totalPages = response.data.data.totalPages || 1;
+                } else {
+                    break;
+                }
+                page++;
+            } while (page <= totalPages && page <= 10); // max 10 pages for performance
             
             // Get cached prices (overridden prices)
             db.all('SELECT code, price_min, price_max FROM product_cache', [], function(dbErr, cachedRows) {
                 var priceMap = {};
                 (cachedRows || []).forEach(function(r) { priceMap[r.code] = { price_min: r.price_min, price_max: r.price_max }; });
                 
-                var result = productsRaw.map(function(p) {
+                var result = allProducts.map(function(p) {
                     var originalPrice = p.price || 0;
                     var minPrice = Math.round(originalPrice * 0.7); // 70% minimum
                     var cached = priceMap[p.code];
@@ -510,9 +598,9 @@ app.get('/api/admin/products', requireAdmin, function(req, res) {
                         stock: p.stock || 0,
                         is_variation: p.is_variation || false
                     };
-                }).filter(function(p) { return p.name; }).slice(0, 50);
+                }).filter(function(p) { return p.name; });
                 
-                res.json({ data: result });
+                res.json({ data: result, total: result.length, pages: totalPages });
             });
         } catch (e) {
             console.error('Failed to fetch products for admin:', e.message);
@@ -1408,5 +1496,24 @@ app.get('/pay/:transactionId', (req, res) => {
         }
     });
 });
+
+// === PENDING DEPOSIT CLEANUP ===
+// Auto-delete pending deposits older than 30 minutes, runs every 5 minutes
+var DEPOSIT_EXPIRY_MS = 30 * 60 * 1000; // 30 menit
+
+function cleanupExpiredDeposits() {
+    var cutoff = Date.now() - DEPOSIT_EXPIRY_MS;
+    db.run('DELETE FROM deposits WHERE status = ? AND createdAt < ?', ['pending', cutoff], function(err) {
+        if (err) {
+            console.error('Failed to cleanup expired deposits:', err.message);
+        } else if (this.changes > 0) {
+            console.log('Cleaned up ' + this.changes + ' expired pending deposit(s)');
+        }
+    });
+}
+
+// Run cleanup on startup, then every 5 minutes
+cleanupExpiredDeposits();
+setInterval(cleanupExpiredDeposits, 5 * 60 * 1000);
 
 app.listen(6768, () => console.log('API running on port 6768'));

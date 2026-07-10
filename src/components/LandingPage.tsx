@@ -4,6 +4,7 @@ import { useT } from "../i18n/LanguageContext"
 import OceanBg from "./OceanBg"
 import type { TranslationKey } from "../i18n/translations"
 import { motion, useReducedMotion } from "framer-motion"
+import CountUp from "./CountUp"
 
 interface LPProps {
   navigateTo: (view: "landing" | "auth" | "dashboard-panel", tabId?: string) => void
@@ -134,6 +135,32 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     Mulai Belanja
                   </button>
                 </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ====== STATS ====== */}
+        <section className="py-24 sm:py-28 px-6 border-t border-vw-border bg-vw-surface">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-8 text-center">
+              <motion.div {...animProps(0)}>
+                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                  <CountUp end={43} suffix="+" />
+                </div>
+                <p className="text-sm font-medium text-vw-text-muted mt-2">Total Produk</p>
+              </motion.div>
+              <motion.div {...animProps(100)}>
+                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                  <CountUp end={2000} suffix="+" />
+                </div>
+                <p className="text-sm font-medium text-vw-text-muted mt-2">User Aktif</p>
+              </motion.div>
+              <motion.div {...animProps(200)}>
+                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                  <CountUp end={2} suffix="Jt+" />
+                </div>
+                <p className="text-sm font-medium text-vw-text-muted mt-2">Transaksi Berhasil</p>
               </motion.div>
             </div>
           </div>
