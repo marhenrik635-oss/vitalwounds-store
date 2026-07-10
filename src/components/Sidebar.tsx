@@ -54,7 +54,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-6">
-          {userProfile.username === "admin" ? (
+          {isAdmin ? (
             <div>
               <p className="px-3 mb-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-vw-accent">Admin</p>
               <div className="space-y-0.5">
