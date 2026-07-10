@@ -407,9 +407,8 @@ export default function App() {
 
       if (response.ok) {
         fetch('/api/xoftware/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: regPhone, name: regUsername }) })
-          .then(rx => rx.json()).then(xData => {
-            if (xData && xData.status) console.log('Xoftware registration success:', xData);
-            else console.warn('Xoftware registration skipped or failed:', xData?.message);
+          .then(rx => rx.json()).then(xData => {                            if (xData && xData.status) console.log('Registration success:', xData);
+                            else console.warn('Registration skipped or failed:', xData?.message);
           }).catch(() => {});
 
         setIsLoggedIn(true);
@@ -561,15 +560,12 @@ export default function App() {
             </button>
           </div>
 
-          <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-            <div className="flex justify-center mb-4">
-              <span className="w-12 h-12 bg-gradient-to-br from-vw-accent to-vw-accent-hover rounded-2xl flex items-center justify-center font-bold text-white text-xl">
-                VS
-              </span>
-            </div>
-            <h2 className="text-center text-2xl font-bold text-vw-text tracking-tight">
-              Vital<span className="text-vw-accent">wounds</span>
-            </h2>
+          <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">                          <div className="flex justify-center mb-4">
+                            <img src="/logo.png" alt="Vitalwounds Store" className="w-14 h-14 rounded-2xl object-contain bg-white shadow-lg" />
+                          </div>
+                          <h2 className="text-center text-2xl font-bold text-vw-text tracking-tight">
+                            Vitalwounds <span className="text-vw-accent">Store</span>
+                          </h2>
             <p className="mt-1.5 text-center text-xs text-vw-muted font-medium">
               Wajib memiliki akun untuk mulai berbelanja layanan kami
             </p>

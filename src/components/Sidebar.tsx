@@ -42,9 +42,9 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
       >
         {/* Logo */}
         <div className="px-5 h-16 flex items-center gap-3 border-b border-vw-border/50">
-          <img src="/logo.png" alt="Vitalwounds" className="w-8 h-8 rounded-xl object-contain bg-white" />
+          <img src="/logo.png" alt="Vitalwounds Store" className="w-8 h-8 rounded-xl object-contain bg-white" />
           <div>
-            <span className="font-bold text-vw-text text-sm leading-tight block">Vitalwounds</span>
+            <span className="font-bold text-vw-text text-sm leading-tight block">Vitalwounds Store</span>
             <span className="text-[9px] tracking-[0.15em] text-vw-muted uppercase font-medium">Store Panel</span>
           </div>
           <button onClick={onToggle} className="lg:hidden ml-auto p-1.5 rounded-lg text-vw-muted hover:text-vw-text hover:bg-vw-border/50 transition-all cursor-pointer">

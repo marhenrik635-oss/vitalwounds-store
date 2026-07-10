@@ -2,7 +2,7 @@ const WelcomeBanner = () => {
   return (
     <div className="card p-6 animate-fade-in-up">
       <div className="flex items-start gap-4">
-        <img src="/logo.png" alt="Vitalwounds" className="w-12 h-12 rounded-xl object-contain shrink-0 bg-white" />
+        <img src="/logo.png" alt="Vitalwounds Store" className="w-12 h-12 rounded-xl object-contain shrink-0 bg-white" />
         <div>
           <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-vw-text mb-1.5 text-balance">
             Selamat Datang di Vitalwounds Store

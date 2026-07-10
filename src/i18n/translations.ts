@@ -4,7 +4,7 @@ export type TranslationKey = keyof typeof id;
 
 export const id = {
   // App
-  "app.title": "Vitalwounds",
+  "app.title": "Vitalwounds Store",
   "app.tagline": "Store Panel",
   "app.loading": "Memuat...",
   "app.version": "v1.4.0",
@@ -328,7 +328,7 @@ export const id = {
 };
 
 export const en: Record<TranslationKey, string> = {
-  "app.title": "Vitalwounds",
+  "app.title": "Vitalwounds Store",
   "app.tagline": "Store Panel",
   "app.loading": "Loading...",
   "app.version": "v1.4.0",
