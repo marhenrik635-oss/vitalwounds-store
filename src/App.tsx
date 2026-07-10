@@ -87,51 +87,55 @@ export default function App() {
 
   // Load user-specific data
   useEffect(() => {
-    if (isLoggedIn && currentUsername) {
-      fetch(`/api/users/${currentUsername}`)
-        .then(res => res.json())
-        .then(matched => {
-          if (matched && !matched.error) {
-            const role = matched.role || "member";
-            setIsAdmin(matched.username === "admin" || role === "admin" || role === "owner");
-            localStorage.setItem("vw_role", role);
-            setUserProfile({
-              username: matched.username,
-              email: matched.email || "",
-              phone: matched.phone || "",
-              balance: matched.balance || 0,
-              tier: matched.tier || "Regular",
-              role: role,
-              apiKey: matched.apiKey || "vt_live_" + matched.username
+    fetch("/api/auth/me")
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated && data.user) {
+          const u = data.user;
+          setIsLoggedIn(true);
+          localStorage.setItem("vw_is_logged_in", "true");
+          setCurrentUsername(u.given_name || u.email);
+          localStorage.setItem("vw_current_user", u.given_name || u.email);
+          
+          fetch(`/api/users/${u.given_name || u.email}`)
+            .then(res => res.json())
+            .then(matched => {
+              if (matched && !matched.error) {
+                const role = matched.role || "member";
+                setIsAdmin(matched.username === "admin" || role === "admin" || role === "owner");
+                localStorage.setItem("vw_role", role);
+                setUserProfile({
+                  username: matched.username,
+                  email: matched.email || u.email || "",
+                  phone: matched.phone || "",
+                  balance: matched.balance || 0,
+                  tier: matched.tier || "Regular",
+                  role: role,
+                  apiKey: matched.apiKey || "vt_live_" + matched.username
+                });
+              } else {
+                setUserProfile({
+                  username: u.given_name || u.email,
+                  email: u.email || "",
+                  phone: "",
+                  balance: 0,
+                  tier: "Regular",
+                  role: "member",
+                  apiKey: "vt_live_" + (u.given_name || u.email)
+                });
+              }
             });
-            
-            fetch(`/api/orders/${currentUsername}`).then(r => r.json()).then(d => { if (d.orders) setOrders(d.orders); }).catch(() => {});
-            // fetch(`/api/tickets/${currentUsername}`).then(r => r.json()).then(d => { if (d.tickets) setTickets(d.tickets); }).catch(() => {});
-            // Removed: Ticket fetching functionality is deprecated
-          } else {
-            setUserProfile(prev => ({ ...prev, username: currentUsername }));
-          }
-        })
-        .catch(err => {
-          console.error("Error fetching profile:", err);
-          setUserProfile(prev => ({ ...prev, username: currentUsername }));
-        });
-
-      const getSafeJson = (key: string) => {
-        try {
-          const val = localStorage.getItem(key);
-          return val ? JSON.parse(val) : [];
-        } catch { return []; }
-      };
-
-      setDeposits(Array.isArray(getSafeJson(`vw_deposits_${currentUsername}`)) ? getSafeJson(`vw_deposits_${currentUsername}`) : []);
-      setOrders(Array.isArray(getSafeJson(`vw_orders_${currentUsername}`)) ? getSafeJson(`vw_orders_${currentUsername}`) : []);
-    } else {
-      setUserProfile(initialUserProfile);
-      setDeposits(initialDeposits);
-      setOrders(initialOrders);
-    }
-  }, [currentUsername, isLoggedIn]);
+        } else {
+          setIsLoggedIn(false);
+          localStorage.setItem("vw_is_logged_in", "false");
+          setCurrentUsername("");
+        }
+      })
+      .catch(() => {
+        setIsLoggedIn(false);
+        localStorage.setItem("vw_is_logged_in", "false");
+      });
+  }, []);
 
   // Sync profile to localStorage
   useEffect(() => {
@@ -215,10 +219,13 @@ export default function App() {
         } else {
           setScreenView("dashboard-panel");
           const validTabs = ["dashboard", "profile", "deposit", "riwayat-deposit", "riwayat-order", "layanan/app-premium", "contact", "admin"];
-          const tabKey = route.replace(/^\/|\/$/g, "");
-          setActiveTab(validTabs.includes(tabKey) ? tabKey : "dashboard");
-        }
-      } else {
+                    const tabKey = route.replace(/^\/|\/$/g, "");
+                    setActiveTab(validTabs.includes(tabKey) ? tabKey : "dashboard");
+                  }
+                } else if (route.startsWith("/api/auth/kinde_callback")) {
+                  // Handle OAuth callback on client-side routing
+                  window.location.href = route;
+                } else {
         const loggedIn = localStorage.getItem("vw_is_logged_in") === "true";
         setScreenView(loggedIn ? "dashboard-panel" : "auth");
       }
@@ -259,12 +266,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setIsAdmin(false);
-    localStorage.setItem("vw_is_logged_in", "false");
-    localStorage.removeItem("vw_current_user");
-    localStorage.removeItem("vw_role");
-    navigateTo("landing");
+    window.location.href = "/api/auth/logout";
   };
 
   // Auth view states
@@ -320,44 +322,7 @@ export default function App() {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError("");
-
-    if (!loginUsername.trim() || !loginPassword) {
-      setLoginError("Harap isi semua kolom!");
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: loginUsername, password: loginPassword })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const user = data.user;
-        setIsLoggedIn(true);
-        localStorage.setItem("vw_is_logged_in", "true");
-        setCurrentUsername(user.username);
-        localStorage.setItem("vw_current_user", user.username);
-        const role = user.role || "member";
-        setIsAdmin(user.username === "admin" || role === "admin" || role === "owner");
-        localStorage.setItem("vw_role", role);
-        setUserProfile({
-          username: user.username, email: user.email || "", phone: user.phone || "",
-          balance: user.balance || 0, tier: user.tier || "Regular", role: role, apiKey: user.apiKey || ""
-        });
-        
-        setLoginUsername("");
-        setLoginPassword("");
-        navigateTo("dashboard-panel", role === "admin" ? "admin" : "dashboard", true);
-      } else {
-        setLoginError(data.error || "Login gagal!");
-      }
-    } catch (err) {
-      setLoginError("Server tidak dapat dijangkau.");
-    }
+    window.location.href = "/api/auth/login";
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -392,47 +357,7 @@ export default function App() {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRegError("");
-    setRegSuccess("");
-
-    if (!regUsername.trim() || !regPassword || !regConfirmPassword) {
-      setRegError("Harap isi semua kolom!");
-      return;
-    }
-    if (regPassword !== regConfirmPassword) {
-      setRegError("Password dan Konfirmasi Password tidak cocok!");
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: regUsername, email: regEmail, password: regPassword, phone: regPhone }) });
-      const data = await response.json();
-
-      if (response.ok) {
-        fetch('/api/xoftware/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: regPhone, name: regUsername }) })
-          .then(rx => rx.json()).then(xData => {                            if (xData && xData.status) console.log('Registration success:', xData);
-                            else console.warn('Registration skipped or failed:', xData?.message);
-          }).catch(() => {});
-
-        setIsLoggedIn(true);
-        localStorage.setItem("vw_is_logged_in", "true");
-        setCurrentUsername(data.user.username);
-        localStorage.setItem("vw_current_user", data.user.username);
-        const role = data.user.role || "member";
-        setIsAdmin(data.user.username === "Vitalwounds" || role === "admin" || role === "owner");
-        localStorage.setItem("vw_role", role);
-        setUserProfile({
-          username: data.user.username, email: data.user.email, phone: data.user.phone || "",
-          balance: data.user.balance || 0, tier: data.user.tier || "Regular", role: role, apiKey: data.user.apiKey || "",
-        });
-        navigateTo("dashboard-panel", "profile", true);
-        setRegUsername(""); setRegEmail(""); setRegPhone(""); setRegPassword(""); setRegConfirmPassword(""); setRegOtp(""); setRegStep("email"); setRegOtpVerified(false);
-      } else {
-        setRegError(data.error || "Gagal mendaftar.");
-      }
-    } catch (err) {
-      setRegError("Server tidak dapat dijangkau.");
-    }
+    window.location.href = "/api/auth/register";
   };
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {

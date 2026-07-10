@@ -25,6 +25,18 @@ const XO_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjUzNjc2OCwibmFtZ
 const XO_COOKIE = 'SRVGROUP=common';
 const XO_CLIENT = 'Djati';
 
+import { KindeClient, GrantType } from "@kinde-oss/kinde-typescript-sdk";
+import 'dotenv/config';
+
+const kinde = new KindeClient({
+  domain: process.env.KINDE_DOMAIN,
+  clientId: process.env.KINDE_CLIENT_ID,
+  clientSecret: process.env.KINDE_CLIENT_SECRET,
+  redirectURL: "https://vitalwounds.my.id/api/auth/kinde_callback",
+  logoutRedirectURL: "https://vitalwounds.my.id/",
+  grantType: GrantType.AUTHORIZATION_CODE
+});
+
 app.post('/api/snk', rawBody, function(req, res) {
   var body = req.rawBody;
   var productId = 50188;
@@ -80,6 +92,41 @@ app.post('/api/snk', rawBody, function(req, res) {
 
   proxyReq.write(postData);
   proxyReq.end();
+});
+
+// --- Kinde Auth Routes ---
+app.get("/api/auth/login", async (req, res) => {
+  const loginUrl = await kinde.login(req);
+  res.redirect(loginUrl.toString());
+});
+
+app.get("/api/auth/register", async (req, res) => {
+  const registerUrl = await kinde.register(req);
+  res.redirect(registerUrl.toString());
+});
+
+app.get("/api/auth/kinde_callback", async (req, res) => {
+  try {
+    await kinde.handleRedirectToApp(req, new URL(req.protocol + '://' + req.get('host') + req.originalUrl));
+    res.redirect("/");
+  } catch (error) {
+    console.error("Callback error:", error);
+    res.redirect("/auth?error=kinde_callback_failed");
+  }
+});
+
+app.get("/api/auth/logout", async (req, res) => {
+  const logoutUrl = await kinde.logout(req);
+  res.redirect(logoutUrl.toString());
+});
+
+app.get("/api/auth/me", async (req, res) => {
+  const isAuthenticated = await kinde.isAuthenticated(req);
+  if (!isAuthenticated) {
+    return res.status(401).json({ authenticated: false });
+  }
+  const user = await kinde.getUserProfile(req);
+  res.json({ authenticated: true, user });
 });
 
 // --- Proxy /api/* and /pay/* to backend ---
