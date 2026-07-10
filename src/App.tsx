@@ -1,16 +1,8 @@
 import { useState, useEffect, lazy, Suspense, Component, ReactNode } from "react";
 import {
-  ShieldCheck,
-  User,
-  Mail,
-  Phone,
-  Lock,
-  UserPlus,
   LogIn,
+  UserPlus,
   ArrowLeft,
-  AlertCircle,
-  Eye,
-  EyeOff
 } from "lucide-react";
 
 // Import types & initial data
@@ -198,11 +190,8 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
 
       if (params.get("mode") === "reset-password") {
-        setScreenView("auth");
-        setAuthTab("login");
-        setForgotPasswordStep("reset");
-        setResetToken(params.get("token") || "");
-        setForgotEmail(params.get("email") || "");
+        // Kinde handles password reset directly
+        window.location.href = "/api/auth/login";
       } else if (route === "/" || route === "/index.html" || route === "") {
         setScreenView("landing");
       } else if (route === "/auth" || route === "auth") {
@@ -269,167 +258,9 @@ export default function App() {
     window.location.href = "/api/auth/logout";
   };
 
-  // Auth view states
-  const [authTab, setAuthTab] = useState<"login" | "register" | "forgot">("login");
-  const [loginUsername, setLoginUsername] = useState<string>("");
-  const [loginPassword, setLoginPassword] = useState<string>("");
-  const [loginError, setLoginError] = useState<string>("");
 
-  const [regStep, setRegStep] = useState<"email" | "otp" | "form">("email");
-  const [regEmail, setRegEmail] = useState<string>("");
-  const [regOtp, setRegOtp] = useState<string>("");
-  const [regOtpSent, setRegOtpSent] = useState<boolean>(false);
-  const [regOtpVerified, setRegOtpVerified] = useState<boolean>(false);
-  const [regPhone, setRegPhone] = useState<string>("");
-  const [regUsername, setRegUsername] = useState<string>("");
-  const [regPassword, setRegPassword] = useState<string>("");
-  const [regConfirmPassword, setRegConfirmPassword] = useState<string>("");
-  const [regError, setRegError] = useState<string>("");
-  const [regSuccess, setRegSuccess] = useState<string>("");
-  const [regLoading, setRegLoading] = useState<boolean>(false);
 
-  const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  // Forgot Password View States
-  const [forgotPasswordStep, setForgotPasswordStep] = useState<"request" | "reset">("request");
-  const [forgotEmail, setForgotEmail] = useState<string>("");
-  const [resetToken, setResetToken] = useState<string>("");
-  const [newPassword, setNewPassword] = useState<string>("");
-  const [forgotError, setForgotError] = useState<string>("");
-  const [forgotSuccess, setForgotSuccess] = useState<string>("");
-  const [forgotLoading, setForgotLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (screenView === "auth") {
-      setAuthTab("login");
-      setRegStep("email"); setRegEmail(""); setRegOtp(""); setRegOtpSent(false); setRegOtpVerified(false);
-      setRegPhone(""); setRegUsername(""); setRegPassword(""); setRegConfirmPassword("");
-      setRegError(""); setRegSuccess(""); setRegLoading(false);
-      setLoginUsername(""); setLoginPassword(""); setLoginError("");
-      setForgotEmail(""); setResetToken(""); setNewPassword(""); setForgotError(""); setForgotSuccess(""); setForgotLoading(false);
-      
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("mode") === "reset-password") {
-        setAuthTab("forgot");
-        setForgotPasswordStep("reset");
-        setResetToken(params.get("token") || "");
-        setForgotEmail(params.get("email") || "");
-      } else {
-        setForgotPasswordStep("request");
-      }
-    }
-  }, [screenView]);
-
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    window.location.href = "/api/auth/login";
-  };
-
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError("");
-    if (!regEmail.trim()) { setRegError("Masukkan email"); return; }
-
-    setRegLoading(true);
-    try {
-      const r = await fetch('/api/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: regEmail }) });
-      const d = await r.json();
-      if (r.ok) { setRegStep("otp"); setRegOtpSent(true); setRegError(""); }
-      else setRegError(d.error || "Gagal kirim OTP");
-    } catch { setRegError("Server tidak dapat dijangkau."); }
-    finally { setRegLoading(false); }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError("");
-    if (!regOtp.trim()) { setRegError("Masukkan kode OTP"); return; }
-
-    setRegLoading(true);
-    try {
-      const r = await fetch('/api/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: regEmail, otp: regOtp }) });
-      const d = await r.json();
-      if (r.ok) { setRegOtpVerified(true); setRegStep("form"); setRegError(""); }
-      else setRegError(d.error || "Kode OTP salah");
-    } catch { setRegError("Server tidak dapat dijangkau."); }
-    finally { setRegLoading(false); }
-  };
-
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    window.location.href = "/api/auth/register";
-  };
-
-  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setForgotError("");
-    setForgotSuccess("");
-    if (!forgotEmail.trim()) {
-      setForgotError("Email wajib diisi!");
-      return;
-    }
-
-    setForgotLoading(true);
-    try {
-      const response = await fetch("/api/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setForgotSuccess(data.message || "Link reset kata sandi telah dikirim ke email Anda.");
-        setForgotEmail("");
-      } else {
-        setForgotError(data.error || "Gagal mengirim link reset.");
-      }
-    } catch (err) {
-      setForgotError("Server tidak dapat dijangkau.");
-    } finally {
-      setForgotLoading(false);
-    }
-  };
-
-  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setForgotError("");
-    setForgotSuccess("");
-    if (!newPassword) {
-      setForgotError("Kata sandi baru wajib diisi!");
-      return;
-    }
-
-    setForgotLoading(true);
-    try {
-      const response = await fetch("/api/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail, token: resetToken, newPassword })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setForgotSuccess("Kata sandi berhasil diatur ulang! Silakan masuk kembali.");
-        setNewPassword("");
-        // After 2 seconds redirect to login tab
-        setTimeout(() => {
-          setAuthTab("login");
-          setForgotPasswordStep("request");
-          // clean URL parameters
-          try {
-            window.history.pushState(null, "", "/auth");
-          } catch (e) {
-            window.location.hash = "/auth";
-          }
-        }, 2000);
-      } else {
-        setForgotError(data.error || "Gagal mengatur ulang kata sandi.");
-      }
-    } catch (err) {
-      setForgotError("Server tidak dapat dijangkau.");
-    } finally {
-      setForgotLoading(false);
-    }
-  };
 
   const handleUpdateBalance = (amount: number) => {
     setUserProfile(prev => ({ ...prev, balance: prev.balance + amount }));
@@ -478,11 +309,10 @@ export default function App() {
       )}
 
       {/* ==========================================
-          VIEW 2: AUTH PAGE
+          VIEW 2: AUTH PAGE — Kinde OAuth
           ========================================== */}
       {screenView === "auth" && (
         <div className="flex-1 min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
-          {/* Back button */}
           <div className="absolute top-6 left-6 z-10">
             <button
               onClick={() => navigateTo("landing")}
@@ -492,307 +322,50 @@ export default function App() {
             </button>
           </div>
 
-          <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">                          <div className="flex justify-center mb-4">
-                            <img src="/logo.png" alt="Vitalwounds Store" className="w-14 h-14 rounded-2xl object-contain bg-white shadow-lg" />
-                          </div>
-                          <h2 className="text-center text-2xl font-bold text-vw-text tracking-tight">
-                            Vitalwounds <span className="text-vw-accent">Store</span>
-                          </h2>
+          <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+            <div className="flex justify-center mb-4">
+              <img src="/logo.png" alt="Vitalwounds Store" className="w-14 h-14 rounded-2xl object-contain bg-white shadow-lg" />
+            </div>
+            <h2 className="text-center text-2xl font-bold text-vw-text tracking-tight">
+              Vitalwounds <span className="text-vw-accent">Store</span>
+            </h2>
             <p className="mt-1.5 text-center text-xs text-vw-muted font-medium">
               Wajib memiliki akun untuk mulai berbelanja layanan kami
             </p>
           </div>
 
           <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
-            <div className="border border-vw-border rounded-3xl bg-white p-8 sm:p-10 shadow-lg">
-              <div className="flex bg-gray-100 border border-vw-border p-1 rounded-full mb-6 relative">
-                <button
-                  type="button"
-                  onClick={() => { setAuthTab("login"); setLoginError(""); }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-full transition-all duration-300 ease-in-out cursor-pointer relative z-10 ${
-                    authTab === "login" ? "text-white" : "text-vw-muted hover:text-vw-text"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <LogIn size={13} /> Masuk (Login)
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthTab("register"); setRegError(""); }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-full transition-all duration-300 ease-in-out cursor-pointer relative z-10 ${
-                    authTab === "register" ? "text-white" : "text-vw-muted hover:text-vw-text"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <UserPlus size={13} /> Daftar (Register)
-                  </span>
-                </button>
-                <div
-                  className={`absolute top-[4px] bottom-[4px] w-[calc(50%-4px)] bg-vw-accent rounded-full transition-all duration-300 ease-in-out ${
-                    authTab === "login" ? "left-[4px]" : (authTab === "register" ? "left-[calc(50%)]" : "hidden")
-                  }`}
-                />
+            <div className="border border-vw-border rounded-3xl bg-white p-8 sm:p-10 shadow-lg space-y-4">
+              {/* Login with Kinde */}
+              <a
+                href="/api/auth/login"
+                className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-lg shadow-vw-accent/20 hover:scale-[1.01] active:scale-[0.98]"
+              >
+                <LogIn size={18} />
+                <span>Masuk dengan Kinde</span>
+              </a>
+
+              {/* Register with Kinde */}
+              <a
+                href="/api/auth/register"
+                className="w-full border-2 border-vw-border hover:border-vw-accent/40 text-vw-text font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer hover:bg-vw-accent/5 active:scale-[0.98]"
+              >
+                <UserPlus size={18} className="text-vw-accent" />
+                <span>Daftar dengan Kinde</span>
+              </a>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 pt-2">
+                <div className="flex-1 h-px bg-vw-border/60" />
+                <span className="text-[10px] font-medium text-vw-muted uppercase tracking-wider">Aman & Terpercaya</span>
+                <div className="flex-1 h-px bg-vw-border/60" />
               </div>
 
-              {authTab === "login" && (
-                <div className="flex justify-center mb-6">
-                  <button
-                    type="button"
-                    onClick={() => { setAuthTab("forgot"); setForgotError(""); setForgotSuccess(""); }}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-vw-muted hover:text-vw-text transition-colors cursor-pointer"
-                  >
-                    <Lock size={13} /> Lupa Kata Sandi?
-                  </button>
-                </div>
-              )}
-
-              {/* Forgot Password View */}
-              {authTab === "forgot" && (
-                <div className="space-y-4">
-                  {forgotError && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-600 flex items-start gap-2">
-                      <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                      <span>{forgotError}</span>
-                    </div>
-                  )}
-                  {forgotSuccess && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-600 flex items-start gap-2">
-                      <ShieldCheck size={15} className="shrink-0 mt-0.5" />
-                      <span>{forgotSuccess}</span>
-                    </div>
-                  )}
-
-                  {forgotPasswordStep === "request" && (
-                    <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
-                      <p className="text-xs text-vw-muted">Masukkan email akun Anda untuk mendapatkan link reset kata sandi.</p>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Email</label>
-                        <input type="email" required value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
-                          placeholder="email@anda.com" disabled={forgotLoading}
-                          className="block w-full px-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors disabled:opacity-50" />
-                      </div>
-                      <button type="submit" disabled={forgotLoading}
-                        className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50">
-                        {forgotLoading ? "Mengirim..." : "Kirim Link Reset"}
-                      </button>
-                      <button type="button" onClick={() => { setAuthTab("login"); setForgotError(""); }}
-                        className="w-full text-xs text-vw-accent hover:underline cursor-pointer text-center bg-transparent border-none">
-                        Kembali ke Login
-                      </button>
-                    </form>
-                  )}
-
-                  {forgotPasswordStep === "reset" && (
-                    <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
-                      <p className="text-xs text-vw-muted">Masukkan kata sandi baru untuk akun <strong>{forgotEmail}</strong>.</p>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Password Baru</label>
-                        <input type="password" required value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                          placeholder="••••••••" disabled={forgotLoading}
-                          className="block w-full px-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors disabled:opacity-50" />
-                      </div>
-                      <button type="submit" disabled={forgotLoading}
-                        className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50">
-                        {forgotLoading ? "Memproses..." : "Atur Ulang Kata Sandi"}
-                      </button>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {/* Login View */}
-              {authTab === "login" && (
-                <form onSubmit={handleLoginSubmit} className="space-y-5">
-                  {loginError && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-600 flex items-start gap-2">
-                      <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                      <span>{loginError}</span>
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Username / Email</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                        <User size={15} />
-                      </div>
-                      <input type="text" required value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
-                        placeholder="Username atau email"
-                        className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Password</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                        <Lock size={15} />
-                      </div>
-                      <input type={showPassword ? "text" : "password"} required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center cursor-pointer text-vw-muted/60 hover:text-vw-accent">
-                        {showPassword ? <Eye size={14} /> : <EyeOff size={14} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button type="submit"
-                    className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer mt-6 shadow-lg shadow-vw-accent/20">
-                    <LogIn size={14} /> Masuk Ke Akun
-                  </button>
-                </form>
-              )}
-
-              {/* Register View */}
-              {authTab === "register" && (
-                <div className="space-y-4">
-                  {regError && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-600 flex items-start gap-2">
-                      <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                      <span>{regError}</span>
-                    </div>
-                  )}
-                  {regSuccess && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-600 flex items-start gap-2">
-                      <ShieldCheck size={15} className="shrink-0 mt-0.5" />
-                      <span>{regSuccess}</span>
-                    </div>
-                  )}
-
-                  {/* Step indicator */}
-                  <div className="flex items-center gap-2 justify-center mb-4">
-                    {["email","otp","form"].map((s,i) => (
-                      <div key={s} className="flex items-center gap-1.5">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
-                          regStep === s ? "bg-vw-accent text-white" : regStep === "form" && s !== "form" ? "bg-emerald-100 text-emerald-600" : "bg-gray-100 border border-vw-border text-vw-muted"
-                        }`}>{regStep === "form" && s !== "form" ? "✓" : i+1}</div>
-                        {i < 2 && <div className="w-6 h-px bg-vw-border" />}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Step 1: Email */}
-                  {regStep === "email" && (
-                    <form onSubmit={handleSendOtp} className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Email</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                            <Mail size={15} />
-                          </div>
-                          <input type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)}
-                            placeholder="email@anda.com" disabled={regLoading}
-                            className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors disabled:opacity-50" />
-                        </div>
-                      </div>
-                      <button type="submit" disabled={regLoading}
-                        className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50">
-                        {regLoading ? "Mengirim..." : "Kirim Kode OTP"}
-                      </button>
-                    </form>
-                  )}
-
-                  {/* Step 2: OTP */}
-                  {regStep === "otp" && (
-                    <form onSubmit={handleVerifyOtp} className="space-y-4">
-                      <p className="text-[11px] text-vw-muted text-center">Kode OTP dikirim ke <strong>{regEmail}</strong></p>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Kode OTP</label>
-                        <input type="text" required value={regOtp} onChange={e => setRegOtp(e.target.value.replace(/\D/g,"").slice(0,6))}
-                          placeholder="000000" maxLength={6} disabled={regLoading}
-                          className="block w-full text-center text-lg tracking-[8px] py-2.5 border border-vw-border rounded-xl placeholder-vw-muted/50 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors disabled:opacity-50 font-mono" />
-                      </div>
-                      <button type="submit" disabled={regLoading}
-                        className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50">
-                        {regLoading ? "Verifikasi..." : "Verifikasi OTP"}
-                      </button>
-                      <button type="button" onClick={() => { setRegStep("email"); setRegOtp(""); setRegError(""); }}
-                        className="w-full text-[11px] text-vw-accent hover:underline cursor-pointer text-center bg-transparent border-none">
-                        Ganti email
-                      </button>
-                    </form>
-                  )}
-
-                  {/* Step 3: Register form */}
-                  {regStep === "form" && (
-                    <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-[11px] text-emerald-600 text-center">
-                        ✓ Email {regEmail} terverifikasi
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Username</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                            <User size={15} />
-                          </div>
-                          <input type="text" required value={regUsername} onChange={e => setRegUsername(e.target.value)}
-                            placeholder="Pilih username unik"
-                            className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">No. HP (opsional)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                            <Phone size={15} />
-                          </div>
-                          <input type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)}
-                            placeholder="08xxxxxxxxxx"
-                            className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Password</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                            <Lock size={15} />
-                          </div>
-                          <input type={showPassword ? "text" : "password"} required value={regPassword} onChange={e => setRegPassword(e.target.value)}
-                            placeholder="Buat password minimal 6 karakter"
-                            className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center cursor-pointer text-vw-muted/60 hover:text-vw-accent">
-                            {showPassword ? <Eye size={14} /> : <EyeOff size={14} />}
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-vw-muted uppercase tracking-wider mb-1.5">Konfirmasi Password</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-vw-muted/60">
-                            <Lock size={15} />
-                          </div>
-                          <input type={showPassword ? "text" : "password"} required value={regConfirmPassword} onChange={e => setRegConfirmPassword(e.target.value)}
-                            placeholder="Ulangi password Anda"
-                            className="block w-full pl-10 pr-3.5 py-2.5 border border-vw-border rounded-xl text-sm placeholder-vw-muted/70 focus:outline-none focus:border-vw-accent focus:ring-1 focus:ring-vw-accent transition-colors" />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center cursor-pointer text-vw-muted/60 hover:text-vw-accent">
-                            {showPassword ? <Eye size={14} /> : <EyeOff size={14} />}
-                          </button>
-                        </div>
-                      </div>
-                      <button type="submit"
-                        className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-xs py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer shadow-lg shadow-vw-accent/20">
-                        <UserPlus size={14} /> Daftar Sekarang
-                      </button>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {/* Toggle text link */}
-              <div className="mt-5 text-center text-xs text-vw-muted font-medium">
-                {authTab === "login" ? (
-                  <span>Belum punya akun?{" "}
-                    <button type="button" onClick={() => { setAuthTab("register"); setRegError(""); }}
-                      className="text-vw-accent hover:underline font-bold cursor-pointer">Daftar (Register) disini</button>
-                  </span>
-                ) : (
-                  <span>Sudah punya akun?{" "}
-                    <button type="button" onClick={() => { setAuthTab("login"); setLoginError(""); }}
-                      className="text-vw-accent hover:underline font-bold cursor-pointer">Masuk (Login) disini</button>
-                  </span>
-                )}
-              </div>
+              <p className="text-[11px] text-vw-muted text-center leading-relaxed">
+                Login dan registrasi diproses melalui{" "}
+                <span className="font-semibold text-vw-text">Kinde</span>,
+                penyedia autentikasi enterprise terpercaya. Data Anda aman.
+              </p>
             </div>
           </div>
         </div>
