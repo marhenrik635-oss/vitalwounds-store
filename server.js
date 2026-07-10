@@ -124,6 +124,77 @@ app.post('/api/snk', rawBody, function(req, res) {
   proxyReq.end();
 });
 
+// --- Kinde User Sync (auto-create user in local DB) ---
+app.post("/api/auth/sync", async (req, res) => {
+  try {
+    const isAuthenticated = await kindeClient.isAuthenticated(req);
+    if (!isAuthenticated) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const kindeUser = await kindeClient.getUserProfile(req);
+    const email = kindeUser.email || "";
+    const givenName = kindeUser.given_name || email.split('@')[0] || "user";
+    
+    // Check if this is the configured admin email
+    const adminEmail = (process.env.KINDE_ADMIN_EMAIL || "").toLowerCase();
+    const role = (adminEmail && email.toLowerCase() === adminEmail) ? "admin" : "member";
+    
+    // Call backend API to find/create user
+    const target = new URL(API_TARGET);
+    const postData = JSON.stringify({
+      username: givenName,
+      email: email,
+      phone: kindeUser.phone_number || "",
+      role: role,
+      tier: "Regular"
+    });
+    
+    const options = {
+      hostname: target.hostname,
+      port: target.port || 80,
+      path: '/api/auth/kinder-create',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+    
+    const apiReq = http.request(options, function(apiRes) {
+      let body = '';
+      apiRes.on('data', function(c) { body += c; });
+      apiRes.on('end', function() {
+        try {
+          const data = JSON.parse(body);
+          if (data.user) {
+            res.json({ ...data, kindeEmail: email, kindeName: givenName });
+          } else {
+            res.json({ error: 'Sync failed', detail: data });
+          }
+        } catch (e) {
+          res.status(500).json({ error: 'Invalid response from API' });
+        }
+      });
+    });
+    
+    apiReq.on('error', function(err) {
+      console.error('[Sync] API error:', err.message);
+      // Fallback: return Kinde user info even if API is down
+      res.json({
+        user: { username: givenName, email: email, phone: "", balance: 0, tier: "Regular", role: role, apiKey: "vt_live_" + givenName },
+        kindeEmail: email,
+        kindeName: givenName
+      });
+    });
+    
+    apiReq.write(postData);
+    apiReq.end();
+  } catch (e) {
+    console.error('[Sync] Error:', e);
+    res.status(500).json({ error: 'Sync failed' });
+  }
+});
+
 // --- Kinde Auth Routes ---
 app.get("/api/auth/login", async (req, res) => {
   const loginUrl = await kindeClient.login(req);

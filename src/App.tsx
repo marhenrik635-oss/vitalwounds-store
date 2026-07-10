@@ -89,12 +89,14 @@ export default function App() {
           setCurrentUsername(u.given_name || u.email);
           localStorage.setItem("vw_current_user", u.given_name || u.email);
           
-          fetch(`/api/users/${u.given_name || u.email}`)
+          // Sync user to local database via Kinde
+          fetch("/api/auth/sync", { method: "POST" })
             .then(res => res.json())
-            .then(matched => {
-              if (matched && !matched.error) {
+            .then(syncData => {
+              if (syncData.user) {
+                const matched = syncData.user;
                 const role = matched.role || "member";
-                setIsAdmin(matched.username === "admin" || role === "admin" || role === "owner");
+                setIsAdmin(role === "admin" || role === "owner");
                 localStorage.setItem("vw_role", role);
                 setUserProfile({
                   username: matched.username,
@@ -103,7 +105,7 @@ export default function App() {
                   balance: matched.balance || 0,
                   tier: matched.tier || "Regular",
                   role: role,
-                  apiKey: matched.apiKey || "vt_live_" + matched.username
+                  apiKey: "vt_live_" + matched.username
                 });
               } else {
                 setUserProfile({
@@ -116,6 +118,18 @@ export default function App() {
                   apiKey: "vt_live_" + (u.given_name || u.email)
                 });
               }
+            })
+            .catch(() => {
+              // Fallback if sync fails
+              setUserProfile({
+                username: u.given_name || u.email,
+                email: u.email || "",
+                phone: "",
+                balance: 0,
+                tier: "Regular",
+                role: "member",
+                apiKey: "vt_live_" + (u.given_name || u.email)
+              });
             });
         } else {
           setIsLoggedIn(false);

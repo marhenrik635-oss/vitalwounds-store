@@ -1389,6 +1389,59 @@ app.post('/api/register', async (req, res) => {
     });
 });
 
+// --- Kinde User Sync (auto-create user from Kinde auth) ---
+app.post('/api/auth/kinder-create', (req, res) => {
+    const { username, email, phone, role, tier } = req.body;
+    if (!username || !email) return res.status(400).json({ error: 'username and email required' });
+
+    const finalRole = role || 'member';
+    const finalTier = tier || 'Regular';
+
+    // Match by EMAIL first to avoid username collision
+    db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE email = ?', [email], (err, existingByEmail) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        if (existingByEmail) {
+            // User found by email — update info if needed, but DON'T downgrade role
+            const keepRole = (existingByEmail.role === 'admin' || existingByEmail.role === 'owner') ? existingByEmail.role : finalRole;
+            db.run('UPDATE users SET username = ?, phone = COALESCE(NULLIF(?, ''), phone), role = ? WHERE id = ?',
+                [username, phone || '', keepRole, existingByEmail.id], (updErr) => {
+                    if (updErr) console.error('Failed to update user:', updErr.message);
+                    db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE id = ?', [existingByEmail.id], (selErr, user) => {
+                        res.json({ message: 'User updated', user });
+                    });
+                }
+            );
+        } else {
+            // Check by username as fallback
+            db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE username = ?', [username], (err2, existingByUsername) => {
+                if (existingByUsername) {
+                    // Username exists but with different email — update email too
+                    db.run('UPDATE users SET email = ?, phone = COALESCE(NULLIF(?, ''), phone) WHERE id = ?',
+                        [email, phone || '', existingByUsername.id], (updErr) => {
+                            if (updErr) console.error('Failed to update user:', updErr.message);
+                            db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE id = ?', [existingByUsername.id], (selErr, user) => {
+                                res.json({ message: 'User updated', user });
+                            });
+                        }
+                    );
+                } else {
+                    // Create new user
+                    db.run('INSERT INTO users (username, email, phone, role, tier, balance) VALUES (?, ?, ?, ?, ?, 0)',
+                        [username, email, phone || '', finalRole, finalTier],
+                        function(insErr) {
+                            if (insErr) return res.status(500).json({ error: 'Failed to create user: ' + insErr.message });
+                            db.get('SELECT id, username, email, balance, phone, tier, role FROM users WHERE id = ?', [this.lastID], (selErr, user) => {
+                                res.json({ message: 'User created', user });
+                            });
+                        }
+                    );
+                }
+            });
+        }
+    });
+});
+
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, username], async (err, user) => {
