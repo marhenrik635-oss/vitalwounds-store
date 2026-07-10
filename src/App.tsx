@@ -2,7 +2,6 @@ import { useState, useEffect, lazy, Suspense, Component, ReactNode } from "react
 import {
   LogIn,
   UserPlus,
-  ArrowLeft,
 } from "lucide-react";
 
 // Import types & initial data
@@ -323,53 +322,67 @@ export default function App() {
       )}
 
       {/* ==========================================
-          VIEW 2: AUTH PAGE
+          VIEW 2: AUTH PAGE — Clean Gateway
           ========================================== */}
       {screenView === "auth" && (
-        <div className="flex-1 min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
-          <div className="absolute top-6 left-6 z-10">
+        <div className="flex-1 min-h-screen flex flex-col relative">
+          {/* Subtle grain overlay */}
+          <div className="grain-overlay" />
+
+          {/* Top nav */}
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-5">
             <button
               onClick={() => navigateTo("landing")}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-vw-muted hover:text-vw-text transition-colors px-4 py-2 cursor-pointer"
+              className="text-xs font-medium text-vw-muted hover:text-vw-text transition-colors duration-200 cursor-pointer"
             >
-              <ArrowLeft size={14} /> Kembali ke Beranda
+              ← Beranda
             </button>
           </div>
 
-          <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-            <div className="flex justify-center mb-4">
-              <img src="/logo.png" alt="Vitalwounds Store" className="w-14 h-14 rounded-2xl object-contain bg-white shadow-lg" />
+          {/* Center content */}
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
+            <div className="flex flex-col items-center w-full max-w-xs">
+              {/* Logo */}
+              <div className="hero-enter">
+                <div className="w-16 h-16 rounded-[18px] bg-white shadow-elevated flex items-center justify-center overflow-hidden mb-5">
+                  <img src="/logo.png" alt="Vitalwounds" className="w-10 h-10 object-contain" />
+                </div>
+              </div>
+
+              {/* Heading */}
+              <h1 className="hero-enter hero-enter-d1 text-[22px] font-bold text-vw-text text-center tracking-[-0.03em]">
+                Vitalwounds
+              </h1>
+              <p className="hero-enter hero-enter-d2 mt-1.5 text-[13px] text-vw-muted text-center leading-relaxed">
+                Masuk atau buat akun untuk melanjutkan
+              </p>
+
+              {/* Buttons */}
+              <div className="hero-enter hero-enter-d3 mt-8 w-full flex flex-col gap-3">
+                <a
+                  href="/api/auth/login"
+                  className="relative w-full bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold py-3 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer shadow-btn hover:shadow-btn-hover active:scale-[0.97] overflow-hidden group animate-pulse-glow"
+                >
+                  <LogIn size={16} />
+                  <span>Masuk</span>
+                </a>
+
+                <a
+                  href="/api/auth/register"
+                  className="w-full bg-white hover:bg-gray-50 text-vw-text text-sm font-medium py-3 px-5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer border border-vw-border active:scale-[0.97]"
+                >
+                  <UserPlus size={16} className="text-vw-muted" />
+                  <span>Buat Akun</span>
+                </a>
+              </div>
             </div>
-            <h2 className="text-center text-2xl font-bold text-vw-text tracking-tight">
-              Vitalwounds <span className="text-vw-accent">Store</span>
-            </h2>
-            <p className="mt-1.5 text-center text-xs text-vw-muted font-medium">
-              Wajib memiliki akun untuk mulai berbelanja layanan kami
-            </p>
           </div>
 
-          <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
-            <div className="border border-vw-border rounded-3xl bg-white p-8 sm:p-10 shadow-lg space-y-4">
-              {/* Login */}
-              <a
-                href="/api/auth/login"
-                className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-lg shadow-vw-accent/20 hover:scale-[1.01] active:scale-[0.98]"
-              >
-                <LogIn size={18} />
-                <span>Masuk</span>
-              </a>
-
-              {/* Register */}
-              <a
-                href="/api/auth/register"
-                className="w-full border-2 border-vw-border hover:border-vw-accent/40 text-vw-text font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer hover:bg-vw-accent/5 active:scale-[0.98]"
-              >
-                <UserPlus size={18} className="text-vw-accent" />
-                <span>Daftar</span>
-              </a>
-
-
-            </div>
+          {/* Footer */}
+          <div className="hero-enter hero-enter-d4 pb-6 text-center">
+            <p className="text-[11px] text-vw-muted/50 font-medium">
+              Vitalwounds Store &mdash; 2026
+            </p>
           </div>
         </div>
       )}
