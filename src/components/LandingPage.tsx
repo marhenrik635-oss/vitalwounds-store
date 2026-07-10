@@ -439,7 +439,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <span className="text-xs text-vw-text-muted">&copy; 2026 Vitalwounds Store. {t("landing.footer.copyright")}</span>
             <div className="flex gap-6">
               <span className="text-xs text-vw-text-muted">{t("landing.footer.privacy")}</span>
-              <span className="text-xs text-vw-text-muted">{t("landing.footer.terms")}</span>
+              <a href="/tos.md" target="_blank" rel="noopener noreferrer" className="text-xs text-vw-text-muted hover:text-vw-text transition-colors">{t("landing.footer.terms")}</a>
             </div>
           </div>
         </div>

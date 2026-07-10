@@ -33,6 +33,7 @@ const TabDeposit = lazy(() => import("./components/TabDeposit"));
 const TabRiwayatDeposit = lazy(() => import("./components/TabRiwayatDeposit"));
 const TabRiwayatOrder = lazy(() => import("./components/TabRiwayatOrder"));
 const TabAppPremium = lazy(() => import("./components/TabAppPremium"));
+const TosPage = lazy(() => import("./components/TosPage"));
 
 const TabContact = lazy(() => import("./components/TabContact"));
 const TabAdmin = lazy(() => import("./components/TabAdmin"));
@@ -205,6 +206,8 @@ export default function App() {
       } else if (route === "/contact" || route === "contact") {
         setScreenView("dashboard-panel");
         setActiveTab("contact");
+      } else if (route === "/tos") {
+        setScreenView("tos");
       } else if (route === "/dashboard" || route.startsWith("/")) {
         const loggedIn = localStorage.getItem("vw_is_logged_in") === "true";
         if (!loggedIn) {
@@ -543,6 +546,10 @@ export default function App() {
           ========================================== */}
       {screenView === "landing" && (
         <LandingPage navigateTo={navigateTo} isLoggedIn={isLoggedIn} />
+      )}
+
+      {screenView === "tos" && (
+        <TosPage />
       )}
 
       {/* ==========================================
