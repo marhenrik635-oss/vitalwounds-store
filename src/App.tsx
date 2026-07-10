@@ -356,7 +356,7 @@ export default function App() {
                 className="w-full bg-vw-accent hover:bg-vw-accent-hover text-white font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer shadow-lg shadow-vw-accent/20 hover:scale-[1.01] active:scale-[0.98]"
               >
                 <LogIn size={18} />
-                <span>Masuk dengan Kinde</span>
+                <span>Masuk</span>
               </a>
 
               {/* Register with Kinde */}
@@ -365,21 +365,10 @@ export default function App() {
                 className="w-full border-2 border-vw-border hover:border-vw-accent/40 text-vw-text font-semibold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer hover:bg-vw-accent/5 active:scale-[0.98]"
               >
                 <UserPlus size={18} className="text-vw-accent" />
-                <span>Daftar dengan Kinde</span>
+                <span>Daftar</span>
               </a>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 pt-2">
-                <div className="flex-1 h-px bg-vw-border/60" />
-                <span className="text-[10px] font-medium text-vw-muted uppercase tracking-wider">Aman & Terpercaya</span>
-                <div className="flex-1 h-px bg-vw-border/60" />
-              </div>
 
-              <p className="text-[11px] text-vw-muted text-center leading-relaxed">
-                Login dan registrasi diproses melalui{" "}
-                <span className="font-semibold text-vw-text">Kinde</span>,
-                penyedia autentikasi enterprise terpercaya. Data Anda aman.
-              </p>
             </div>
           </div>
         </div>
