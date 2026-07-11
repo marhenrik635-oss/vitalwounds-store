@@ -368,10 +368,14 @@ export default function App() {
             {/* Center form */}
             <div className="flex-1 flex items-center justify-center px-8 py-4">
               <div className="w-full max-w-[320px]">
-                {/* Logo */}
-                <div className="hero-enter">
-                  <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-vw-accent to-[#1D4ED8] shadow-elevated flex items-center justify-center overflow-hidden mb-5">
-                    <img src="/logo.png" alt="Vitalwounds" className="w-7 h-7 object-contain brightness-0 invert" />
+                {/* Logo — Vitalwounds Store */}
+                <div className="hero-enter flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-vw-border shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="/logo.png" alt="Vitalwounds Store" className="w-6 h-6 object-contain" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-vw-text tracking-tight leading-tight">Vitalwounds Store</h2>
+                    <p className="text-[10px] text-vw-muted/60 font-medium">Digital Premium Services</p>
                   </div>
                 </div>
 
