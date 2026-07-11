@@ -1001,103 +1001,112 @@ app.post('/api/xoftware/pay', async (req, res) => {
                     const orderData = response.data.data;
                     const totalPrice = Number(orderData.total_price || 0);
                     
-                    if (user.balance < totalPrice) {
-                        return res.status(400).json({ error: 'Saldo lokal Anda tidak mencukupi untuk memproses pesanan ini.' });
-                    }
-                    
-                    db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [totalPrice, user.id], (upErr) => {
-                        if (upErr) console.error('Failed to deduct balance:', upErr);
-                    });
-                    
-                    const accounts = Array.isArray(orderData.accounts) 
-                        ? orderData.accounts.map(acc => Object.entries(acc).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n')
-                        : JSON.stringify(orderData.accounts || orderData);
-                    
-                    // Fetch SNK from product cache
-                    var productSnk = 'Tidak ada syarat dan ketentuan.';
-                    try {
-                        const cachedProduct = await new Promise((resolve, reject) => {
-                            db.get('SELECT snk FROM product_cache WHERE code = ? OR id = ?', [code, code], (err, row) => {
-                                if (err) reject(err);
-                                else resolve(row);
-                            });
-                        });
-                        if (cachedProduct && cachedProduct.snk) {
-                            productSnk = cachedProduct.snk;
+                    // Atomic balance deduction — check AND deduct in one query to prevent race conditions
+                    db.run('UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?', [totalPrice, user.id, totalPrice], async function(upErr) {
+                        if (upErr) {
+                            console.error('Failed to deduct balance:', upErr);
+                            return res.status(500).json({ error: 'Gagal memproses pembayaran. Coba lagi.' });
                         }
-                    } catch (e) {
-                        console.error('Failed to fetch SNK for email:', e.message);
-                    }
+                        if (this.changes === 0) {
+                            return res.status(400).json({ error: 'Saldo tidak mencukupi untuk memproses pesanan ini.' });
+                        }
+                        
+                        // Balance deducted successfully — proceed with order fulfillment
+                        try {
+                            const accounts = Array.isArray(orderData.accounts) 
+                                ? orderData.accounts.map(acc => Object.entries(acc).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n')
+                                : JSON.stringify(orderData.accounts || orderData);
+                            
+                            // Fetch SNK from product cache
+                            var productSnk = 'Tidak ada syarat dan ketentuan.';
+                            try {
+                                const cachedProduct = await new Promise((resolve, reject) => {
+                                    db.get('SELECT snk FROM product_cache WHERE code = ? OR id = ?', [code, code], (err, row) => {
+                                        if (err) reject(err);
+                                        else resolve(row);
+                                    });
+                                });
+                                if (cachedProduct && cachedProduct.snk) {
+                                    productSnk = cachedProduct.snk;
+                                }
+                            } catch (e) {
+                                console.error('Failed to fetch SNK for email:', e.message);
+                            }
 
-                    const emailTujuan = target || user.email;
-                    const productName = orderData.title || 'Produk Premium';
-                    const totalHarga = Number(orderData.total_price || 0);
-                    const orderId = orderData.transaction_id || orderData.id || ('ORD-' + Date.now());
-                    
-                    // Format accounts for HTML display
-                    var accountsHtml = '';
-                    if (Array.isArray(orderData.accounts)) {
-                        orderData.accounts.forEach(function(acc) {
-                            accountsHtml += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px;font-family:monospace;font-size:13px">';
-                            Object.entries(acc).forEach(function(_ref) {
-                                var k = _ref[0], v = _ref[1];
-                                accountsHtml += '<div style="padding:2px 0"><span style="color:#64748b;font-weight:600">' + k + ':</span> <span style="color:#0f172a">' + v + '</span></div>';
-                            });
-                            accountsHtml += '</div>';
-                        });
-                    } else {
-                        accountsHtml = '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-family:monospace;font-size:13px;color:#0f172a">' + (orderData.accounts ? JSON.stringify(orderData.accounts) : orderData) + '</div>';
-                    }
+                            const emailTujuan = target || user.email;
+                            const productName = orderData.title || 'Produk Premium';
+                            const totalHarga = Number(orderData.total_price || 0);
+                            const orderId = orderData.transaction_id || orderData.id || ('ORD-' + Date.now());
+                            
+                            // Format accounts for HTML display
+                            var accountsHtml = '';
+                            if (Array.isArray(orderData.accounts)) {
+                                orderData.accounts.forEach(function(acc) {
+                                    accountsHtml += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px;font-family:monospace;font-size:13px">';
+                                    Object.entries(acc).forEach(function(_ref) {
+                                        var k = _ref[0], v = _ref[1];
+                                        accountsHtml += '<div style="padding:2px 0"><span style="color:#64748b;font-weight:600">' + k + ':</span> <span style="color:#0f172a">' + v + '</span></div>';
+                                    });
+                                    accountsHtml += '</div>';
+                                });
+                            } else {
+                                accountsHtml = '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-family:monospace;font-size:13px;color:#0f172a">' + (orderData.accounts ? JSON.stringify(orderData.accounts) : orderData) + '</div>';
+                            }
 
-                    console.log('Mengirim kredensial ke email: ' + emailTujuan);
-                    resend.emails.send({
-                        from: 'Vitalwounds <noreply@vitalwounds.my.id>',
-                        to: emailTujuan,
-                        subject: 'Pembelian Berhasil - ' + productName,
-                        html: '<!DOCTYPE html>' +
-                        '<html lang="id">' +
-                        '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
-                        '<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif">' +
-                          '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0">' +
-                            '<tr><td align="center">' +
-                              '<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)">' +
-                                /* Header */
-                                '<tr><td style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:32px 32px 24px;text-align:center">' +
-                                  '<img src="https://vitalwounds.my.id/logo.png" alt="Vitalwounds" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px" />' +
-                                  '<h1 style="color:#fff;font-size:22px;font-weight:700;margin:8px 0 4px">Pembelian Berhasil!</h1>' +
-                                  '<p style="color:rgba(255,255,255,0.75);font-size:14px;margin:0">Terima kasih telah berbelanja di Vitalwounds</p>' +
-                                '</td></tr>' +
-                                /* Order info */
-                                '<tr><td style="padding:24px 32px 0">' +
-                                  '<table width="100%" cellpadding="0" cellspacing="0">' +
-                                    '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">ID Pesanan</span><br/><span style="color:#0f172a;font-size:14px;font-weight:600">' + orderId + '</span></td></tr>' +
-                                    '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">Produk</span><br/><span style="color:#0f172a;font-size:14px;font-weight:600">' + productName + '</span></td></tr>' +
-                                    '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">Total Pembayaran</span><br/><span style="color:#2563eb;font-size:18px;font-weight:700">Rp ' + totalHarga.toLocaleString('id-ID') + '</span></td></tr>' +
-                                    '<tr><td style="border-top:1px solid #e2e8f0;padding-top:16px">' +
-                                      '<h2 style="color:#0f172a;font-size:15px;font-weight:700;margin:0 0 12px">Detail Akun</h2>' +
-                                      accountsHtml +
+                            console.log('Mengirim kredensial ke email: ' + emailTujuan);
+                            resend.emails.send({
+                                from: 'Vitalwounds <noreply@vitalwounds.my.id>',
+                                to: emailTujuan,
+                                subject: 'Pembelian Berhasil - ' + productName,
+                                html: '<!DOCTYPE html>' +
+                                '<html lang="id">' +
+                                '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+                                '<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif">' +
+                                  '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0">' +
+                                    '<tr><td align="center">' +
+                                      '<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)">' +
+                                        /* Header */
+                                        '<tr><td style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:32px 32px 24px;text-align:center">' +
+                                          '<img src="https://vitalwounds.my.id/logo.png" alt="Vitalwounds" style="width:48px;height:48px;border-radius:12px;margin-bottom:8px" />' +
+                                          '<h1 style="color:#fff;font-size:22px;font-weight:700;margin:8px 0 4px">Pembelian Berhasil!</h1>' +
+                                          '<p style="color:rgba(255,255,255,0.75);font-size:14px;margin:0">Terima kasih telah berbelanja di Vitalwounds</p>' +
+                                        '</td></tr>' +
+                                        /* Order info */
+                                        '<tr><td style="padding:24px 32px 0">' +
+                                          '<table width="100%" cellpadding="0" cellspacing="0">' +
+                                            '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">ID Pesanan</span><br/><span style="color:#0f172a;font-size:14px;font-weight:600">' + orderId + '</span></td></tr>' +
+                                            '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">Produk</span><br/><span style="color:#0f172a;font-size:14px;font-weight:600">' + productName + '</span></td></tr>' +
+                                            '<tr><td style="padding:8px 0"><span style="color:#64748b;font-size:13px">Total Pembayaran</span><br/><span style="color:#2563eb;font-size:18px;font-weight:700">Rp ' + totalHarga.toLocaleString('id-ID') + '</span></td></tr>' +
+                                            '<tr><td style="border-top:1px solid #e2e8f0;padding-top:16px">' +
+                                              '<h2 style="color:#0f172a;font-size:15px;font-weight:700;margin:0 0 12px">Detail Akun</h2>' +
+                                              accountsHtml +
+                                            '</td></tr>' +
+                                          '</table>' +
+                                        '</td></tr>' +
+                                        /* SNK Section */ +
+                                        '<tr><td style="padding:16px 32px 24px">' +
+                                          '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px">' +
+                                            '<h3 style="color:#92400e;font-size:13px;font-weight:700;margin:0 0 6px">Syarat & Ketentuan</h3>' +
+                                            '<p style="color:#78350f;font-size:12px;line-height:1.5;margin:0;white-space:pre-wrap">' + productSnk + '</p>' +
+                                          '</div>' +
+                                        '</td></tr>' +
+                                        /* Footer */ +
+                                        '<tr><td style="background:#f8fafc;padding:20px 32px;text-align:center;border-top:1px solid #e2e8f0">' +
+                                          '<p style="color:#94a3b8;font-size:12px;margin:0 0 4px">Butuh bantuan? Hubungi kami di <a href="mailto:support@vitalwounds.my.id" style="color:#2563eb;text-decoration:none">support@vitalwounds.my.id</a></p>' +
+                                          '<p style="color:#94a3b8;font-size:11px;margin:0">&copy; 2026 Vitalwounds Store. All rights reserved.</p>' +
+                                        '</td></tr>' +
+                                      '</table>' +
                                     '</td></tr>' +
                                   '</table>' +
-                                '</td></tr>' +
-                                /* SNK Section */ +
-                                '<tr><td style="padding:16px 32px 24px">' +
-                                  '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px">' +
-                                    '<h3 style="color:#92400e;font-size:13px;font-weight:700;margin:0 0 6px">Syarat & Ketentuan</h3>' +
-                                    '<p style="color:#78350f;font-size:12px;line-height:1.5;margin:0;white-space:pre-wrap">' + productSnk + '</p>' +
-                                  '</div>' +
-                                '</td></tr>' +
-                                /* Footer */ +
-                                '<tr><td style="background:#f8fafc;padding:20px 32px;text-align:center;border-top:1px solid #e2e8f0">' +
-                                  '<p style="color:#94a3b8;font-size:12px;margin:0 0 4px">Butuh bantuan? Hubungi kami di <a href="mailto:support@vitalwounds.my.id" style="color:#2563eb;text-decoration:none">support@vitalwounds.my.id</a></p>' +
-                                  '<p style="color:#94a3b8;font-size:11px;margin:0">&copy; 2026 Vitalwounds Store. All rights reserved.</p>' +
-                                '</td></tr>' +
-                              '</table>' +
-                            '</td></tr>' +
-                          '</table>' +
-                        '</body></html>'
-                    }).then(function(r) { console.log('Email terkirim:', r); }).catch(function(err) { console.error('Email send failed:', err); });
+                                '</body></html>'
+                            }).then(function(r) { console.log('Email terkirim:', r); }).catch(function(err) { console.error('Email send failed:', err); });
 
-                    res.json(response.data);
+                            res.json(response.data);
+                        } catch (e) {
+                            console.error('Order processing error:', e);
+                            res.status(500).json({ error: 'Gagal memproses pesanan.' });
+                        }
+                    });
                 } else {
                     res.status(400).json({ error: response.data.message || 'Gagal memproses order ke supplier.' });
                 }

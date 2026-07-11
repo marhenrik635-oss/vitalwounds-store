@@ -117,6 +117,10 @@ export default function TabAppPremium({
           
         setBoughtCredentials(formattedCreds);
 
+        // Deduct balance locally to prevent double-spending
+        const totalPrice = selectedVariation ? selectedVariation.price : selectedProduct.price_min;
+        onDeductBalance(totalPrice);
+
         onAddOrder({
           id: `ORD-${data.data?.transaction_id || Math.floor(100 + Math.random() * 900)}`,
           serviceType: "App Premium",
