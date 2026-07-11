@@ -370,7 +370,7 @@ export default function App() {
               <div className="w-full max-w-[320px]">
                 {/* Logo — Vitalwounds Store */}
                 <div className="hero-enter flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-vw-border shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-vw-surface border border-vw-border shadow-sm flex items-center justify-center overflow-hidden shrink-0">
                     <img src="/logo.png" alt="Vitalwounds Store" className="w-6 h-6 object-contain" />
                   </div>
                   <div>
