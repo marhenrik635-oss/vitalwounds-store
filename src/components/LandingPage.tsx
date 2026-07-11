@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare, Star, MessageCircle, ShoppingCart, Zap, Timer } from "lucide-react"
+import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, MessageSquare, Star, MessageCircle, ShoppingCart, Zap, Timer, ExternalLink } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
 import OceanBg from "./OceanBg"
 import type { TranslationKey } from "../i18n/translations"
@@ -560,9 +560,9 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <div>
               <p className="text-xs font-bold text-vw-text-muted mb-4">{t("landing.footer.kontak")}</p>
               <ul className="space-y-3">
-                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><HeadphonesIcon size={14} className="text-vw-accent" />+62 812-3456-7890</li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><Globe size={14} className="text-vw-accent" />@VitalwoundsStore_Bot</li>
-                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><MessageSquare size={14} className="text-vw-accent" />support@vitalwounds-store.com</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><HeadphonesIcon size={14} className="text-vw-accent" />088983082523</li>
+                <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><MessageSquare size={14} className="text-vw-accent" />vitalwoundsstore@gmail.com</li>
+                <li><a href="https://discord.gg/G4qbWnrxxk" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-vw-text-muted hover:text-vw-accent transition-colors"><ExternalLink size={14} className="text-vw-accent" />Join Our Store</a></li>
               </ul>
             </div>
           </div>
