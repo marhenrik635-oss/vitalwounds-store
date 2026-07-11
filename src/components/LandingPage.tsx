@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare } from "lucide-react"
+import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, Globe, MessageSquare, Star, MessageCircle, ShoppingCart, Zap, Timer } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
 import OceanBg from "./OceanBg"
 import type { TranslationKey } from "../i18n/translations"
@@ -39,6 +39,24 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
     { q: "Apakah ada garansi?", a: "Ya, setiap pembelian dilindungi garansi 100% uang kembali. Jika layanan bermasalah, hubungi tim support kami." }
   ]
 
+  const TESTIMONIALS = [
+    { name: "Andi Pratama", role: "Pengguna Setia", text: "Baru 5 menit setelah bayar, akun Netflix langsung aktif. Recommended banget!", rating: 5 },
+    { name: "Siti Rahmawati", role: "Mahasiswa", text: "Canva Pro-nya works 100%. Desain tugas jadi lebih cepet beres. Makasih Vitalwounds!", rating: 5 },
+    { name: "Dimas Ardiansyah", role: "Content Creator", text: "Udah order berkali-kali, gapernah zonk. CapCut Pro buat konten TikTok jadi makin gacor.", rating: 5 },
+    { name: "Rina Marlina", role: "Ibu Rumah Tangga", text: "Spotify Premium buat anak-anak belajar online. Murah meriah, recomended buat emak-emak.", rating: 5 },
+    { name: "Fajar Nugroho", role: "Freelancer", text: "ChatGPT Plus ngebantu banget buat riset artikel. Udah langganan 3 bulan, no drama.", rating: 5 },
+    { name: "Dewi Sartika", role: "Guru", text: "YouTube Premium buat nonton video pembelajaran tanpa iklan. Anak didik senang, saya pun senang.", rating: 4 },
+  ]
+
+  const FLASH_SALE = [
+    { name: "Netflix Premium", icon: Film, price: "Rp 25.000", original: "Rp 30.000", stock: 12 },
+    { name: "Spotify Premium", icon: Music, price: "Rp 10.000", original: "Rp 15.000", stock: 8 },
+    { name: "ChatGPT Plus", icon: BrainCircuit, price: "Rp 42.000", original: "Rp 49.000", stock: 5 },
+  ]
+
+  // Simulated live viewers count
+  const [liveViewers] = useState(() => Math.floor(Math.random() * 20) + 8)
+
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
@@ -56,7 +74,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30">
+    <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30 pb-16 sm:pb-0">
       <OceanBg />
       <div className="grain-overlay" aria-hidden="true" />
       <a href="#content" className="fixed -top-full left-0 z-50 px-4 py-2 bg-vw-text text-vw-bg text-xs font-semibold rounded-br-lg transition-all focus:top-0">Skip to content</a>
@@ -134,6 +152,21 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     className="mt-8 w-full py-3.5 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl hover:scale-[1.01] active:scale-[0.98] transition-all">
                     Mulai Belanja
                   </button>
+
+                  {/* Urgency bar */}
+                  <div className="mt-5 pt-4 border-t border-vw-border/60 flex items-center justify-between text-[10px] text-vw-muted">
+                    <span className="flex items-center gap-1">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      {liveViewers} orang sedang lihat
+                    </span>
+                    <span className="flex items-center gap-1 font-medium text-amber-600/80">
+                      <Timer size={10} />
+                      Stok terbatas
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -162,6 +195,104 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 </div>
                 <p className="text-sm font-medium text-vw-text-muted mt-2">Transaksi Berhasil</p>
               </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ====== TESTIMONIALS ====== */}
+        <section className="py-24 sm:py-28 px-6 border-t border-vw-border overflow-hidden">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <motion.div {...animProps()}>
+                <div className="flex items-center justify-center gap-1.5 mb-4">
+                  {[1,2,3,4,5].map(i => (
+                    <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
+                  ))}
+                  <span className="text-xs font-semibold text-vw-muted ml-2">4.8 dari 2.000+ ulasan</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">Apa kata mereka?</h2>
+              </motion.div>
+            </div>
+
+            <div className="relative">
+              {/* First row — scroll left */}
+              <div className="flex gap-5 animate-marquee mb-5 w-max">
+                {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+                  <div key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface rounded-2xl p-6 border border-vw-border">
+                    <div className="flex items-center gap-1 mb-3">
+                      {Array.from({length: 5}, (_, j) => (
+                        <Star key={j} size={12} className={j < t.rating ? "text-amber-400 fill-amber-400" : "text-vw-border/60"} />
+                      ))}
+                    </div>
+                    <p className="text-sm text-vw-text leading-relaxed mb-4">"{t.text}"</p>
+                    <div className="flex items-center gap-2.5 pt-3 border-t border-vw-border/50">
+                      <div className="w-8 h-8 rounded-full bg-vw-accent/10 flex items-center justify-center text-[11px] font-bold text-vw-accent shrink-0">
+                        {t.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-vw-text">{t.name}</p>
+                        <p className="text-[10px] text-vw-muted">{t.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ====== FLASH SALE ====== */}
+        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-gradient-to-r from-amber-50/60 to-orange-50/30 dark:from-amber-950/10 dark:to-orange-950/5">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12">
+              <motion.div {...animProps()}>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <Zap size={16} className="text-amber-500 fill-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-[0.15em]">Flash Sale</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">Harga spesial hari ini</h2>
+              </motion.div>
+              <motion.div {...animProps(100)}>
+                <span className="flex items-center gap-1.5 text-xs text-vw-muted font-medium bg-vw-surface px-4 py-2 rounded-full border border-vw-border">
+                  <Timer size={12} className="text-amber-500" />
+                  Promo berlaku 08:00 - 23:59 WIB
+                </span>
+              </motion.div>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-5">
+              {FLASH_SALE.map((item, i) => {
+                const Icon = item.icon
+                return (
+                  <motion.div key={item.name} {...animProps(i * 80)}>
+                    <div className="relative bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-amber-300/50 transition-all duration-300 group">
+                      {/* Discount badge */}
+                      <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                        HEMAT {Math.round((1 - parseInt(item.price.replace(/\D/g,'')) / parseInt(item.original.replace(/\D/g,''))) * 100)}%
+                      </div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+                          <Icon size={18} className="text-amber-600" />
+                        </div>
+                        <h3 className="text-base font-semibold text-vw-text">{item.name}</h3>
+                      </div>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-2xl font-bold text-vw-text">{item.price}</span>
+                        <span className="text-sm text-vw-muted line-through">{item.original}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-vw-muted">
+                          Sisa <span className="font-bold text-amber-600">{item.stock}</span> slot
+                        </span>
+                        <button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+                          className="text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg transition-all active:scale-[0.97]">
+                          Pesan
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -444,6 +575,34 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
           </div>
         </div>
       </footer>
+
+      {/* ====== WhatsApp Floating Button ====== */}
+      <a
+        href="https://wa.me/6288983082523?text=Halo%20Vitalwounds%20Store%2C%20saya%20mau%20tanya%20produk"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+        aria-label="Hubungi via WhatsApp"
+      >
+        <MessageCircle size={26} />
+      </a>
+
+      {/* ====== Sticky Mobile CTA ====== */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-vw-surface/95 backdrop-blur-md border-t border-vw-border p-3 sm:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] text-vw-muted font-medium">Mulai dari</p>
+            <p className="text-base font-bold text-vw-text">Rp 800<span className="text-xs font-normal text-vw-muted">/unit</span></p>
+          </div>
+          <button
+            onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")}
+            className="flex items-center gap-2 px-6 py-3 bg-vw-accent hover:bg-vw-accent-hover text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.97] shadow-btn"
+          >
+            <ShoppingCart size={15} />
+            Mulai Belanja
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
