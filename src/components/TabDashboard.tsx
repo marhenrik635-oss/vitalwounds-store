@@ -59,8 +59,6 @@ function SpendingChart({ orders, t }: { orders: Order[]; t: (k: any) => string }
 function FavoriteProductsChart({ orders, t }: { orders: Order[]; t: (k: any) => string }) {
   const [topProducts, setTopProducts] = useState<{ name: string; sold: number; imageUrl?: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const perPage = 4;
 
   useEffect(() => {
     fetch('/api/xoftware/top-products')
@@ -76,9 +74,6 @@ function FavoriteProductsChart({ orders, t }: { orders: Order[]; t: (k: any) => 
       });
   }, []);
 
-  const totalPages = Math.ceil(topProducts.length / perPage);
-  const currentPage = Math.min(page, Math.max(0, totalPages - 1));
-  const visibleProducts = topProducts.slice(currentPage * perPage, (currentPage + 1) * perPage);
   const maxSold = Math.max(...topProducts.map(p => p.sold), 1);
 
   if (loading) {
@@ -100,53 +95,22 @@ function FavoriteProductsChart({ orders, t }: { orders: Order[]; t: (k: any) => 
   }
 
   return (
-    <div className="space-y-2">
-      {visibleProducts.map((p, i) => (
-        <div key={p.name} className="flex items-center gap-2">
+    <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+      {topProducts.map((p, i) => (
+        <div key={p.name} className="flex items-center gap-2 group">
           <span className="text-[9px] font-bold text-vw-muted w-4 shrink-0 text-right">
-            {currentPage * perPage + i + 1}
+            {i + 1}
           </span>
-          <span className="text-[10px] text-vw-text w-24 truncate shrink-0">{p.name}</span>
+          <span className="text-[10px] text-vw-text w-24 truncate shrink-0 group-hover:text-vw-accent transition-colors">{p.name}</span>
           <div className="flex-1 h-5 rounded-full bg-vw-bg overflow-hidden border border-vw-border/60 relative">
             <div
               className="h-full rounded-full bg-gradient-to-r from-vw-accent/40 to-vw-accent transition-all duration-700"
               style={{ width: `${(p.sold / maxSold) * 100}%` }}
             />
           </div>
-          <span className="text-[10px] font-semibold text-vw-muted w-10 text-right">{p.sold.toLocaleString('id-ID')}</span>
+          <span className="text-[10px] font-semibold text-vw-muted w-12 text-right">{p.sold.toLocaleString('id-ID')}</span>
         </div>
       ))}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <button
-            onClick={() => setPage(p => Math.max(0, p - 1))}
-            disabled={currentPage === 0}
-            className="text-[9px] px-2 py-1 rounded-lg bg-vw-bg border border-vw-border/60 text-vw-muted disabled:opacity-30 hover:bg-vw-accent/10 transition-all cursor-pointer disabled:cursor-default"
-          >
-            ←
-          </button>
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setPage(i)}
-              className={`text-[9px] w-5 h-5 rounded-full font-bold transition-all cursor-pointer ${
-                i === currentPage
-                  ? 'bg-vw-accent text-white'
-                  : 'bg-vw-bg border border-vw-border/60 text-vw-muted hover:bg-vw-accent/10'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-            disabled={currentPage >= totalPages - 1}
-            className="text-[9px] px-2 py-1 rounded-lg bg-vw-bg border border-vw-border/60 text-vw-muted disabled:opacity-30 hover:bg-vw-accent/10 transition-all cursor-pointer disabled:cursor-default"
-          >
-            →
-          </button>
-        </div>
-      )}
     </div>
   );
 }
