@@ -1,4 +1,7 @@
 @import "tailwindcss";
+
+/* Make Tailwind's `dark:` variant respond to html.dark class instead of prefers-color-scheme */
+@variant dark (&:where(.dark, .dark *));
 @import "@fontsource/geist-sans/400.css";
 @import "@fontsource/geist-sans/500.css";
 @import "@fontsource/geist-sans/600.css";
@@ -372,6 +375,7 @@ h1, h2, h3, h4, h5, h6 {
 .animate-fade-in-down { animation: fadeInDown 1000ms var(--ease-out-expo) both; }
 .animate-slide-in-right { animation: slideInRight 800ms var(--ease-out-expo) both; }
 .animate-float { animation: float 3s var(--ease-in-out-smooth) infinite; }
+.animate-float-slow { animation: float 6s ease-in-out infinite; }
 .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-shimmer { animation: shimmer 2s linear infinite; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; }
