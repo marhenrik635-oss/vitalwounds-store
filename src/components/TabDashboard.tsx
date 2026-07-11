@@ -95,7 +95,7 @@ function FavoriteProductsChart({ orders, t }: { orders: Order[]; t: (k: any) => 
   }
 
   return (
-    <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+    <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
       {topProducts.map((p, i) => (
         <div key={p.name} className="flex items-center gap-2 group">
           <span className="text-[9px] font-bold text-vw-muted w-4 shrink-0 text-right">

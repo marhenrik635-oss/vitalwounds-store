@@ -958,9 +958,9 @@ app.get('/api/xoftware/top-products', async (req, res) => {
             page++;
         } while (page <= totalPages && page <= 5); // max 5 pages
 
-        // Sort by sold descending, take top 5
+        // Sort by sold descending, return top 30
         topProducts.sort(function(a, b) { return b.sold - a.sold; });
-        var result = topProducts.slice(0, 5);
+        var result = topProducts.slice(0, 30);
 
         res.json({ data: result });
     } catch (error) {
