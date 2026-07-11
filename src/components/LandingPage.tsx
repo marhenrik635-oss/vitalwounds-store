@@ -120,7 +120,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 <div className="w-full max-w-sm bg-vw-surface rounded-2xl p-8 border border-vw-border">
                   <p className="text-xs text-vw-text-muted font-bold mb-4">Mulai dari</p>
                   <div className="text-4xl sm:text-5xl font-bold tracking-tight mb-2 text-vw-text">
-                    Rp 8.000<span className="text-sm font-normal text-vw-text-muted">/unit</span>
+                    Rp 800<span className="text-sm font-normal text-vw-text-muted">/unit</span>
                   </div>
                   <div className="mt-8 space-y-4">
                     {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
