@@ -1239,15 +1239,15 @@ app.post('/api/xoftware/webhook', async (req, res) => {
         const eventType = (body.event || '').toLowerCase();
         console.log('[Webhook] tx=' + transactionId + ' status=' + status + ' event=' + eventType);
         
-        // Consider success if:
-        // - Explicit status field says success, OR
-        // - Event type indicates deposit/payment/success completion
-        const isSuccess = status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed' || status === 'done' || status === 'finish' || eventType.includes('deposit') || eventType.includes('topup') || eventType.includes('payment') || eventType.includes('success');
-        
-        if (!isSuccess) {
-            return res.json({ status: 'received', transactionStatus: status, event: eventType });
+        // Skip known failure statuses
+        const failStatuses = ['fail', 'failed', 'expired', 'canceled', 'cancelled', 'rejected', 'void', 'refund'];
+        if (failStatuses.includes(status)) {
+            console.log('[Webhook] Skipping failed transaction:', transactionId, 'status:', status);
+            return res.json({ status: 'skipped_failed', transactionStatus: status });
         }
         
+        // Process callback with valid transaction_id found in our DB
+        // Xoftware sends callbacks on status changes — for deposits, any non-fail callback = payment received
         db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
             if (err) { return res.status(500).json({ error: 'DB error' }); }
             if (!dep) { return res.json({ status: 'not_found' }); }

@@ -9,7 +9,7 @@ interface TabDepositProps {
   onUpdateBalance: (amount: number) => void;
 }
 
-const presets = [10000, 20000, 50000, 100000, 200000, 500000];
+const presets = [1000, 5000, 10000, 25000, 50000, 100000];
 
 const formatRupiah = (num: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 
@@ -26,7 +26,7 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
     e.preventDefault();
     setError(null);
     setQrImageUrl("");
-    if (amount < 10000) { setError("Minimal deposit Rp 10.000"); return; }
+    if (amount < 1000) { setError("Minimal deposit Rp 1.000"); return; }
     setIsProcessing(true);
     try {
       const res = await fetch("/api/xoftware/deposit-qris", {
@@ -110,7 +110,7 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
                 <div className="relative">
                   <span className="absolute left-4 top-3.5 text-sm font-bold text-vw-muted">IDR</span>
                   <input type="number" value={amount || ""} onChange={e => setAmount(Number(e.target.value))}
-                    placeholder="Min Rp 10.000" required min={10000} className="input-field pl-16 py-3.5 text-base font-bold" />
+                    placeholder="Min Rp 1.000" required min={1000} className="input-field pl-16 py-3.5 text-base font-bold" />
                 </div>
               </div>
 
