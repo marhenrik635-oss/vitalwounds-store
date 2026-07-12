@@ -1204,29 +1204,37 @@ app.post('/api/xoftware/webhook', async (req, res) => {
         const transactionId = body.transaction_id || body.trx_id || body.txn_id || body.id || body.order_id || body.invoice || (body.data && body.data.transaction_id) || '';
         if (!transactionId) { console.error('[Webhook] No transaction ID'); return res.status(400).json({ error: 'No transaction ID' }); }
         const status = (body.status || body.payment_status || body.state || '').toLowerCase();
-        console.log('[Webhook] tx=' + transactionId + ' status=' + status);
-        if (status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed') {
-            db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
-                if (err) { return res.status(500).json({ error: 'DB error' }); }
-                if (!dep) { return res.json({ status: 'not_found' }); }
-                if (dep.status === 'success') { return res.json({ status: 'already_processed' }); }
-                db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', transactionId, 'pending'], (uErr) => {
-                    if (uErr) {
-                        return res.status(500).json({ error: 'Update failed' });
-                    }
-                    if (this.changes === 0) {
-                        return res.json({ status: 'already_processed' });
-                    }
-                    db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
-                        if (balErr) { return res.status(500).json({ error: 'Balance update failed' }); }
-                        console.log('[Webhook] Credited ' + dep.amount + ' to ' + dep.username);
-                        res.json({ status: 'success', credited: dep.amount, username: dep.username });
-                    });
+        const eventType = (body.event || '').toLowerCase();
+        console.log('[Webhook] tx=' + transactionId + ' status=' + status + ' event=' + eventType);
+        
+        // Consider success if:
+        // - Explicit status field says success, OR
+        // - Event type indicates deposit/payment completion, OR
+        // - Any callback with a valid transaction_id (xoftware only sends callbacks on status changes)
+        const isSuccess = status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed' || status === 'done' || status === 'finish' || eventType.includes('deposit') || eventType.includes('topup') || eventType === 'payment';
+        
+        if (!isSuccess) {
+            return res.json({ status: 'received', transactionStatus: status, event: eventType });
+        }
+        
+        db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
+            if (err) { return res.status(500).json({ error: 'DB error' }); }
+            if (!dep) { return res.json({ status: 'not_found' }); }
+            if (dep.status === 'success') { return res.json({ status: 'already_processed' }); }
+            db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', transactionId, 'pending'], (uErr) => {
+                if (uErr) {
+                    return res.status(500).json({ error: 'Update failed' });
+                }
+                if (this.changes === 0) {
+                    return res.json({ status: 'already_processed' });
+                }
+                db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
+                    if (balErr) { return res.status(500).json({ error: 'Balance update failed' }); }
+                    console.log('[Webhook] Credited ' + dep.amount + ' to ' + dep.username);
+                    res.json({ status: 'success', credited: dep.amount, username: dep.username });
                 });
             });
-        } else {
-            res.json({ status: 'received', transactionStatus: status });
-        }
+        });
     } catch (error) {
         console.error('[Webhook] Error:', error.message);
         res.status(500).json({ error: 'Internal error' });
