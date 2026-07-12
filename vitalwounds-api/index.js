@@ -101,7 +101,10 @@ async function getGlobalProductsData() {
 db.run(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, balance INTEGER DEFAULT 0, phone TEXT DEFAULT '', role TEXT DEFAULT 'member', tier TEXT DEFAULT 'Regular')`);
 db.run(`CREATE TABLE IF NOT EXISTS otp_codes (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, otp TEXT, expiredAt INTEGER, verified INTEGER DEFAULT 0)`);
 db.run(`CREATE TABLE IF NOT EXISTS password_resets (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, token TEXT, expiredAt INTEGER)`);
-db.run(`CREATE TABLE IF NOT EXISTS deposits (id TEXT PRIMARY KEY, username TEXT, amount INTEGER, status TEXT, transactionId TEXT UNIQUE, createdAt INTEGER)`);
+db.run(`CREATE TABLE IF NOT EXISTS deposits (id TEXT PRIMARY KEY, username TEXT, amount INTEGER, status TEXT, transactionId TEXT UNIQUE, createdAt INTEGER, qrInfo TEXT)`);
+db.run(`ALTER TABLE deposits ADD COLUMN qrInfo TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE deposits ADD COLUMN totalToPay INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE deposits ADD COLUMN expiredAt TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`CREATE TABLE IF NOT EXISTS product_cache (id TEXT PRIMARY KEY, name TEXT, code TEXT, stock INTEGER, description TEXT, category TEXT, icon TEXT, price_min INTEGER, price_max INTEGER, displayPrice TEXT, is_variation INTEGER, variations TEXT, imageUrl TEXT, snk TEXT, updatedAt INTEGER)`);
 db.run(`CREATE TABLE IF NOT EXISTS password_resets (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, token TEXT, expiredAt INTEGER)`);
 db.run(`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, username TEXT, serviceType TEXT, productName TEXT, target TEXT, quantity INTEGER DEFAULT 1, price INTEGER DEFAULT 0, status TEXT DEFAULT 'Processing', date TEXT, details TEXT)`);
@@ -1136,9 +1139,10 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
                 
                 if (txId) {
                     const depId = `DEP-${Math.floor(1000 + Math.random() * 9000)}`;
+                    const qrInfo = JSON.stringify({ qr_string: result.qr_string || '', link: result.link || '', total_to_pay: result.total_to_pay || 0, expired_at: result.expired_at || '' });
                     db.run(
-                        'INSERT OR IGNORE INTO deposits (id, username, amount, status, transactionId, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
-                        [depId, user_id, Number(amount), 'pending', String(txId), Date.now()]
+                        'INSERT OR IGNORE INTO deposits (id, username, amount, status, transactionId, createdAt, qrInfo, totalToPay, expiredAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        [depId, user_id, Number(amount), 'pending', String(txId), Date.now(), qrInfo, Number(result.total_to_pay || 0), String(result.expired_at || '')]
                     );
                     res.json({ ...result, txId: String(txId) });
                 } else {
@@ -1161,12 +1165,22 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
         const { transactionId } = req.query;
         if (!transactionId) return res.status(400).json({ error: 'transactionId query parameter is required' });
         
-        const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, { headers: xoftHeaders });
-        const xoftData = response.data.data || response.data;
+        let xoftStatus = '';
+        let xoftResponse = null;
         
-        console.log('[Deposit-Status] transactionId=' + transactionId + ' xoftStatus=' + ((xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase()) + ' raw=' + JSON.stringify(xoftData));
-        const xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
+        // Try xoftware status check (non-blocking, may fail for deposits)
+        try {
+            const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, 
+                { headers: xoftHeaders, timeout: 8000 });
+            xoftResponse = response.data;
+            const xoftData = response.data.data || response.data;
+            xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
+            console.log('[Deposit-Status] transactionId=' + transactionId + ' xoftStatus=' + xoftStatus);
+        } catch (xErr) {
+            console.log('[Deposit-Status] Xoftware check failed (using local data):', xErr.message);
+        }
         
+        // Update local status if xoftware reports success
         if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
             db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
                 if (dep && dep.status === 'pending') {
@@ -1186,11 +1200,29 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
             });
         }
         
-        res.json(response.data);
+        // Return local deposit data if xoftware failed, otherwise return xoftware data
+        if (xoftResponse) {
+            res.json(xoftResponse);
+        } else {
+            // Return local data
+            db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (lErr, lDep) => {
+                if (lErr || !lDep) return res.json({ status: 'not_found' });
+                let qrInfo = {};
+                try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
+                res.json({
+                    status: lDep.status,
+                    transaction_id: transactionId,
+                    amount: lDep.amount,
+                    total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
+                    qr_string: qrInfo.qr_string || '',
+                    link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
+                    expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+                });
+            });
+        }
     } catch (error) {
-        var errMsg2 = (error && error.response && error.response.data && error.response.data.message) ? error.response.data.message : (error && error.message ? error.message : 'Xoftware API error');
-        console.error('Failed to get Xoftware deposit status:', errMsg2);
-        res.status(502).json({ error: errMsg2 });
+        console.error('Failed to get deposit status:', error.message);
+        res.status(500).json({ error: 'Internal error' });
     }
 });
 
@@ -1521,88 +1553,132 @@ app.get('/pay/:transactionId', (req, res) => {
     const { transactionId } = req.params;
     db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], async (err, dep) => {
         if (err || !dep) return res.status(404).send('<h1>Transaksi Tidak Ditemukan</h1>');
+        
+        // Try to get live status from xoftware, but use local data as fallback
+        let qrString = '';
+        let liveStatus = 'pending';
+        let amount = dep.amount;
+        let expireAt = '';
+        
+        // Parse local saved QR info
         try {
-            const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, { headers: xoftHeaders });
+            const savedInfo = JSON.parse(dep.qrInfo || '{}');
+            qrString = savedInfo.qr_string || '';
+            expireAt = savedInfo.expired_at || '';
+        } catch (e) {}
+        
+        // Try xoftware status check (non-blocking)
+        try {
+            const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, 
+                { headers: xoftHeaders, timeout: 5000 });
             const xoftData = response.data.data || response.data;
-            const qrString = xoftData.qr_string || '';
-            const amount = dep.amount;
-            const status = xoftData.status || 'pending';
-            
-            res.send(`
+            if (xoftData.qr_string) qrString = xoftData.qr_string;
+            liveStatus = xoftData.status || 'pending';
+        } catch (xErr) {
+            console.log('[Pay] Xoftware status check failed (using local data):', xErr.message);
+        }
+        
+        // If no QR string at all, show payment link instead
+        if (!qrString) {
+            return res.send(`
             <!DOCTYPE html>
             <html lang="id">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Pembayaran QRIS - Vitalwounds</title>
-                <script src="https://cdn.tailwindcss.com"></script>
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Pembayaran - Vitalwounds</title>
+            <script src="https://cdn.tailwindcss.com"></script>
             </head>
             <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
                 <div class="bg-white p-6 rounded-2xl shadow-lg max-w-sm w-full text-center">
-                    <div class="flex justify-center mb-2">
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl font-bold">VW</div>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-1">Pembayaran QRIS</h2>
-                    <p class="text-gray-500 text-xs mb-4">Scan QRIS di bawah untuk menyelesaikan pembayaran</p>
-                    
-                    <div class="flex justify-center mb-4 bg-white p-3 border rounded-xl">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrString)}&size=250x250" alt="QR Code" class="w-64 h-64">
-                    </div>
-                    
-                    <div class="bg-gray-50 p-3 rounded-xl mb-4 text-left text-xs space-y-2">
-                        <div class="flex justify-between text-gray-600">
-                            <span>ID Transaksi</span>
-                            <span class="font-mono font-semibold">${transactionId}</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600">
-                            <span>Total Bayar</span>
-                            <span class="font-bold text-blue-600 text-sm">Rp ${Number(amount).toLocaleString('id-ID')}</span>
-                        </div>
-                        <div class="flex justify-between text-gray-600">
-                            <span>Status</span>
-                            <span class="capitalize font-semibold text-yellow-600">${status}</span>
-                        </div>
-                    </div>
-                    
-                    <button onclick="checkPayment()" id="check-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 text-sm">
-                        Cek Status Pembayaran
-                    </button>
-                    
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 text-blue-600 text-2xl font-bold">VW</div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Pembayaran QRIS</h2>
+                    <p class="text-gray-500 text-xs mb-6">ID Transaksi: ${transactionId}</p>
+                    <p class="text-gray-700 mb-2">Nominal: <span class="font-bold text-blue-600">Rp ${Number(amount).toLocaleString('id-ID')}</span></p>
+                    <p class="text-gray-500 text-sm mb-4">Gunakan link berikut untuk menyelesaikan pembayaran:</p>
+                    <a href="https://xoftware.id/out?_id=${transactionId}" target="_blank" 
+                       class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition text-sm">
+                       Bayar Sekarang
+                    </a>
+                    <p class="text-gray-400 text-xs mt-4">Atau scan QRIS dari halaman dashboard Anda.</p>
                     <a href="/dashboard" class="block text-gray-400 text-xs mt-4 hover:text-gray-600">Kembali ke Dashboard</a>
                 </div>
-
-                <script>
-                    async function checkPayment() {
-                        const btn = document.getElementById('check-btn');
-                        btn.disabled = true;
-                        btn.innerText = 'Memeriksa...';
-                        
-                        try {
-                            const res = await fetch('/api/xoftware/deposit-status?transactionId=${transactionId}');
-                            const data = await res.json();
-                            var statusFromData = (data.data && data.data.status) ? data.data.status : (data.status || '');
-                            var statusLower = statusFromData.toLowerCase();
-                            
-                            if (status === 'success' || status === 'paid') {
-                                alert('Pembayaran Berhasil! Saldo Anda telah bertambah.');
-                                window.location.href = '/dashboard';
-                            } else {
-                                alert('Pembayaran belum diterima. Silakan selesaikan pembayaran terlebih dahulu.');
-                            }
-                        } catch (e) {
-                            alert('Gagal memeriksa status pembayaran.');
-                        } finally {
-                            btn.disabled = false;
-                            btn.innerText = 'Cek Status Pembayaran';
-                        }
-                    }
-                </script>
             </body>
             </html>
             `);
-        } catch (e) {
-            res.status(500).send('<h1>Gagal memuat detail pembayaran. Coba lagi nanti.</h1>');
         }
+        
+        res.send(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Pembayaran QRIS - Vitalwounds</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white p-6 rounded-2xl shadow-lg max-w-sm w-full text-center">
+                <div class="flex justify-center mb-2">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl font-bold">VW</div>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-1">Pembayaran QRIS</h2>
+                <p class="text-gray-500 text-xs mb-4">Scan QRIS di bawah untuk menyelesaikan pembayaran</p>
+                
+                <div class="flex justify-center mb-4 bg-white p-3 border rounded-xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrString)}&size=250x250" alt="QR Code" class="w-64 h-64">
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-xl mb-4 text-left text-xs space-y-2">
+                    <div class="flex justify-between text-gray-600">
+                        <span>ID Transaksi</span>
+                        <span class="font-mono font-semibold">${transactionId}</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Total Bayar</span>
+                        <span class="font-bold text-blue-600 text-sm">Rp ${Number(amount).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Status</span>
+                        <span class="capitalize font-semibold text-yellow-600">${liveStatus}</span>
+                    </div>
+                    ${expireAt ? `<div class="flex justify-between text-gray-600"><span>Kadaluarsa</span><span class="text-gray-500">${expireAt}</span></div>` : ''}
+                </div>
+                
+                <button onclick="checkPayment()" id="check-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 text-sm">
+                    Cek Status Pembayaran
+                </button>
+                
+                <a href="/dashboard" class="block text-gray-400 text-xs mt-4 hover:text-gray-600">Kembali ke Dashboard</a>
+            </div>
+
+            <script>
+                async function checkPayment() {
+                    const btn = document.getElementById('check-btn');
+                    btn.disabled = true;
+                    btn.innerText = 'Memeriksa...';
+                    
+                    try {
+                        const res = await fetch('/api/xoftware/deposit-status?transactionId=${transactionId}');
+                        const data = await res.json();
+                        var statusFromData = (data.data && data.data.status) ? data.data.status : (data.status || '');
+                        var statusLower = statusFromData.toLowerCase();
+                        
+                        if (statusLower === 'success' || statusLower === 'paid') {
+                            alert('Pembayaran Berhasil! Saldo Anda telah bertambah.');
+                            window.location.href = '/dashboard';
+                        } else {
+                            alert('Pembayaran belum diterima. Silakan selesaikan pembayaran terlebih dahulu.');
+                        }
+                    } catch (e) {
+                        alert('Gagal memeriksa status pembayaran.');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'Cek Status Pembayaran';
+                    }
+                }
+            </script>
+        </body>
+        </html>
+        `);
     });
 });
 
