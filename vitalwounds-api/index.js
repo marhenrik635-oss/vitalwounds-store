@@ -1170,7 +1170,7 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
         if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
             db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
                 if (dep && dep.status === 'pending') {
-                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', transactionId], (uErr) => {
+                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', transactionId, 'pending'], (uErr) => {
                         if (!uErr) {
                             db.run(
                                 'UPDATE users SET balance = balance + ? WHERE username = ?',
@@ -1210,8 +1210,13 @@ app.post('/api/xoftware/webhook', async (req, res) => {
                 if (err) { return res.status(500).json({ error: 'DB error' }); }
                 if (!dep) { return res.json({ status: 'not_found' }); }
                 if (dep.status === 'success') { return res.json({ status: 'already_processed' }); }
-                db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', transactionId], (uErr) => {
-                    if (uErr) { return res.status(500).json({ error: 'Update failed' }); }
+                db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', transactionId, 'pending'], (uErr) => {
+                    if (uErr) {
+                        return res.status(500).json({ error: 'Update failed' });
+                    }
+                    if (this.changes === 0) {
+                        return res.json({ status: 'already_processed' });
+                    }
                     db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
                         if (balErr) { return res.status(500).json({ error: 'Balance update failed' }); }
                         console.log('[Webhook] Credited ' + dep.amount + ' to ' + dep.username);
@@ -1613,7 +1618,7 @@ async function checkPendingDeposits() {
                 const xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
                 console.log('[AutoCheck] ' + dep.transactionId + ' status=' + xoftStatus);
                 if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
-                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', dep.transactionId], (uErr) => {
+                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', dep.transactionId, 'pending'], (uErr) => {
                         if (!uErr) {
                             db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
                                 if (balErr) console.error('[AutoCheck] Balance update failed:', balErr.message);
