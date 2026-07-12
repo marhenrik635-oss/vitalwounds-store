@@ -1261,7 +1261,8 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
                 total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
                 qr_string: qrInfo.qr_string || '',
                 link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
-                expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+                expired_at: lDep.expiredAt || qrInfo.expired_at || '',
+                xoftBalanceBefore: lDep.xoftBalanceBefore || 0
             });
         });
     } catch (error) {
