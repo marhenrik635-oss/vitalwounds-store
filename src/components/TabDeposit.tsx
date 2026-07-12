@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet, Check, QrCode, Loader2, AlertTriangle, Info } from "lucide-react";
 import { UserProfile, Deposit } from "../types";
 import { useT } from "../i18n/LanguageContext";
@@ -77,6 +77,14 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
     }
     finally { setIsChecking(false); }
   };
+  // Auto-poll every 15 seconds when invoice is active
+  useEffect(() => {
+    if (!activeInvoice) return;
+    const interval = setInterval(() => {
+      handleCheckPayment();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [activeInvoice]);
 
   return (
     <div className="pb-12">

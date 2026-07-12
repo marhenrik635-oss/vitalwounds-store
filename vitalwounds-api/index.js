@@ -1164,9 +1164,10 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
         const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, { headers: xoftHeaders });
         const xoftData = response.data.data || response.data;
         
-        const xoftStatus = (xoftData.status || '').toLowerCase();
+        console.log('[Deposit-Status] transactionId=' + transactionId + ' xoftStatus=' + ((xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase()) + ' raw=' + JSON.stringify(xoftData));
+        const xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
         
-        if (xoftStatus === 'success' || xoftStatus === 'paid') {
+        if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
             db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
                 if (dep && dep.status === 'pending') {
                     db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', transactionId], (uErr) => {
@@ -1194,6 +1195,39 @@ app.get('/api/xoftware/deposit-status', async (req, res) => {
 });
 
 // OTP: send code to email
+
+// ===== WEBHOOK: Xoftware payment callback =====
+app.post('/api/xoftware/webhook', async (req, res) => {
+    try {
+        const body = req.body;
+        console.log('[Webhook] Received xoftware callback:', JSON.stringify(body));
+        const transactionId = body.transaction_id || body.trx_id || body.txn_id || body.id || body.order_id || body.invoice || (body.data && body.data.transaction_id) || '';
+        if (!transactionId) { console.error('[Webhook] No transaction ID'); return res.status(400).json({ error: 'No transaction ID' }); }
+        const status = (body.status || body.payment_status || body.state || '').toLowerCase();
+        console.log('[Webhook] tx=' + transactionId + ' status=' + status);
+        if (status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed') {
+            db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
+                if (err) { return res.status(500).json({ error: 'DB error' }); }
+                if (!dep) { return res.json({ status: 'not_found' }); }
+                if (dep.status === 'success') { return res.json({ status: 'already_processed' }); }
+                db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', transactionId], (uErr) => {
+                    if (uErr) { return res.status(500).json({ error: 'Update failed' }); }
+                    db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
+                        if (balErr) { return res.status(500).json({ error: 'Balance update failed' }); }
+                        console.log('[Webhook] Credited ' + dep.amount + ' to ' + dep.username);
+                        res.json({ status: 'success', credited: dep.amount, username: dep.username });
+                    });
+                });
+            });
+        } else {
+            res.json({ status: 'received', transactionStatus: status });
+        }
+    } catch (error) {
+        console.error('[Webhook] Error:', error.message);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
@@ -1564,6 +1598,37 @@ app.get('/pay/:transactionId', (req, res) => {
 // Auto-delete pending deposits older than 30 minutes, runs every 5 minutes
 var DEPOSIT_EXPIRY_MS = 30 * 60 * 1000; // 30 menit
 
+
+// ===== Auto-check pending deposits (every 2 minutes) =====
+async function checkPendingDeposits() {
+    console.log('[AutoCheck] Checking pending deposits...');
+    db.all("SELECT * FROM deposits WHERE status = 'pending' AND createdAt > ?", [Date.now() - 1800000], async (err, rows) => {
+        if (err) { console.error('[AutoCheck] DB error:', err.message); return; }
+        if (!rows || rows.length === 0) { console.log('[AutoCheck] No pending deposits'); return; }
+        console.log('[AutoCheck] Found ' + rows.length + ' pending deposit(s)');
+        for (const dep of rows) {
+            try {
+                const response = await axios.get(XOFTWARE_API_BASE_URL + '/order/status?transaction_id=' + dep.transactionId, { headers: xoftHeaders });
+                const xoftData = response.data.data || response.data;
+                const xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
+                console.log('[AutoCheck] ' + dep.transactionId + ' status=' + xoftStatus);
+                if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
+                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ?', ['success', dep.transactionId], (uErr) => {
+                        if (!uErr) {
+                            db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
+                                if (balErr) console.error('[AutoCheck] Balance update failed:', balErr.message);
+                                else console.log('[AutoCheck] Credited ' + dep.amount + ' to ' + dep.username);
+                            });
+                        }
+                    });
+                }
+            } catch (axErr) {
+                console.error('[AutoCheck] Error checking ' + dep.transactionId + ':', (axErr.message || 'Unknown error'));
+            }
+            await new Promise(r => setTimeout(r, 500));
+        }
+    });
+}
 function cleanupExpiredDeposits() {
     var cutoff = Date.now() - DEPOSIT_EXPIRY_MS;
     db.run('DELETE FROM deposits WHERE status = ? AND createdAt < ?', ['pending', cutoff], function(err) {
@@ -1578,5 +1643,8 @@ function cleanupExpiredDeposits() {
 // Run cleanup on startup, then every 5 minutes
 cleanupExpiredDeposits();
 setInterval(cleanupExpiredDeposits, 5 * 60 * 1000);
+// Auto-check pending deposits every 2 minutes
+checkPendingDeposits();
+setInterval(checkPendingDeposits, 2 * 60 * 1000);
 
 app.listen(6768, () => console.log('API running on port 6768'));

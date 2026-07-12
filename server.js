@@ -233,6 +233,46 @@ app.get("/api/auth/me", async (req, res) => {
 });
 
 // --- Proxy /api/* and /pay/* to backend ---
+
+// --- Xoftware Payment Webhook ---
+app.post('/api/xoftware/webhook', rawBody, function(req, res) {
+  console.log('[Webhook] Received at server.js:', req.method, req.originalUrl);
+  
+  // Forward to backend API
+  const body = req.rawBody;
+  if (!body) { return res.status(400).json({ error: 'No body' }); }
+  
+  var target = new URL(API_TARGET);
+  var options = {
+    hostname: target.hostname,
+    port: target.port || 80,
+    path: '/api/xoftware/webhook',
+    method: 'POST',
+    headers: {
+      'host': target.hostname,
+      'content-type': 'application/json',
+      'content-length': Buffer.byteLength(body)
+    }
+  };
+  
+  var proxyReq = http.request(options, function(proxyRes) {
+    var data = '';
+    proxyRes.on('data', function(chunk) { data += chunk; });
+    proxyRes.on('end', function() {
+      console.log('[Webhook] Forwarded to API, response:', proxyRes.statusCode);
+      try { res.status(proxyRes.statusCode).json(JSON.parse(data)); } catch(e) { console.error("[Webhook] Invalid JSON from API:", data); res.status(502).json({ error: "Invalid backend response" }); }
+    });
+  });
+  
+  proxyReq.on('error', function(err) {
+    console.error('[Webhook] Proxy error:', err.message);
+    res.status(502).json({ error: 'API unavailable' });
+  });
+  
+  proxyReq.write(body);
+  proxyReq.end();
+});
+
 app.use(['/api', '/pay'], rawBody, function(req, res) {
   console.log('[Proxy]', req.method, req.originalUrl);
 
