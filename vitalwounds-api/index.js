@@ -42,7 +42,6 @@ const XOFTWARE_API_KEY = process.env.XOFTWARE_API_KEY;
 const XOFTWARE_API_BASE_URL = 'https://backend-s2.xoftware.id/v1';
 const XOFTWARE_WEB_BASE_URL = 'https://web.xoftware.id/api/v2/web';
 const XOFTWARE_JWT = process.env.XOFTWARE_JWT;
-const XOFTWARE_CALLBACK_URL = process.env.XOFTWARE_CALLBACK_URL || 'https://vitalwounds.my.id/api/xoftware/webhook';
 
 const db = new sqlite3.Database('/home/ubuntu/vitalwounds-api/database.db');
 
@@ -1130,7 +1129,6 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
     const response = await axios.post(`${XOFTWARE_API_BASE_URL}/deposit`, {
         amount: Number(amount),
         sender: '6726742120',
-        callback_url: CALLBACK_URL
     }, { headers: xoftHeaders });
                 
                 const result = response.data.data || response.data;
