@@ -67,8 +67,19 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
         onAddDeposit({ id: "DEP-" + Math.floor(100+Math.random()*905), invoiceNo: activeInvoice.invoiceNo, amount: activeInvoice.amount, paymentMethod: "QRIS", status: "SUCCESS", date: new Date().toISOString().replace("T"," ").substring(0,19) });
         alert("Pembayaran Berhasil! Saldo Anda telah bertambah.");
         setActiveInvoice(null); setQrImageUrl("");
+      } else if (data.detected_by === "xoftware_balance_increase") {
+        // Sudah terdeteksi via balance check - seharusnya masuk ke case di atas
+        onUpdateBalance(activeInvoice.amount);
+        onAddDeposit({ id: "DEP-" + Math.floor(100+Math.random()*905), invoiceNo: activeInvoice.invoiceNo, amount: activeInvoice.amount, paymentMethod: "QRIS", status: "SUCCESS", date: new Date().toISOString().replace("T"," ").substring(0,19) });
+        alert("Pembayaran Berhasil! Saldo Anda telah bertambah.");
+        setActiveInvoice(null); setQrImageUrl("");
       } else if (data.source === "local") {
-        setError("Status dari database lokal: " + statusFromData + ". Jika sudah bayar, hubungi admin untuk konfirmasi manual.");
+        // Masih pending - cek apakah balanceBefore ada (berarti balance check akan dilakukan)
+        if (data.xoftBalanceBefore && data.xoftBalanceBefore > 0) {
+          setError("Pembayaran belum masuk. Sistem akan otomatis mendeteksi pembayaran Anda dalam beberapa detik.");
+        } else {
+          setError("Pembayaran belum masuk. Silakan scan QRIS terlebih dahulu, atau klik 'Cek Status' beberapa saat lagi.");
+        }
       } else {
         setError("Pembayaran belum masuk. Silakan scan QRIS terlebih dahulu, atau tunggu beberapa saat lalu cek lagi.");
       }

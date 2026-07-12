@@ -105,6 +105,8 @@ db.run(`CREATE TABLE IF NOT EXISTS deposits (id TEXT PRIMARY KEY, username TEXT,
 db.run(`ALTER TABLE deposits ADD COLUMN qrInfo TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE deposits ADD COLUMN totalToPay INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE deposits ADD COLUMN expiredAt TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE deposits ADD COLUMN xoftBalanceBefore INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE deposits ADD COLUMN balanceCheckedAt INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`CREATE TABLE IF NOT EXISTS product_cache (id TEXT PRIMARY KEY, name TEXT, code TEXT, stock INTEGER, description TEXT, category TEXT, icon TEXT, price_min INTEGER, price_max INTEGER, displayPrice TEXT, is_variation INTEGER, variations TEXT, imageUrl TEXT, snk TEXT, updatedAt INTEGER)`);
 db.run(`CREATE TABLE IF NOT EXISTS password_resets (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, token TEXT, expiredAt INTEGER)`);
 db.run(`CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, username TEXT, serviceType TEXT, productName TEXT, target TEXT, quantity INTEGER DEFAULT 1, price INTEGER DEFAULT 0, status TEXT DEFAULT 'Processing', date TEXT, details TEXT)`);
@@ -1121,6 +1123,20 @@ app.post('/api/xoftware/pay', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// Helper: get xoftware balance for our seller account
+async function getXoftwareBalance() {
+    try {
+        const resp = await axios.get(`${XOFTWARE_API_BASE_URL}/balance?sender=6726742120`, { headers: xoftHeaders, timeout: 8000 });
+        if (resp.data && resp.data.data && resp.data.data.saldo !== undefined) {
+            return Number(resp.data.data.saldo);
+        }
+        return null;
+    } catch (e) {
+        console.error('Failed to get xoftware balance:', e.message);
+        return null;
+    }
+}
+
 app.post('/api/xoftware/deposit-qris', async (req, res) => {
     try {
         if (!req.body) return res.status(400).json({ error: 'Body tidak ditemukan' });
@@ -1129,10 +1145,19 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
         db.get('SELECT username FROM users WHERE username = ?', [user_id], async (err, user) => {
             if (err || !user) return res.status(400).json({ error: 'User tidak ditemukan' });
             try {
-    const response = await axios.post(`${XOFTWARE_API_BASE_URL}/deposit`, {
-        amount: Number(amount),
-        sender: '6726742120',
-    }, { headers: xoftHeaders });
+                // Step 1: Get current xoftware balance BEFORE creating deposit
+                const balanceBefore = await getXoftwareBalance();
+                if (balanceBefore === null) {
+                    console.error('[Deposit] Cannot get xoftware balance before deposit creation');
+                    // Continue anyway — balance check will be skipped for this deposit
+                }
+                console.log('[Deposit] Xoftware balance BEFORE deposit: ' + balanceBefore);
+                
+                // Step 2: Create deposit on xoftware
+                const response = await axios.post(`${XOFTWARE_API_BASE_URL}/deposit`, {
+                    amount: Number(amount),
+                    sender: '6726742120',
+                }, { headers: xoftHeaders });
                 
                 const result = response.data.data || response.data;
                 const txId = result.transaction_id || result.id || '';
@@ -1141,10 +1166,10 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
                     const depId = `DEP-${Math.floor(1000 + Math.random() * 9000)}`;
                     const qrInfo = JSON.stringify({ qr_string: result.qr_string || '', link: result.link || '', total_to_pay: result.total_to_pay || 0, expired_at: result.expired_at || '' });
                     db.run(
-                        'INSERT OR IGNORE INTO deposits (id, username, amount, status, transactionId, createdAt, qrInfo, totalToPay, expiredAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        [depId, user_id, Number(amount), 'pending', String(txId), Date.now(), qrInfo, Number(result.total_to_pay || 0), String(result.expired_at || '')]
+                        'INSERT OR IGNORE INTO deposits (id, username, amount, status, transactionId, createdAt, qrInfo, totalToPay, expiredAt, xoftBalanceBefore, balanceCheckedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        [depId, user_id, Number(amount), 'pending', String(txId), Date.now(), qrInfo, Number(result.total_to_pay || 0), String(result.expired_at || ''), balanceBefore || 0, Date.now()]
                     );
-                    res.json({ ...result, txId: String(txId) });
+                    res.json({ ...result, txId: String(txId), balanceBefore: balanceBefore });
                 } else {
                     res.json(result);
                 }
@@ -1160,26 +1185,89 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
     }
 });
 
-app.get('/api/xoftware/deposit-status', (req, res) => {
+app.get('/api/xoftware/deposit-status', async (req, res) => {
     const { transactionId } = req.query;
     if (!transactionId) return res.status(400).json({ error: 'transactionId query parameter is required' });
     
-    // Return local data ONLY - xoftware's /order/status endpoint doesn't work for deposits
-    db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (lErr, lDep) => {
-        if (lErr || !lDep) return res.json({ status: 'not_found', source: 'local' });
-        let qrInfo = {};
-        try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
-        res.json({
-            status: lDep.status,
-            source: 'local',
-            transaction_id: transactionId,
-            amount: lDep.amount,
-            total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
-            qr_string: qrInfo.qr_string || '',
-            link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
-            expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+    try {
+        db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], async (lErr, lDep) => {
+            if (lErr || !lDep) return res.json({ status: 'not_found', source: 'local' });
+            
+            if (lDep.status === 'success') {
+                let qrInfo = {};
+                try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
+                return res.json({
+                    status: 'success',
+                    source: 'balance_check',
+                    transaction_id: transactionId,
+                    amount: lDep.amount,
+                    total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
+                    qr_string: qrInfo.qr_string || '',
+                    link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
+                    expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+                });
+            }
+            
+            // Try balance-based detection (reliable method)
+            try {
+                const currentBalance = await getXoftwareBalance();
+                if (currentBalance !== null && lDep.xoftBalanceBefore > 0) {
+                    const balanceDiff = currentBalance - lDep.xoftBalanceBefore;
+                    console.log('[BalanceCheck] tx=' + transactionId + ' before=' + lDep.xoftBalanceBefore + ' now=' + currentBalance + ' diff=' + balanceDiff + ' need=' + lDep.amount);
+                    
+                    if (balanceDiff >= lDep.amount) {
+                        // Payment detected via balance increase!
+                        console.log('[BalanceCheck] PAYMENT DETECTED for tx=' + transactionId + ' diff=' + balanceDiff);
+                        db.run('UPDATE deposits SET status = ?, balanceCheckedAt = ? WHERE transactionId = ? AND status = ?',
+                            ['success', Date.now(), transactionId, 'pending'],
+                            function(uErr) {
+                                if (uErr) {
+                                    console.error('[BalanceCheck] Update error:', uErr.message);
+                                } else if (this.changes > 0) {
+                                    db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [lDep.amount, lDep.username], (balErr) => {
+                                        if (balErr) console.error('[BalanceCheck] Balance credit error:', balErr.message);
+                                        else console.log('[BalanceCheck] Credited ' + lDep.amount + ' to ' + lDep.username);
+                                    });
+                                }
+                            }
+                        );
+                        let qrInfo = {};
+                        try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
+                        return res.json({
+                            status: 'success',
+                            source: 'balance_check',
+                            transaction_id: transactionId,
+                            amount: lDep.amount,
+                            total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
+                            qr_string: qrInfo.qr_string || '',
+                            link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
+                            expired_at: lDep.expiredAt || qrInfo.expired_at || '',
+                            detected_by: 'xoftware_balance_increase'
+                        });
+                    }
+                }
+            } catch (balErr) {
+                console.error('[BalanceCheck] Error checking balance:', balErr.message);
+            }
+            
+            // Fallback: return local data
+            let qrInfo = {};
+            try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
+            res.json({
+                status: lDep.status,
+                source: 'local',
+                transaction_id: transactionId,
+                amount: lDep.amount,
+                total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
+                qr_string: qrInfo.qr_string || '',
+                link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
+                expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+            });
         });
-    });
+    } catch (error) {
+        console.error('[DepositStatus] Error:', error.message);
+        res.status(500).json({ error: 'Internal error' });
+    }
 });
 
 // OTP: send code to email
@@ -1635,16 +1723,54 @@ app.get('/pay/:transactionId', (req, res) => {
 var DEPOSIT_EXPIRY_MS = 30 * 60 * 1000; // 30 menit
 
 
-// ===== Auto-check pending deposits (every 2 minutes) =====
-// Note: xoftware's /order/status endpoint doesn't exist, so auto-check relies on:
-// - Webhook callbacks from xoftware (if configured)
-// - Admin manual confirmation in dashboard
-// - cleanupExpiredDeposits() removes stale pending deposits
+// ===== Auto-check pending deposits using xoftware balance comparison =====
+// Priority: 1) Balance check (reliable), 2) Webhook, 3) Admin manual confirmation
 async function checkPendingDeposits() {
-    console.log('[AutoCheck] Pending deposits will be processed via webhook or admin confirmation');
-    db.all("SELECT COUNT(*) as cnt FROM deposits WHERE status = 'pending'", [], (err, rows) => {
-        if (!err && rows && rows[0] && rows[0].cnt > 0) {
-            console.log('[AutoCheck] ' + rows[0].cnt + ' pending deposit(s) waiting for confirmation');
+    db.all("SELECT * FROM deposits WHERE status = 'pending' AND createdAt > ?", [Date.now() - DEPOSIT_EXPIRY_MS], async (err, pendingDeps) => {
+        if (err) {
+            console.error('[AutoCheck] DB error:', err.message);
+            return;
+        }
+        if (!pendingDeps || pendingDeps.length === 0) {
+            return;
+        }
+        console.log('[AutoCheck] Checking ' + pendingDeps.length + ' pending deposit(s) via balance comparison...');
+        
+        // Get current xoftware balance once for all checks
+        const currentBalance = await getXoftwareBalance();
+        if (currentBalance === null) {
+            console.log('[AutoCheck] Cannot get xoftware balance, will retry next cycle');
+            return;
+        }
+        
+        var credited = 0;
+        for (var i = 0; i < pendingDeps.length; i++) {
+            var dep = pendingDeps[i];
+            if (dep.xoftBalanceBefore > 0) {
+                var diff = currentBalance - dep.xoftBalanceBefore;
+                if (diff >= dep.amount) {
+                    console.log('[AutoCheck] PAYMENT DETECTED via balance! tx=' + dep.transactionId + ' amount=' + dep.amount + ' diff=' + diff);
+                    db.run('UPDATE deposits SET status = ?, balanceCheckedAt = ? WHERE transactionId = ? AND status = ?',
+                        ['success', Date.now(), dep.transactionId, 'pending'],
+                        function(uErr) {
+                            if (uErr) {
+                                console.error('[AutoCheck] Update error:', uErr.message);
+                            } else if (this.changes > 0) {
+                                db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
+                                    if (balErr) console.error('[AutoCheck] Balance credit error:', balErr.message);
+                                    else {
+                                        console.log('[AutoCheck] Credited ' + dep.amount + ' to ' + dep.username);
+                                        credited++;
+                                    }
+                                });
+                            }
+                        }
+                    );
+                }
+            }
+        }
+        if (credited > 0) {
+            console.log('[AutoCheck] Total ' + credited + ' deposit(s) confirmed via balance check');
         }
     });
 }
