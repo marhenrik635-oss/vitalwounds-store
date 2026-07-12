@@ -1160,70 +1160,26 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
     }
 });
 
-app.get('/api/xoftware/deposit-status', async (req, res) => {
-    try {
-        const { transactionId } = req.query;
-        if (!transactionId) return res.status(400).json({ error: 'transactionId query parameter is required' });
-        
-        let xoftStatus = '';
-        let xoftResponse = null;
-        
-        // Try xoftware status check (non-blocking, may fail for deposits)
-        try {
-            const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, 
-                { headers: xoftHeaders, timeout: 8000 });
-            xoftResponse = response.data;
-            const xoftData = response.data.data || response.data;
-            xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
-            console.log('[Deposit-Status] transactionId=' + transactionId + ' xoftStatus=' + xoftStatus);
-        } catch (xErr) {
-            console.log('[Deposit-Status] Xoftware check failed (using local data):', xErr.message);
-        }
-        
-        // Update local status if xoftware reports success
-        if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
-            db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (err, dep) => {
-                if (dep && dep.status === 'pending') {
-                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', transactionId, 'pending'], (uErr) => {
-                        if (!uErr) {
-                            db.run(
-                                'UPDATE users SET balance = balance + ? WHERE username = ?',
-                                [dep.amount, dep.username],
-                                (balErr) => {
-                                    if (balErr) console.error('Failed to update user balance on deposit success:', balErr);
-                                    else console.log(`Successfully credited ${dep.amount} to ${dep.username}`);
-                                }
-                            );
-                        }
-                    });
-                }
-            });
-        }
-        
-        // Return local deposit data if xoftware failed, otherwise return xoftware data
-        if (xoftResponse) {
-            res.json(xoftResponse);
-        } else {
-            // Return local data
-            db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (lErr, lDep) => {
-                if (lErr || !lDep) return res.json({ status: 'not_found' });
-                let qrInfo = {};
-                try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
-                res.json({
-                    status: lDep.status,
-                    transaction_id: transactionId,
-                    amount: lDep.amount,
-                    total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
-                    qr_string: qrInfo.qr_string || '',
-                    link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
-                    expired_at: lDep.expiredAt || qrInfo.expired_at || ''
-                });
-            });
-        }
-    } catch (error) {
-        console.error('Failed to get deposit status:', error.message);
-        res.status(500).json({ error: 'Internal error' });
-    }
+app.get('/api/xoftware/deposit-status', (req, res) => {
+    const { transactionId } = req.query;
+    if (!transactionId) return res.status(400).json({ error: 'transactionId query parameter is required' });
+    
+    // Return local data ONLY - xoftware's /order/status endpoint doesn't work for deposits
+    db.get('SELECT * FROM deposits WHERE transactionId = ?', [transactionId], (lErr, lDep) => {
+        if (lErr || !lDep) return res.json({ status: 'not_found', source: 'local' });
+        let qrInfo = {};
+        try { qrInfo = JSON.parse(lDep.qrInfo || '{}'); } catch (e) {}
+        res.json({
+            status: lDep.status,
+            source: 'local',
+            transaction_id: transactionId,
+            amount: lDep.amount,
+            total: qrInfo.total_to_pay || lDep.totalToPay || lDep.amount,
+            qr_string: qrInfo.qr_string || '',
+            link: qrInfo.link || `https://xoftware.id/out?_id=${transactionId}`,
+            expired_at: lDep.expiredAt || qrInfo.expired_at || ''
+        });
+    });
 });
 
 // OTP: send code to email
@@ -1567,16 +1523,8 @@ app.get('/pay/:transactionId', (req, res) => {
             expireAt = savedInfo.expired_at || '';
         } catch (e) {}
         
-        // Try xoftware status check (non-blocking)
-        try {
-            const response = await axios.get(`${XOFTWARE_API_BASE_URL}/order/status?transaction_id=${transactionId}`, 
-                { headers: xoftHeaders, timeout: 5000 });
-            const xoftData = response.data.data || response.data;
-            if (xoftData.qr_string) qrString = xoftData.qr_string;
-            liveStatus = xoftData.status || 'pending';
-        } catch (xErr) {
-            console.log('[Pay] Xoftware status check failed (using local data):', xErr.message);
-        }
+        // Note: xoftware's /order/status endpoint doesn't work for deposits
+        // Using local data only
         
         // If no QR string at all, show payment link instead
         if (!qrString) {
@@ -1688,32 +1636,15 @@ var DEPOSIT_EXPIRY_MS = 30 * 60 * 1000; // 30 menit
 
 
 // ===== Auto-check pending deposits (every 2 minutes) =====
+// Note: xoftware's /order/status endpoint doesn't exist, so auto-check relies on:
+// - Webhook callbacks from xoftware (if configured)
+// - Admin manual confirmation in dashboard
+// - cleanupExpiredDeposits() removes stale pending deposits
 async function checkPendingDeposits() {
-    console.log('[AutoCheck] Checking pending deposits...');
-    db.all("SELECT * FROM deposits WHERE status = 'pending' AND createdAt > ?", [Date.now() - 1800000], async (err, rows) => {
-        if (err) { console.error('[AutoCheck] DB error:', err.message); return; }
-        if (!rows || rows.length === 0) { console.log('[AutoCheck] No pending deposits'); return; }
-        console.log('[AutoCheck] Found ' + rows.length + ' pending deposit(s)');
-        for (const dep of rows) {
-            try {
-                const response = await axios.get(XOFTWARE_API_BASE_URL + '/order/status?transaction_id=' + dep.transactionId, { headers: xoftHeaders });
-                const xoftData = response.data.data || response.data;
-                const xoftStatus = (xoftData.status || xoftData.payment_status || xoftData.state || '').toLowerCase();
-                console.log('[AutoCheck] ' + dep.transactionId + ' status=' + xoftStatus);
-                if (xoftStatus === 'success' || xoftStatus === 'paid' || xoftStatus === 'completed' || xoftStatus === 'settlement' || xoftStatus === 'capture' || xoftStatus === 'confirmed' || xoftStatus === 'done' || xoftStatus === 'finish') {
-                    db.run('UPDATE deposits SET status = ? WHERE transactionId = ? AND status = ?', ['success', dep.transactionId, 'pending'], (uErr) => {
-                        if (!uErr) {
-                            db.run('UPDATE users SET balance = balance + ? WHERE username = ?', [dep.amount, dep.username], (balErr) => {
-                                if (balErr) console.error('[AutoCheck] Balance update failed:', balErr.message);
-                                else console.log('[AutoCheck] Credited ' + dep.amount + ' to ' + dep.username);
-                            });
-                        }
-                    });
-                }
-            } catch (axErr) {
-                console.error('[AutoCheck] Error checking ' + dep.transactionId + ':', (axErr.message || 'Unknown error'));
-            }
-            await new Promise(r => setTimeout(r, 500));
+    console.log('[AutoCheck] Pending deposits will be processed via webhook or admin confirmation');
+    db.all("SELECT COUNT(*) as cnt FROM deposits WHERE status = 'pending'", [], (err, rows) => {
+        if (!err && rows && rows[0] && rows[0].cnt > 0) {
+            console.log('[AutoCheck] ' + rows[0].cnt + ' pending deposit(s) waiting for confirmation');
         }
     });
 }
