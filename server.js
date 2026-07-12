@@ -315,6 +315,20 @@ app.get('*', function(req, res) {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
+// Global error handler — prevents Express from returning HTML on errors
+app.use(function(err, req, res, next) {
+  console.error('[Server] Unhandled error:', err.message);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Catch unhandled promise rejections & uncaught exceptions globally
+process.on('unhandledRejection', function(reason) {
+  console.error('[Server] Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', function(err) {
+  console.error('[Server] Uncaught Exception:', err);
+});
+
 app.listen(PORT, '0.0.0.0', function() {
   console.log('Vitalwounds running on http://localhost:' + PORT);
   console.log('API proxy -> ' + API_TARGET);
