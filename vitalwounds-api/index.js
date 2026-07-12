@@ -1126,10 +1126,12 @@ app.post('/api/xoftware/deposit-qris', async (req, res) => {
         db.get('SELECT username FROM users WHERE username = ?', [user_id], async (err, user) => {
             if (err || !user) return res.status(400).json({ error: 'User tidak ditemukan' });
             try {
-                const response = await axios.post(`${XOFTWARE_API_BASE_URL}/deposit`, {
-                    amount: Number(amount),
-                    sender: '6726742120'
-                }, { headers: xoftHeaders });
+    const CALLBACK_URL = process.env.XOFTWARE_CALLBACK_URL || 'https://vitalwounds.my.id/api/xoftware/webhook';
+    const response = await axios.post(`${XOFTWARE_API_BASE_URL}/deposit`, {
+        amount: Number(amount),
+        sender: '6726742120',
+        callback_url: CALLBACK_URL
+    }, { headers: xoftHeaders });
                 
                 const result = response.data.data || response.data;
                 const txId = result.transaction_id || result.id || '';
