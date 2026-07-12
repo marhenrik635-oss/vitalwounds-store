@@ -1209,9 +1209,8 @@ app.post('/api/xoftware/webhook', async (req, res) => {
         
         // Consider success if:
         // - Explicit status field says success, OR
-        // - Event type indicates deposit/payment completion, OR
-        // - Any callback with a valid transaction_id (xoftware only sends callbacks on status changes)
-        const isSuccess = status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed' || status === 'done' || status === 'finish' || eventType.includes('deposit') || eventType.includes('topup') || eventType === 'payment';
+        // - Event type indicates deposit/payment/success completion
+        const isSuccess = status === 'success' || status === 'paid' || status === 'completed' || status === 'settlement' || status === 'capture' || status === 'confirmed' || status === 'done' || status === 'finish' || eventType.includes('deposit') || eventType.includes('topup') || eventType.includes('payment') || eventType.includes('success');
         
         if (!isSuccess) {
             return res.json({ status: 'received', transactionStatus: status, event: eventType });
