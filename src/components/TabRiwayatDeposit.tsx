@@ -6,7 +6,10 @@ import { exportToCsv } from "../utils/exportCsv";
 
 interface TabRiwayatDepositProps { deposits: Deposit[]; }
 
-const formatRupiah = (num: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+const formatRupiah = (num: number) =>
+  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })
+    .format(num)
+    .replace(/\u00A0/g, " ");
 
 export default function TabRiwayatDeposit({ deposits }: TabRiwayatDepositProps) {
   const t = useT();

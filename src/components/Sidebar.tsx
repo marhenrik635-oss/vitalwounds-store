@@ -1,4 +1,4 @@
-import { X, ChevronRight, LayoutDashboard, User, Wallet, History, ShoppingBag, Gem, MessageSquare, Mail, Shield } from "lucide-react";
+import { X, ChevronRight, LayoutDashboard, User, Wallet, History, ShoppingBag, Gem, MessageSquare, Mail, Shield, Zap } from "lucide-react";
 import { UserProfile } from "../types";
 import { useT } from "../i18n/LanguageContext";
 
@@ -24,6 +24,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
     ]},
     { title: t("nav.layanan"), items: [
       { id: "layanan/app-premium", label: t("nav.app-premium"), icon: Gem },
+      { id: "layanan/autopost", label: t("nav.autopost"), icon: Zap },
     ]},
     { title: t("nav.lainnya"), items: [
       { id: "contact", label: t("nav.contact"), icon: Mail },

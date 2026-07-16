@@ -76,7 +76,9 @@ export default function TabAppPremium({
   };
 
   const formatRupiah = (num: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })
+      .format(num)
+      .replace(/\u00A0/g, " ");
   };
 
   const categories = ["ALL", "Streaming", "Music", "Productivity", "AI Tools", "Editing"];

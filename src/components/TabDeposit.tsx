@@ -11,7 +11,10 @@ interface TabDepositProps {
 
 const presets = [1000, 5000, 10000, 25000, 50000, 100000];
 
-const formatRupiah = (num: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+const formatRupiah = (num: number) =>
+  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })
+    .format(num)
+    .replace(/\u00A0/g, " ");
 
 export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance }: TabDepositProps) {
   const t = useT();
@@ -119,9 +122,9 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
               <div>
                 <label className="text-sm font-semibold text-vw-muted block mb-3">Jumlah Deposit (Rp)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-sm font-bold text-vw-muted">IDR</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-vw-muted/80 select-none pointer-events-none">Rp</span>
                   <input type="number" value={amount || ""} onChange={e => setAmount(Number(e.target.value))}
-                    placeholder="Min Rp 1.000" required min={1000} className="input-field pl-16 py-3.5 text-base font-bold" />
+                    placeholder="0" required min={1000} className="input-field pl-12 py-3.5 text-base font-bold" />
                 </div>
               </div>
 

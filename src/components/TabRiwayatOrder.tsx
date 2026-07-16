@@ -6,7 +6,7 @@ import { exportToCsv } from "../utils/exportCsv";
 
 interface TabRiwayatOrderProps { orders: Order[]; }
 
-const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n).replace(/\u00A0/g, " ");
 
 export default function TabRiwayatOrder({ orders }: TabRiwayatOrderProps) {
   const t = useT();

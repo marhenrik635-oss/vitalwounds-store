@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { UserProfile } from "../types";
 
-const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n).replace(/\u00A0/g, " ");
 
 type AdminTabId = "overview" | "users" | "deposits" | "orders" | "reports" | "prices" | "settings";
 

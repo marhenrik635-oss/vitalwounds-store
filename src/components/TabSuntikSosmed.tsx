@@ -10,7 +10,7 @@ interface TabSuntikSosmedProps {
   onTabChange: (tab: string) => void;
 }
 
-const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n).replace(/\u00A0/g, " ");
 
 export default function TabSuntikSosmed({ userProfile, services, onDeductBalance, onAddOrder, onTabChange }: TabSuntikSosmedProps) {
   const [platform, setPlatform] = useState("Instagram");

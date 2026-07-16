@@ -10,7 +10,7 @@ interface TabNokosProps {
   onTabChange: (tab: string) => void;
 }
 
-const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n).replace(/\u00A0/g, " ");
 
 export default function TabNokos({ userProfile, services, onDeductBalance, onAddOrder }: TabNokosProps) {
   const [search, setSearch] = useState("");
