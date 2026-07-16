@@ -121,10 +121,9 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
             <form onSubmit={handleCreateDeposit} className="space-y-6">
               <div>
                 <label className="text-sm font-semibold text-vw-muted block mb-3">Jumlah Deposit (Rp)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-vw-muted/80 select-none pointer-events-none">Rp</span>
+                <div>
                   <input type="number" value={amount || ""} onChange={e => setAmount(Number(e.target.value))}
-                    placeholder="0" required min={1000} className="input-field pl-12 py-3.5 text-base font-bold" />
+                    placeholder="1000" required min={1000} className="input-field py-3.5 text-base font-bold" />
                 </div>
               </div>
 

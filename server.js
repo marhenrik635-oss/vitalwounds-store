@@ -52,6 +52,64 @@ function rawBody(req, res, next) {
   req.on('end', next);
 }
 
+// ─── Autopost Subscription System ───────────────────────────────
+
+// Access vitalwounds-api DB for balance/role operations
+let vitalwoundsDb = null;
+function getVitalwoundsDb() {
+  if (vitalwoundsDb) return vitalwoundsDb;
+  try {
+    const { createClient } = _require('@libsql/client');
+    const fs = _require('fs');
+    const possiblePaths = [
+      '/home/ubuntu/vitalwounds-api/database.db',
+      resolve(__dirname, '..', 'vitalwounds-api', 'database.db'),
+      resolve(process.cwd(), 'vitalwounds-api', 'database.db'),
+    ];
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        vitalwoundsDb = createClient({ url: 'file:' + p.split('\\').join('/') });
+        console.log('[AUTOPOST] Vitalwounds DB:', p);
+        return vitalwoundsDb;
+      }
+    }
+    console.warn('[AUTOPOST] Vitalwounds DB not found!');
+  } catch (e) {
+    console.error('[AUTOPOST] Vitalwounds DB init error:', e.message);
+  }
+  return null;
+}
+
+const SUBSCRIPTION_PLANS = {
+  '1month':  { label: '1 Bulan', price: 10000, durationMs: 30 * 24 * 60 * 60 * 1000 },
+  '3months': { label: '3 Bulan', price: 25000, durationMs: 90 * 24 * 60 * 60 * 1000 },
+  '6months': { label: '6 Bulan', price: 45000, durationMs: 180 * 24 * 60 * 60 * 1000 },
+  '1year':   { label: '1 Tahun', price: 90000, durationMs: 365 * 24 * 60 * 60 * 1000 },
+  'lifetime':{ label: 'Seumur Hidup', price: 100000, durationMs: null },
+};
+
+// Ensure ap_subscriptions table exists
+async function ensureSubscriptionsTable() {
+  try {
+    await safeDb(`CREATE TABLE IF NOT EXISTS ap_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      discord_id TEXT NOT NULL,
+      email TEXT,
+      plan TEXT NOT NULL,
+      amount_paid INTEGER NOT NULL,
+      start_date INTEGER NOT NULL,
+      end_date INTEGER,
+      status TEXT DEFAULT 'active',
+      authorized INTEGER DEFAULT 0,
+      created_at INTEGER NOT NULL
+    )`);
+    console.log('[AUTOPOST] Subscriptions table ready');
+  } catch (err) {
+    console.error('[AUTOPOST] Failed to create subscriptions table:', err.message);
+  }
+}
+ensureSubscriptionsTable();
+
 // ─── Autopost API Routes (protected by Kinde auth) ───────────────
 
 function isKindeAuthenticated(req) {
@@ -67,11 +125,262 @@ async function getKindeUser(req) {
   } catch { return null; }
 }
 
+// Helper: check if user has valid subscription + authorization
+async function checkAutopostAccess(user) {
+  const discordId = user.id || user.email;
+  const email = user.email || '';
+  
+  // 1. Check role from vitalwounds DB
+  let userRole = 'member';
+  try {
+    const vwDb = getVitalwoundsDb();
+    if (vwDb) {
+      const result = await vwDb.execute({
+        sql: 'SELECT role FROM users WHERE email = ?',
+        args: [email],
+      });
+      if (result.rows && result.rows.length > 0) {
+        userRole = result.rows[0].role || 'member';
+      }
+    }
+  } catch (dbErr) {
+    console.error('[AUTOPOST] Role check error:', dbErr.message);
+  }
+  
+  if (userRole !== 'admin' && userRole !== 'owner') {
+    return { allowed: false, reason: 'role', userRole };
+  }
+  
+  // 2. Check subscription
+  const subResult = await safeDb(
+    `SELECT * FROM ap_subscriptions WHERE discord_id = ? ORDER BY id DESC LIMIT 1`,
+    [discordId]
+  );
+  
+  if (subResult.rows && subResult.rows.length > 0) {
+    const sub = subResult.rows[0];
+    const isActive = sub.status === 'active';
+    const isLifetime = sub.plan === 'lifetime';
+    const notExpired = isLifetime || (sub.end_date && sub.end_date > Date.now());
+    
+    if (isActive && notExpired) {
+      if (sub.authorized === 1) {
+        return { allowed: true, userRole };
+      }
+      return { allowed: false, reason: 'unauthorized', userRole, subscription: sub };
+    }
+    
+    // Auto-expire if past end_date
+    if (isActive && !notExpired) {
+      await safeDb('UPDATE ap_subscriptions SET status = ? WHERE id = ?', ['expired', sub.id]);
+    }
+  }
+  
+  return { allowed: false, reason: 'no_subscription', userRole };
+}
+
+// GET /api/autopost/subscription — check subscription status & role
+app.get('/api/autopost/subscription', async (req, res) => {
+  try {
+    const user = await getKindeUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const discordId = user.id || user.email;
+    const email = user.email || '';
+    
+    // Get role and balance from vitalwounds DB
+    let userRole = 'member';
+    let userBalance = 0;
+    let errorMsg = null;
+    
+    try {
+      const vwDb = getVitalwoundsDb();
+      if (vwDb) {
+        const result = await vwDb.execute({
+          sql: 'SELECT role, balance FROM users WHERE email = ?',
+          args: [email],
+        });
+        if (result.rows && result.rows.length > 0) {
+          userRole = result.rows[0].role || 'member';
+          userBalance = result.rows[0].balance || 0;
+        }
+      }
+    } catch (dbErr) {
+      console.error('[AUTOPOST] DB error:', dbErr.message);
+      errorMsg = 'Gagal memeriksa data user';
+    }
+    
+    // Check subscription
+    const subResult = await safeDb(
+      `SELECT * FROM ap_subscriptions WHERE discord_id = ? AND (end_date IS NULL OR end_date > ?) ORDER BY id DESC LIMIT 1`,
+      [discordId, Date.now()]
+    );
+    
+    let subscription = null;
+    let hasValidSubscription = false;
+    
+    if (subResult.rows && subResult.rows.length > 0) {
+      const sub = subResult.rows[0];
+      if (sub.status === 'active') {
+        hasValidSubscription = true;
+        subscription = {
+          id: sub.id,
+          plan: sub.plan,
+          planLabel: (SUBSCRIPTION_PLANS[sub.plan] || {}).label || sub.plan,
+          startDate: sub.start_date,
+          endDate: sub.end_date,
+          authorized: sub.authorized === 1,
+          status: sub.status,
+        };
+      }
+    }
+    
+    res.json({
+      role: userRole,
+      balance: userBalance,
+      email: email,
+      canAccess: userRole === 'admin' || userRole === 'owner',
+      hasValidSubscription,
+      subscription,
+      plans: Object.fromEntries(
+        Object.entries(SUBSCRIPTION_PLANS).map(([k, v]) => [k, { label: v.label, price: v.price }])
+      ),
+      error: errorMsg,
+    });
+  } catch (err) {
+    console.error('[AUTOPOST] Subscription check error:', err.message);
+    res.status(500).json({ error: 'Gagal memeriksa subscription' });
+  }
+});
+
+// POST /api/autopost/subscribe — purchase a subscription plan
+app.post('/api/autopost/subscribe', async (req, res) => {
+  try {
+    const user = await getKindeUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const discordId = user.id || user.email;
+    const email = user.email || '';
+    const { plan } = req.body;
+    
+    // Validate plan
+    const planConfig = SUBSCRIPTION_PLANS[plan];
+    if (!planConfig) return res.status(400).json({ error: 'Paket tidak valid' });
+    
+    const amount = planConfig.price;
+    
+    // Get user from vitalwounds DB
+    const vwDb = getVitalwoundsDb();
+    if (!vwDb) return res.status(500).json({ error: 'Database tidak tersedia' });
+    
+    const vwResult = await vwDb.execute({
+      sql: 'SELECT id, balance, role FROM users WHERE email = ?',
+      args: [email],
+    });
+    
+    if (!vwResult.rows || vwResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User tidak ditemukan. Silakan login ulang.' });
+    }
+    
+    const userData = vwResult.rows[0];
+    const userId = userData.id;
+    const userBalance = userData.balance || 0;
+    const userRole = userData.role || 'member';
+    
+    // Check if user can access autopost
+    if (userRole !== 'admin' && userRole !== 'owner') {
+      return res.status(403).json({ error: 'Fitur ini hanya untuk Admin & Owner' });
+    }
+    
+    // Check balance
+    if (userBalance < amount) {
+      return res.status(400).json({
+        error: 'Saldo tidak mencukupi',
+        required: amount,
+        balance: userBalance,
+        shortfall: amount - userBalance,
+      });
+    }
+    
+    // Check for existing active subscription
+    const existing = await safeDb(
+      `SELECT id, plan, end_date FROM ap_subscriptions WHERE discord_id = ? AND status = 'active' AND (end_date IS NULL OR end_date > ?) LIMIT 1`,
+      [discordId, Date.now()]
+    );
+    
+    if (existing.rows && existing.rows.length > 0) {
+      return res.status(400).json({
+        error: 'Kamu sudah memiliki subscription aktif',
+        currentPlan: existing.rows[0].plan,
+      });
+    }
+    
+    // Deduct balance
+    await vwDb.execute({
+      sql: 'UPDATE users SET balance = MAX(0, balance - ?) WHERE id = ?',
+      args: [amount, userId],
+    });
+    
+    // Create subscription
+    const startDate = Date.now();
+    const endDate = planConfig.durationMs ? startDate + planConfig.durationMs : null;
+    
+    await safeDb(
+      `INSERT INTO ap_subscriptions (discord_id, email, plan, amount_paid, start_date, end_date, status, authorized, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [discordId, email, plan, amount, startDate, endDate, 'active', 0, Date.now()]
+    );
+    
+    res.json({
+      success: true,
+      message: `Paket ${planConfig.label} berhasil diaktifkan! Silakan lakukan authorization.`,
+      plan: plan,
+      endDate: endDate,
+    });
+  } catch (err) {
+    console.error('[AUTOPOST] Subscribe error:', err.message);
+    res.status(500).json({ error: 'Gagal melakukan pembelian' });
+  }
+});
+
+// POST /api/autopost/authorize — mark authorization as complete
+app.post('/api/autopost/authorize', async (req, res) => {
+  try {
+    const user = await getKindeUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const discordId = user.id || user.email;
+    
+    // Get latest active subscription
+    const subResult = await safeDb(
+      `SELECT id FROM ap_subscriptions WHERE discord_id = ? AND status = 'active' AND (end_date IS NULL OR end_date > ?) ORDER BY id DESC LIMIT 1`,
+      [discordId, Date.now()]
+    );
+    
+    if (!subResult.rows || subResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Tidak ada subscription aktif. Silakan beli paket terlebih dahulu.' });
+    }
+    
+    const subId = subResult.rows[0].id;
+    await safeDb('UPDATE ap_subscriptions SET authorized = 1 WHERE id = ?', [subId]);
+    
+    res.json({ success: true, message: 'Authorization berhasil! Sekarang kamu bisa membuat misi.' });
+  } catch (err) {
+    console.error('[AUTOPOST] Authorize error:', err.message);
+    res.status(500).json({ error: 'Gagal melakukan authorization' });
+  }
+});
+
 // GET /api/autopost/missions — list all missions for logged in user
 app.get('/api/autopost/missions', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const discordId = user.id || user.email;
     const result = await safeDb('SELECT * FROM ap_missions WHERE discord_id = ? ORDER BY created_at DESC', [discordId]);
     res.json(result.rows || []);
@@ -86,6 +395,12 @@ app.post('/api/autopost/mission/save', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const discordId = user.id || user.email;
     const { id, name, message, intervalMinutes, channels, customIntervals, filePaths, fileNames, status } = req.body;
     
@@ -134,6 +449,12 @@ app.post('/api/autopost/mission/toggle', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const { id } = req.body;
     if (!id) return res.status(400).json({ error: 'Mission ID required' });
     
@@ -154,6 +475,12 @@ app.delete('/api/autopost/mission/:id', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const { id } = req.params;
     await safeDb('DELETE FROM ap_channel_schedules WHERE mission_id = ?', [id]);
     await safeDb('DELETE FROM ap_missions WHERE id = ?', [id]);
@@ -169,6 +496,12 @@ app.get('/api/autopost/mission/:id', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const result = await safeDb('SELECT * FROM ap_missions WHERE id = ?', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Mission not found' });
     res.json(result.rows[0]);
@@ -183,6 +516,12 @@ app.post('/api/autopost/mission/stats', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const { id } = req.body;
     if (!id) return res.json({ totalPosts: 0 });
     const result = await safeDb(
@@ -201,6 +540,12 @@ app.get('/api/autopost/webhooks', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const discordId = user.id || user.email;
     const result = await safeDb('SELECT * FROM ap_webhooks WHERE discord_id = ? ORDER BY created_at DESC', [discordId]);
     res.json(result.rows || []);
@@ -215,6 +560,12 @@ app.post('/api/autopost/webhook/add', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const discordId = user.id || user.email;
     const { name, url } = req.body;
     if (!name || !url) return res.status(400).json({ error: 'Name and URL required' });
@@ -236,6 +587,12 @@ app.delete('/api/autopost/webhook/:id', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const { id } = req.params;
     await safeDb('DELETE FROM ap_webhooks WHERE id = ?', [parseInt(id, 10)]);
     res.json({ success: true });
@@ -250,6 +607,12 @@ app.get('/api/autopost/logs/:missionId', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
+    
     const result = await safeDb(
       'SELECT * FROM ap_posting_logs WHERE mission_id = ? ORDER BY timestamp DESC LIMIT 50',
       [req.params.missionId]
@@ -266,6 +629,11 @@ app.get('/api/autopost/channels', async (req, res) => {
   try {
     const user = await getKindeUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    
+    const access = await checkAutopostAccess(user);
+    if (!access.allowed) {
+      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+    }
     
     // Try to fetch from bot-zyo's web server first (if running)
     const BOTZYO_API = process.env.BOTZYO_API_URL || 'http://localhost:3001';

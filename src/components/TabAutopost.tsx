@@ -4,7 +4,10 @@ import {
   Clock, MessageSquare, Hash, Link, Webhook,
   Zap, RefreshCw, AlertCircle, CheckCircle,
   XCircle, Loader2, FileText, Settings,
-  Activity, Calendar, Search
+  Activity, Calendar, Search, CreditCard,
+  Shield, ShieldCheck, Star, Crown, Wallet,
+  Ban, Lock, ArrowRight, Check, ChevronRight,
+  Sparkles, Timer, Infinity, Gem
 } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────
@@ -38,6 +41,32 @@ interface PostLog {
   timestamp: number;
 }
 
+interface SubscriptionInfo {
+  id: number;
+  plan: string;
+  planLabel: string;
+  startDate: number;
+  endDate: number | null;
+  authorized: boolean;
+  status: string;
+}
+
+type PageState = "loading" | "member" | "no_subscription" | "not_authorized" | "ready";
+
+// ─── Pricing Plans ─────────────────────────────────────────────────
+
+const PLANS = [
+  { key: '1month',  label: '1 Bulan',     price: 10000, originalPrice: null,     duration: '30 Hari',     icon: 'star',    color: 'from-blue-500 to-blue-600',     badge: null },
+  { key: '3months', label: '3 Bulan',     price: 25000, originalPrice: 30000,    duration: '90 Hari',     icon: 'sparkles', color: 'from-emerald-500 to-emerald-600', badge: 'Populer' },
+  { key: '6months', label: '6 Bulan',     price: 45000, originalPrice: 54000,    duration: '180 Hari',    icon: 'zap',     color: 'from-violet-500 to-violet-600',   badge: 'Irit' },
+  { key: '1year',   label: '1 Tahun',     price: 90000, originalPrice: 120000,   duration: '365 Hari',    icon: 'crown',   color: 'from-amber-500 to-amber-600',     badge: 'Best Value' },
+  { key: 'lifetime',label: 'Seumur Hidup', price: 100000, originalPrice: 200000,  duration: 'Selamanya',   icon: 'gem',     color: 'from-rose-500 to-purple-600',     badge: 'Diskon 50%' },
+];
+
+function formatPrice(price: number) {
+  return "Rp " + price.toLocaleString("id-ID");
+}
+
 // ─── Helpers ───────────────────────────────────────────────────────
 
 function generateId() {
@@ -67,9 +96,35 @@ function truncate(str: string, len: number) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
+function getPlanIcon(icon: string) {
+  switch (icon) {
+    case 'star': return <Star size={18} />;
+    case 'sparkles': return <Sparkles size={18} />;
+    case 'zap': return <Zap size={18} />;
+    case 'crown': return <Crown size={18} />;
+    case 'gem': return <Gem size={18} />;
+    default: return <CreditCard size={18} />;
+  }
+}
+
+function getDurationIcon(plan: string) {
+  if (plan === 'lifetime') return <Infinity size={14} />;
+  return <Timer size={14} />;
+}
+
 // ─── Main Component ────────────────────────────────────────────────
 
 export default function TabAutopost() {
+  const [pageState, setPageState] = useState<PageState>("loading");
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [userRole, setUserRole] = useState("");
+  const [userBalance, setUserBalance] = useState(0);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const [authorizing, setAuthorizing] = useState(false);
+  const [missionCount, setMissionCount] = useState(0);
+
+  // ─── Missions state ─────────────────────────────────────────────
   const [missions, setMissions] = useState<Mission[]>([]);
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +149,110 @@ export default function TabAutopost() {
   const [whUrl, setWhUrl] = useState("");
   const [whSaving, setWhSaving] = useState(false);
 
-  // ─── Data Loading ────────────────────────────────────────────────
+  // ─── Check Subscription on Mount ─────────────────────────────────
+
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
+  async function checkSubscription() {
+    setPageState("loading");
+    try {
+      const res = await fetch("/api/autopost/subscription");
+      if (!res.ok) {
+        if (res.status === 401) {
+          // Not logged in — but this shouldn't happen since the tab is behind auth
+          setPageState("member");
+          return;
+        }
+        setPageState("member");
+        return;
+      }
+      
+      const data = await res.json();
+      setUserRole(data.role);
+      setUserBalance(data.balance);
+      setMissionCount(data.missionCount || 0);
+
+      // Check role
+      if (!data.canAccess) {
+        setPageState("member");
+        return;
+      }
+
+      // Check subscription
+      if (data.hasValidSubscription && data.subscription) {
+        setSubscription(data.subscription);
+        if (!data.subscription.authorized) {
+          setPageState("not_authorized");
+        } else {
+          setPageState("ready");
+          loadData();
+        }
+      } else {
+        setPageState("no_subscription");
+      }
+    } catch (err: any) {
+      console.error("Subscription check failed:", err);
+      setPageState("member");
+    }
+  }
+
+  // ─── Purchase Subscription ───────────────────────────────────────
+
+  async function handlePurchase(planKey: string) {
+    setPurchasing(planKey);
+    setPurchaseError(null);
+    try {
+      const res = await fetch("/api/autopost/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        // Refresh subscription status
+        await checkSubscription();
+      } else {
+        setPurchaseError(data.error || "Gagal melakukan pembelian");
+        if (data.shortfall) {
+          setPurchaseError(`Saldo tidak mencukupi. Butuh ${formatPrice(data.required)}, saldo ${formatPrice(data.balance)}.`);
+        }
+      }
+    } catch (err: any) {
+      setPurchaseError("Terjadi kesalahan: " + err.message);
+    } finally {
+      setPurchasing(null);
+    }
+  }
+
+  // ─── Authorize ───────────────────────────────────────────────────
+
+  async function handleAuthorize() {
+    setAuthorizing(true);
+    try {
+      const res = await fetch("/api/autopost/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        await checkSubscription();
+      } else {
+        alert(data.error || "Gagal melakukan authorization");
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setAuthorizing(false);
+    }
+  }
+
+  // ─── Data Loading (for ready state) ──────────────────────────────
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -124,8 +282,6 @@ export default function TabAutopost() {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
 
   // Load stats for all missions
   useEffect(() => {
@@ -294,11 +450,7 @@ export default function TabAutopost() {
     setView("logs");
   };
 
-  // ─── Render ──────────────────────────────────────────────────────
-
-  const filteredMissions = missions.filter(m =>
-    m.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ─── Render Helpers ──────────────────────────────────────────────
 
   const statusBadge = (status: string) => {
     switch (status) {
@@ -312,6 +464,262 @@ export default function TabAutopost() {
         return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">{status}</span>;
     }
   };
+
+  const filteredMissions = missions.filter(m =>
+    m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ══════════════════════════════════════════════════════════════════
+  // RENDER: MEMBER (under maintenance)
+  // ══════════════════════════════════════════════════════════════════
+
+  if (pageState === "member") {
+    return (
+      <div className="p-6 lg:p-8 max-w-xl mx-auto text-center py-20 animate-fade-in">
+        <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-6">
+          <Ban size={36} className="text-amber-500" />
+        </div>
+        <h2 className="text-xl font-bold text-vw-text tracking-tight mb-2">
+          Autopost — Perbaikan
+        </h2>
+        <p className="text-sm text-vw-muted leading-relaxed mb-6">
+          Fitur Autopost sedang dalam masa maintenance. Hanya Admin & Owner yang dapat mengakses halaman ini.
+        </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-vw-border/30 text-xs text-vw-muted/70">
+          <Lock size={12} />
+          <span>Terbatas untuk Admin & Owner</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // RENDER: LOADING
+  // ══════════════════════════════════════════════════════════════════
+
+  if (pageState === "loading") {
+    return (
+      <div className="p-6 lg:p-8 animate-fade-in">
+        <div className="max-w-md mx-auto py-20 text-center">
+          <Loader2 size={32} className="animate-spin mx-auto text-vw-accent mb-4" />
+          <p className="text-sm text-vw-muted">Memeriksa akses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // RENDER: NO SUBSCRIPTION — Pricing Plans
+  // ══════════════════════════════════════════════════════════════════
+
+  if (pageState === "no_subscription") {
+    return (
+      <div className="p-4 lg:p-6 animate-fade-in">
+        {/* Header */}
+        <div className="max-w-4xl mx-auto mb-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles size={20} className="text-vw-accent" />
+            <h2 className="text-lg font-bold text-vw-text tracking-tight">Autopost</h2>
+          </div>
+          <p className="text-sm text-vw-muted max-w-md mx-auto">
+            Aktifkan fitur Autopost untuk menjadwalkan dan mengotomatiskan postingan di Discord server kamu.
+          </p>
+        </div>
+
+        {/* Balance Display */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="bg-vw-surface border border-vw-border rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-vw-accent/8 flex items-center justify-center">
+                <Wallet size={18} className="text-vw-accent" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-vw-muted/70">Saldo Kamu</p>
+                <p className="text-sm font-bold text-vw-text">{formatPrice(userBalance)}</p>
+              </div>
+            </div>
+            <a href="/deposit"
+              className="px-3 py-1.5 rounded-lg bg-vw-accent text-white text-[11px] font-semibold hover:bg-vw-accent-hover transition-all cursor-pointer">
+              + Isi Saldo
+            </a>
+          </div>
+          {purchaseError && (
+            <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 flex items-center gap-2">
+              <AlertCircle size={14} />
+              {purchaseError}
+            </div>
+          )}
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {PLANS.map((plan, idx) => (
+            <div
+              key={plan.key}
+              className={`relative bg-vw-surface border rounded-xl p-5 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                plan.badge === 'Populer'
+                  ? 'border-vw-accent/30 ring-1 ring-vw-accent/20 shadow-md'
+                  : 'border-vw-border hover:border-vw-accent/20'
+              }`}
+            >
+              {/* Badge */}
+              {plan.badge && (
+                <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r ${plan.color} shadow-sm`}>
+                  {plan.badge}
+                </div>
+              )}
+
+              {/* Plan Icon */}
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center text-white mb-3 shadow-sm`}>
+                {getPlanIcon(plan.icon)}
+              </div>
+
+              {/* Plan Name */}
+              <h3 className="font-bold text-sm text-vw-text mb-1">{plan.label}</h3>
+
+              {/* Duration */}
+              <div className="flex items-center gap-1 text-[10px] text-vw-muted/60 mb-3">
+                {getDurationIcon(plan.key)}
+                <span>{plan.duration}</span>
+              </div>
+
+              {/* Price */}
+              <div className="mb-4">
+                <p className="text-xl font-bold text-vw-text tracking-tight">{formatPrice(plan.price)}</p>
+                {plan.originalPrice && (
+                  <p className="text-[10px] text-vw-muted/50 line-through mt-0.5">
+                    {formatPrice(plan.originalPrice)}
+                  </p>
+                )}
+              </div>
+
+              {/* Features */}
+              <div className="space-y-1.5 mb-5 flex-1">
+                {[
+                  'Akses penuh Autopost',
+                  plan.key === 'lifetime' ? 'Unlimited server' : 
+                    plan.key === '1year' ? '10 server' :
+                    plan.key === '6months' ? '5 server' :
+                    plan.key === '3months' ? '3 server' : '1 server',
+                  'Support prioritas',
+                  plan.key !== '1month' && plan.key !== '3months' ? 'Konfigurasi custom' : null,
+                  plan.key === 'lifetime' ? 'Semua update gratis' : null,
+                ].filter(Boolean).map((feat, fi) => (
+                  <div key={fi} className="flex items-start gap-1.5">
+                    <Check size={11} className="text-emerald-500 mt-0.5 shrink-0" />
+                    <span className="text-[10.5px] text-vw-muted/80">{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Buy Button */}
+              <button
+                onClick={() => handlePurchase(plan.key)}
+                disabled={purchasing !== null}
+                className={`w-full py-2 rounded-xl text-xs font-bold text-white transition-all cursor-pointer disabled:opacity-50 active:scale-[0.97] bg-gradient-to-r ${plan.color}`}
+              >
+                {purchasing === plan.key ? (
+                  <span className="flex items-center justify-center gap-1.5">
+                    <Loader2 size={12} className="animate-spin" />
+                    Memproses...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-1.5">
+                    {userBalance >= plan.price ? 'Aktifkan' : 'Saldo Kurang'}
+                    <ArrowRight size={12} />
+                  </span>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer note */}
+        <p className="text-center text-[10px] text-vw-muted/40 mt-8 max-w-md mx-auto">
+          Pembayaran dipotong dari saldo Vitalwounds kamu. 
+          Pastikan saldo mencukupi sebelum membeli paket.
+        </p>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // RENDER: NOT AUTHORIZED
+  // ══════════════════════════════════════════════════════════════════
+
+  if (pageState === "not_authorized") {
+    return (
+      <div className="p-6 lg:p-8 animate-fade-in">
+        <div className="max-w-lg mx-auto py-10">
+          {/* Success banner */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+              <CheckCircle size={22} className="text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-emerald-800">Paket Berhasil Diaktifkan!</h3>
+              <p className="text-xs text-emerald-600 mt-0.5">
+                {subscription?.planLabel} — {subscription?.endDate ? `Berlaku hingga ${formatDate(subscription.endDate)}` : 'Berlaku seumur hidup'}
+              </p>
+            </div>
+          </div>
+
+          {/* Authorization required */}
+          <div className="bg-vw-surface border border-vw-border rounded-xl p-6 mb-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+                <Shield size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-vw-text">Authorization Diperlukan</h3>
+                <p className="text-[11px] text-vw-muted/70">Langkah terakhir sebelum menggunakan Autopost</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-vw-border/20">
+                <div className="w-6 h-6 rounded-lg bg-vw-accent/8 flex items-center justify-center shrink-0 text-[10px] font-bold text-vw-accent">1</div>
+                <div>
+                  <p className="text-xs font-semibold text-vw-text">Buka Discord</p>
+                  <p className="text-[11px] text-vw-muted/70 mt-0.5">Masuk ke server yang akan menggunakan fitur Autopost</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-vw-border/20">
+                <div className="w-6 h-6 rounded-lg bg-vw-accent/8 flex items-center justify-center shrink-0 text-[10px] font-bold text-vw-accent">2</div>
+                <div>
+                  <p className="text-xs font-semibold text-vw-text">Ketik /auth di Discord</p>
+                  <p className="text-[11px] text-vw-muted/70 mt-0.5">Gunakan perintah /auth di channel bot untuk menghubungkan akun Discord</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-vw-border/20">
+                <div className="w-6 h-6 rounded-lg bg-vw-accent/8 flex items-center justify-center shrink-0 text-[10px] font-bold text-vw-accent">3</div>
+                <div>
+                  <p className="text-xs font-semibold text-vw-text">Klik tombol di bawah</p>
+                  <p className="text-[11px] text-vw-muted/70 mt-0.5">Setelah selesai, klik "Saya Sudah Authorization" untuk melanjutkan</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAuthorize}
+              disabled={authorizing}
+              className="mt-6 w-full py-3 rounded-xl bg-vw-accent text-white text-sm font-semibold hover:bg-vw-accent-hover transition-all cursor-pointer disabled:opacity-50 active:scale-[0.97] flex items-center justify-center gap-2"
+            >
+              {authorizing ? (
+                <><Loader2 size={16} className="animate-spin" /> Memverifikasi...</>
+              ) : (
+                <><ShieldCheck size={16} /> Saya Sudah Authorization</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // RENDER: READY — Normal Autopost UI
+  // ══════════════════════════════════════════════════════════════════
 
   if (loading && missions.length === 0) {
     return (
@@ -353,6 +761,27 @@ export default function TabAutopost() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
+      {/* ── SUBSCRIPTION INFO BANNER ── */}
+      <div className="bg-gradient-to-r from-vw-accent/5 to-vw-accent/10 border border-vw-accent/15 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-vw-accent/10 flex items-center justify-center">
+            <Crown size={16} className="text-vw-accent" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-vw-text">
+              {subscription?.planLabel || 'Subscription Aktif'}
+            </p>
+            <p className="text-[10px] text-vw-muted/70">
+              {subscription?.endDate ? `Berlaku hingga ${formatDate(subscription.endDate)}` : 'Berlaku seumur hidup'}
+            </p>
+          </div>
+        </div>
+        <button onClick={checkSubscription}
+          className="text-[11px] text-vw-accent font-semibold hover:underline cursor-pointer flex items-center gap-1">
+          <RefreshCw size={11} /> Perbarui
+        </button>
+      </div>
+
       {/* ── HEADER ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

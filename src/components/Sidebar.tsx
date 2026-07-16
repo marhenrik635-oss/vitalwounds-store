@@ -55,7 +55,8 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-6">
-          {isAdmin ? (
+          {/* Admin Panel — muncul di atas jika isAdmin */}
+          {isAdmin && (
             <div>
               <p className="px-3 mb-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-vw-accent">Admin</p>
               <div className="space-y-0.5">
@@ -71,33 +72,32 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, isAd
                 </button>
               </div>
             </div>
-          ) : (
-            <>
-              {menuGroups.map((g, gi) => (
-                <div key={gi}>
-                  <p className="px-3 mb-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-vw-muted/70">{g.title}</p>
-                  <div className="space-y-0.5">
-                    {g.items.map(item => {
-                      const active = activeTab === item.id;
-                      const Icon = item.icon;
-                      return (
-                        <button key={item.id} onClick={() => { onTabChange(item.id); if (window.innerWidth < 1024) onToggle(); }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 cursor-pointer ${
-                            active 
-                              ? "bg-vw-accent/10 text-vw-accent font-semibold" 
-                              : "text-vw-muted hover:bg-vw-border/30 hover:text-vw-text"
-                          }`}>
-                          <Icon size={17} strokeWidth={active ? 2.5 : 1.5} />
-                          <span>{item.label}</span>
-                          {active && <ChevronRight size={12} className="ml-auto text-vw-accent/60" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </>
           )}
+
+          {/* Menu Groups — tampil untuk SEMUA user (admin, owner, member) */}
+          {menuGroups.map((g, gi) => (
+            <div key={gi}>
+              <p className="px-3 mb-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-vw-muted/70">{g.title}</p>
+              <div className="space-y-0.5">
+                {g.items.map(item => {
+                  const active = activeTab === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button key={item.id} onClick={() => { onTabChange(item.id); if (window.innerWidth < 1024) onToggle(); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 cursor-pointer ${
+                        active 
+                          ? "bg-vw-accent/10 text-vw-accent font-semibold" 
+                          : "text-vw-muted hover:bg-vw-border/30 hover:text-vw-text"
+                      }`}>
+                      <Icon size={17} strokeWidth={active ? 2.5 : 1.5} />
+                      <span>{item.label}</span>
+                      {active && <ChevronRight size={12} className="ml-auto text-vw-accent/60" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="px-5 py-4 border-t border-vw-border/50">
