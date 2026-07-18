@@ -18,7 +18,6 @@ function getAutopostClient() {
     ? resolve(process.env.AUTOPOST_DB_PATH)
     : resolve(__dirname, '..', 'bot-zyo', 'data', 'autopost.db');
   
-  // Normalize path to forward slashes for file: protocol
   const normalizedPath = dbPath.split('\\').join('/');
   autopostClient = createClient({ url: 'file:' + normalizedPath });
   console.log('[AUTOPOST] Using DB:', normalizedPath);
@@ -54,31 +53,8 @@ function rawBody(req, res, next) {
 
 // ─── Autopost Subscription System ───────────────────────────────
 
-// Access vitalwounds-api DB for balance/role operations
-let vitalwoundsDb = null;
-function getVitalwoundsDb() {
-  if (vitalwoundsDb) return vitalwoundsDb;
-  try {
-    const { createClient } = _require('@libsql/client');
-    const fs = _require('fs');
-    const possiblePaths = [
-      '/home/ubuntu/vitalwounds-api/database.db',
-      resolve(__dirname, '..', 'vitalwounds-api', 'database.db'),
-      resolve(process.cwd(), 'vitalwounds-api', 'database.db'),
-    ];
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        vitalwoundsDb = createClient({ url: 'file:' + p.split('\\').join('/') });
-        console.log('[AUTOPOST] Vitalwounds DB:', p);
-        return vitalwoundsDb;
-      }
-    }
-    console.warn('[AUTOPOST] Vitalwounds DB not found!');
-  } catch (e) {
-    console.error('[AUTOPOST] Vitalwounds DB init error:', e.message);
-  }
-  return null;
-}
+// Internal API key for authenticating with vitalwounds-api
+const AUTOPOST_INTERNAL_KEY = process.env.AUTOPOST_INTERNAL_KEY || 'a49e3965094b00cb214bc4868642ca24c9f52e35c506edb6d99597c37da05efb';
 
 const SUBSCRIPTION_PLANS = {
   '1month':  { label: '1 Bulan', price: 10000, durationMs: 30 * 24 * 60 * 60 * 1000 },
@@ -110,11 +86,68 @@ async function ensureSubscriptionsTable() {
 }
 ensureSubscriptionsTable();
 
-// ─── Autopost API Routes (protected by Kinde auth) ───────────────
-
-function isKindeAuthenticated(req) {
-  return kindeClient && kindeClient.isAuthenticated(req);
+// Helper: call vitalwounds-api internal endpoints via HTTP
+async function callVwApi(endpoint, body) {
+  try {
+    const url = API_TARGET + endpoint;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-autopost-key': AUTOPOST_INTERNAL_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    console.error('[AUTOPOST] VW API call error:', err.message);
+    return { ok: false, status: 0, data: { error: err.message } };
+  }
 }
+
+// Get user role + balance from vitalwounds-api
+async function getVwUser(email) {
+  const result = await callVwApi('/api/autopost/lookup', { email });
+  if (result.ok && result.data.user) {
+    return {
+      id: result.data.user.id,
+      username: result.data.user.username,
+      role: result.data.user.role || 'member',
+      balance: result.data.user.balance || 0,
+    };
+  }
+  return null;
+}
+
+// Resolve user role: try vitalwounds-api first, fallback to KINDE_ADMIN_EMAIL
+async function resolveVwUserRole(email) {
+  try {
+    const vwUser = await getVwUser(email);
+    if (vwUser) {
+      return { role: vwUser.role, balance: vwUser.balance, source: 'api' };
+    }
+  } catch (err) {
+    console.error('[AUTOPOST] resolveVwUserRole error:', err.message);
+  }
+  // Fallback: check KINDE_ADMIN_EMAIL directly
+  const adminEmail = (process.env.KINDE_ADMIN_EMAIL || '').toLowerCase();
+  if (adminEmail && email.toLowerCase() === adminEmail) {
+    return { role: 'owner', balance: 0, source: 'fallback_email' };
+  }
+  return { role: 'member', balance: 0, source: 'fallback_none' };
+}
+
+// Deduct balance via vitalwounds-api
+async function deductVwBalance(email, amount) {
+  const result = await callVwApi('/api/autopost/deduct', { email, amount });
+  if (result.ok && result.data.success) {
+    return { success: true, user: result.data.user };
+  }
+  return { success: false, error: result.data.error || 'Deduction failed' };
+}
+
+// ─── Autopost API Routes ───────────────────────────────
 
 async function getKindeUser(req) {
   if (!kindeClient) return null;
@@ -130,22 +163,9 @@ async function checkAutopostAccess(user) {
   const discordId = user.id || user.email;
   const email = user.email || '';
   
-  // 1. Check role from vitalwounds DB
-  let userRole = 'member';
-  try {
-    const vwDb = getVitalwoundsDb();
-    if (vwDb) {
-      const result = await vwDb.execute({
-        sql: 'SELECT role FROM users WHERE email = ?',
-        args: [email],
-      });
-      if (result.rows && result.rows.length > 0) {
-        userRole = result.rows[0].role || 'member';
-      }
-    }
-  } catch (dbErr) {
-    console.error('[AUTOPOST] Role check error:', dbErr.message);
-  }
+  // 1. Check role via HTTP to vitalwounds-api (with fallback)
+  const roleResult = await resolveVwUserRole(email);
+  const userRole = roleResult.role;
   
   if (userRole !== 'admin' && userRole !== 'owner') {
     return { allowed: false, reason: 'role', userRole };
@@ -170,7 +190,6 @@ async function checkAutopostAccess(user) {
       return { allowed: false, reason: 'unauthorized', userRole, subscription: sub };
     }
     
-    // Auto-expire if past end_date
     if (isActive && !notExpired) {
       await safeDb('UPDATE ap_subscriptions SET status = ? WHERE id = ?', ['expired', sub.id]);
     }
@@ -188,27 +207,11 @@ app.get('/api/autopost/subscription', async (req, res) => {
     const discordId = user.id || user.email;
     const email = user.email || '';
     
-    // Get role and balance from vitalwounds DB
-    let userRole = 'member';
-    let userBalance = 0;
-    let errorMsg = null;
-    
-    try {
-      const vwDb = getVitalwoundsDb();
-      if (vwDb) {
-        const result = await vwDb.execute({
-          sql: 'SELECT role, balance FROM users WHERE email = ?',
-          args: [email],
-        });
-        if (result.rows && result.rows.length > 0) {
-          userRole = result.rows[0].role || 'member';
-          userBalance = result.rows[0].balance || 0;
-        }
-      }
-    } catch (dbErr) {
-      console.error('[AUTOPOST] DB error:', dbErr.message);
-      errorMsg = 'Gagal memeriksa data user';
-    }
+    // Get role and balance via HTTP to vitalwounds-api (with fallback)
+    const roleResult = await resolveVwUserRole(email);
+    let userRole = roleResult.role;
+    let userBalance = roleResult.balance;
+    let errorMsg = roleResult.source === 'api' ? null : 'User tidak ditemukan di database, akses via fallback';
     
     // Check subscription
     const subResult = await safeDb(
@@ -263,42 +266,29 @@ app.post('/api/autopost/subscribe', async (req, res) => {
     const email = user.email || '';
     const { plan } = req.body;
     
-    // Validate plan
     const planConfig = SUBSCRIPTION_PLANS[plan];
     if (!planConfig) return res.status(400).json({ error: 'Paket tidak valid' });
     
     const amount = planConfig.price;
     
-    // Get user from vitalwounds DB
-    const vwDb = getVitalwoundsDb();
-    if (!vwDb) return res.status(500).json({ error: 'Database tidak tersedia' });
-    
-    const vwResult = await vwDb.execute({
-      sql: 'SELECT id, balance, role FROM users WHERE email = ?',
-      args: [email],
-    });
-    
-    if (!vwResult.rows || vwResult.rows.length === 0) {
+    // Get user from vitalwounds-api via HTTP (with fallback)
+    const roleResult = await resolveVwUserRole(email);
+    if (roleResult.source === 'fallback_none') {
       return res.status(404).json({ error: 'User tidak ditemukan. Silakan login ulang.' });
     }
     
-    const userData = vwResult.rows[0];
-    const userId = userData.id;
-    const userBalance = userData.balance || 0;
-    const userRole = userData.role || 'member';
-    
     // Check if user can access autopost
-    if (userRole !== 'admin' && userRole !== 'owner') {
+    if (roleResult.role !== 'admin' && roleResult.role !== 'owner') {
       return res.status(403).json({ error: 'Fitur ini hanya untuk Admin & Owner' });
     }
     
-    // Check balance
-    if (userBalance < amount) {
+    // Check balance (fallback = balance 0, so skip check)
+    if (roleResult.source === 'api' && roleResult.balance < amount) {
       return res.status(400).json({
         error: 'Saldo tidak mencukupi',
         required: amount,
-        balance: userBalance,
-        shortfall: amount - userBalance,
+        balance: roleResult.balance,
+        shortfall: amount - roleResult.balance,
       });
     }
     
@@ -315,11 +305,11 @@ app.post('/api/autopost/subscribe', async (req, res) => {
       });
     }
     
-    // Deduct balance
-    await vwDb.execute({
-      sql: 'UPDATE users SET balance = MAX(0, balance - ?) WHERE id = ?',
-      args: [amount, userId],
-    });
+    // Deduct balance via HTTP to vitalwounds-api
+    const deductResult = await deductVwBalance(email, amount);
+    if (!deductResult.success) {
+      return res.status(500).json({ error: 'Gagal memotong saldo: ' + deductResult.error });
+    }
     
     // Create subscription
     const startDate = Date.now();
@@ -350,7 +340,6 @@ app.post('/api/autopost/authorize', async (req, res) => {
     
     const discordId = user.id || user.email;
     
-    // Get latest active subscription
     const subResult = await safeDb(
       `SELECT id FROM ap_subscriptions WHERE discord_id = ? AND status = 'active' AND (end_date IS NULL OR end_date > ?) ORDER BY id DESC LIMIT 1`,
       [discordId, Date.now()]
@@ -370,19 +359,22 @@ app.post('/api/autopost/authorize', async (req, res) => {
   }
 });
 
-// GET /api/autopost/missions — list all missions for logged in user
-app.get('/api/autopost/missions', async (req, res) => {
+// All mission/webhook/log endpoints with access control
+async function requireAutopostAccess(req, res, next) {
+  const user = await getKindeUser(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const access = await checkAutopostAccess(user);
+  if (!access.allowed) {
+    return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
+  }
+  req.autopostUser = user;
+  req.autopostDiscordId = user.id || user.email;
+  next();
+}
+
+app.get('/api/autopost/missions', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
-    const discordId = user.id || user.email;
-    const result = await safeDb('SELECT * FROM ap_missions WHERE discord_id = ? ORDER BY created_at DESC', [discordId]);
+    const result = await safeDb('SELECT * FROM ap_missions WHERE discord_id = ? ORDER BY created_at DESC', [req.autopostDiscordId]);
     res.json(result.rows || []);
   } catch (err) {
     console.error('[AUTOPOST] Get missions error:', err.message);
@@ -390,27 +382,15 @@ app.get('/api/autopost/missions', async (req, res) => {
   }
 });
 
-// POST /api/autopost/mission/save — create or update a mission
-app.post('/api/autopost/mission/save', async (req, res) => {
+app.post('/api/autopost/mission/save', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
-    const discordId = user.id || user.email;
     const { id, name, message, intervalMinutes, channels, customIntervals, filePaths, fileNames, status } = req.body;
-    
     if (!id) return res.status(400).json({ error: 'Mission ID required' });
     
     const channelsStr = Array.isArray(channels) ? channels.join(',') : (channels || '');
     const intervalNum = parseInt(intervalMinutes, 10) || 0;
     const customStr = customIntervals && Object.keys(customIntervals).length > 0 ? JSON.stringify(customIntervals) : null;
     
-    // Check if exists
     const existing = await safeDb('SELECT id FROM ap_missions WHERE id = ?', [id]);
     
     if (existing.rows.length > 0) {
@@ -421,11 +401,10 @@ app.post('/api/autopost/mission/save', async (req, res) => {
     } else {
       await safeDb(
         `INSERT INTO ap_missions (id, discord_id, name, message, channels, interval_minutes, custom_intervals, file_paths, file_names, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, discordId, name || 'Untitled', message || '', channelsStr, intervalNum, customStr, filePaths || null, fileNames || null, status || 'paused', Date.now()]
+        [id, req.autopostDiscordId, name || 'Untitled', message || '', channelsStr, intervalNum, customStr, filePaths || null, fileNames || null, status || 'paused', Date.now()]
       );
     }
     
-    // Rebuild channel schedules
     await safeDb('DELETE FROM ap_channel_schedules WHERE mission_id = ?', [id]);
     const chs = Array.isArray(channels) ? channels : [];
     for (const chId of chs) {
@@ -444,17 +423,8 @@ app.post('/api/autopost/mission/save', async (req, res) => {
   }
 });
 
-// POST /api/autopost/mission/toggle — start/pause mission
-app.post('/api/autopost/mission/toggle', async (req, res) => {
+app.post('/api/autopost/mission/toggle', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const { id } = req.body;
     if (!id) return res.status(400).json({ error: 'Mission ID required' });
     
@@ -470,17 +440,8 @@ app.post('/api/autopost/mission/toggle', async (req, res) => {
   }
 });
 
-// DELETE /api/autopost/mission/:id — delete mission
-app.delete('/api/autopost/mission/:id', async (req, res) => {
+app.delete('/api/autopost/mission/:id', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const { id } = req.params;
     await safeDb('DELETE FROM ap_channel_schedules WHERE mission_id = ?', [id]);
     await safeDb('DELETE FROM ap_missions WHERE id = ?', [id]);
@@ -491,17 +452,8 @@ app.delete('/api/autopost/mission/:id', async (req, res) => {
   }
 });
 
-// GET /api/autopost/mission/:id — get single mission
-app.get('/api/autopost/mission/:id', async (req, res) => {
+app.get('/api/autopost/mission/:id', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const result = await safeDb('SELECT * FROM ap_missions WHERE id = ?', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Mission not found' });
     res.json(result.rows[0]);
@@ -511,17 +463,8 @@ app.get('/api/autopost/mission/:id', async (req, res) => {
   }
 });
 
-// POST /api/autopost/mission/stats — get mission stats (post count)
-app.post('/api/autopost/mission/stats', async (req, res) => {
+app.post('/api/autopost/mission/stats', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const { id } = req.body;
     if (!id) return res.json({ totalPosts: 0 });
     const result = await safeDb(
@@ -535,19 +478,9 @@ app.post('/api/autopost/mission/stats', async (req, res) => {
   }
 });
 
-// GET /api/autopost/webhooks — list webhooks
-app.get('/api/autopost/webhooks', async (req, res) => {
+app.get('/api/autopost/webhooks', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
-    const discordId = user.id || user.email;
-    const result = await safeDb('SELECT * FROM ap_webhooks WHERE discord_id = ? ORDER BY created_at DESC', [discordId]);
+    const result = await safeDb('SELECT * FROM ap_webhooks WHERE discord_id = ? ORDER BY created_at DESC', [req.autopostDiscordId]);
     res.json(result.rows || []);
   } catch (err) {
     console.error('[AUTOPOST] Webhooks error:', err.message);
@@ -555,26 +488,16 @@ app.get('/api/autopost/webhooks', async (req, res) => {
   }
 });
 
-// POST /api/autopost/webhook/add — add webhook
-app.post('/api/autopost/webhook/add', async (req, res) => {
+app.post('/api/autopost/webhook/add', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
-    const discordId = user.id || user.email;
     const { name, url } = req.body;
     if (!name || !url) return res.status(400).json({ error: 'Name and URL required' });
     
     await safeDb(
       'INSERT INTO ap_webhooks (discord_id, name, url) VALUES (?, ?, ?)',
-      [discordId, name, url]
+      [req.autopostDiscordId, name, url]
     );
-    const webhooks = await safeDb('SELECT * FROM ap_webhooks WHERE discord_id = ? ORDER BY created_at DESC', [discordId]);
+    const webhooks = await safeDb('SELECT * FROM ap_webhooks WHERE discord_id = ? ORDER BY created_at DESC', [req.autopostDiscordId]);
     res.json({ success: true, webhooks: webhooks.rows });
   } catch (err) {
     console.error('[AUTOPOST] Add webhook error:', err.message);
@@ -582,17 +505,8 @@ app.post('/api/autopost/webhook/add', async (req, res) => {
   }
 });
 
-// DELETE /api/autopost/webhook/:id — delete webhook
-app.delete('/api/autopost/webhook/:id', async (req, res) => {
+app.delete('/api/autopost/webhook/:id', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const { id } = req.params;
     await safeDb('DELETE FROM ap_webhooks WHERE id = ?', [parseInt(id, 10)]);
     res.json({ success: true });
@@ -602,17 +516,8 @@ app.delete('/api/autopost/webhook/:id', async (req, res) => {
   }
 });
 
-// GET /api/autopost/logs/:missionId — get posting logs
-app.get('/api/autopost/logs/:missionId', async (req, res) => {
+app.get('/api/autopost/logs/:missionId', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
     const result = await safeDb(
       'SELECT * FROM ap_posting_logs WHERE mission_id = ? ORDER BY timestamp DESC LIMIT 50',
       [req.params.missionId]
@@ -624,25 +529,14 @@ app.get('/api/autopost/logs/:missionId', async (req, res) => {
   }
 });
 
-// GET /api/autopost/channels — get guild channels (via bot-zyo proxy)
-app.get('/api/autopost/channels', async (req, res) => {
+app.get('/api/autopost/channels', requireAutopostAccess, async (req, res) => {
   try {
-    const user = await getKindeUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-    
-    const access = await checkAutopostAccess(user);
-    if (!access.allowed) {
-      return res.status(403).json({ error: 'Akses ditolak', reason: access.reason });
-    }
-    
-    // Try to fetch from bot-zyo's web server first (if running)
     const BOTZYO_API = process.env.BOTZYO_API_URL || 'http://localhost:3001';
     try {
-      const response = await fetch(`${BOTZYO_API}/api/guilds?userId=${encodeURIComponent(user.id || user.email)}`);
+      const response = await fetch(`${BOTZYO_API}/api/guilds?userId=${encodeURIComponent(req.autopostUser.id || req.autopostUser.email)}`);
       const data = await response.json();
       return res.json(data);
     } catch (proxyErr) {
-      // bot-zyo not available, return empty
       console.log('[AUTOPOST] bot-zyo proxy unavailable:', proxyErr.message);
       return res.json({ guilds: [], channels: [] });
     }
@@ -660,7 +554,6 @@ const XO_CLIENT = 'Djati';
 import { setupKinde, GrantType } from "@kinde-oss/kinde-node-express";
 import 'dotenv/config';
 
-// Verify KINDE env vars are loaded
 if (!process.env.KINDE_DOMAIN) {
   console.error('[KINDE] Missing KINDE_DOMAIN env var. Check .env file.');
   process.exit(1);
@@ -747,7 +640,7 @@ app.post('/api/snk', rawBody, function(req, res) {
   proxyReq.end();
 });
 
-// --- Kinde User Sync (auto-create user in local DB) ---
+// --- Kinde User Sync ---
 app.post("/api/auth/sync", async (req, res) => {
   try {
     const isAuthenticated = await kindeClient.isAuthenticated(req);
@@ -758,13 +651,10 @@ app.post("/api/auth/sync", async (req, res) => {
     const email = kindeUser.email || "";
     const givenName = kindeUser.given_name || email.split('@')[0] || "user";
     
-    // Check if this is the configured owner/admin email
     const adminEmail = (process.env.KINDE_ADMIN_EMAIL || "").toLowerCase();
     const isOwner = adminEmail && email.toLowerCase() === adminEmail;
-    // Owner gets full access, assign 'owner' role directly
     const role = isOwner ? "owner" : "member";
     
-    // Call backend API to find/create user
     const target = new URL(API_TARGET);
     const postData = JSON.stringify({
       username: givenName,
@@ -804,7 +694,6 @@ app.post("/api/auth/sync", async (req, res) => {
     
     apiReq.on('error', function(err) {
       console.error('[Sync] API error:', err.message);
-      // Fallback: return Kinde user info even if API is down
       res.json({
         user: { username: givenName, email: email, phone: "", balance: 0, tier: "Regular", role: role, apiKey: "vt_live_" + givenName },
         kindeEmail: email,
@@ -857,11 +746,9 @@ app.get("/api/auth/me", async (req, res) => {
 
 // --- Proxy /api/* and /pay/* to backend ---
 
-// --- Xoftware Payment Webhook ---
 app.post('/api/xoftware/webhook', rawBody, function(req, res) {
   console.log('[Webhook] Received at server.js:', req.method, req.originalUrl);
   
-  // Forward to backend API
   const body = req.rawBody;
   if (!body) { return res.status(400).json({ error: 'No body' }); }
   
@@ -938,13 +825,12 @@ app.get('*', function(req, res) {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
-// Global error handler — prevents Express from returning HTML on errors
+// Global error handler
 app.use(function(err, req, res, next) {
   console.error('[Server] Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Catch unhandled promise rejections & uncaught exceptions globally
 process.on('unhandledRejection', function(reason) {
   console.error('[Server] Unhandled Rejection:', reason);
 });
