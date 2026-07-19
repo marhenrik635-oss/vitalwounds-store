@@ -40,7 +40,8 @@ export default function TabAppPremium({
                             sortBy === "stok-asc" ? ["stock", "asc"] :
                             ["stock", "desc"];
     
-    fetch(`/api/xoftware/products/${isReseller ? 'reseller' : ''}?sortBy=${sortKey}&sortOrder=${order}`)
+    const ep = isReseller ? `/api/xoftware/products/reseller?sortBy=${sortKey}&sortOrder=${order}` : `/api/xoftware/products?sortBy=${sortKey}&sortOrder=${order}`;
+    fetch(ep)
       .then(res => res.json())
       .then(data => {
         setLiveProducts(data.data || []);
