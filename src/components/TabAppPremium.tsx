@@ -31,6 +31,9 @@ export default function TabAppPremium({
   const [snkContent, setSnkContent] = useState<string | null>(null);
   const [selectedVariation, setSelectedVariation] = useState<any | null>(null);
 
+  // Compute payPrice in render scope (NOT inside handler, so JSX can reference it)
+  const payPrice = isReseller && selectedProduct?.reseller_price ? selectedProduct.reseller_price : (selectedVariation ? selectedVariation.price : selectedProduct?.price_min || 0);
+
   // Fetch with sort parameters
   useEffect(() => {
     setLoading(true);
@@ -99,8 +102,7 @@ export default function TabAppPremium({
     e.preventDefault();
     if (!selectedProduct) return;
 
-    const payPrice = isReseller && selectedProduct.reseller_price ? selectedProduct.reseller_price : (selectedVariation ? selectedVariation.price : selectedProduct.price_min);
-    if (userProfile.balance < (selectedVariation ? selectedVariation.price : selectedProduct.price_min)) {
+    if (userProfile.balance < payPrice) {
       alert("Saldo Anda tidak mencukupi. Silakan deposit terlebih dahulu!");
       return;
     }
