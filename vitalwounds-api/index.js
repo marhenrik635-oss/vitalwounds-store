@@ -37,6 +37,35 @@ process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception thrown:', err);
 });
 
+// === TRANSLATION (Indonesian → English) ===
+const translationCache = new Map();
+const LIBRE_TRANSLATE_URL = 'https://libretranslate.com/translate';
+
+async function translateId(text) {
+    if (!text || text.trim() === '') return text;
+    // Skip if already translated (contains mostly English characters)
+    const key = text.substring(0, 100);
+    if (translationCache.has(key)) return translationCache.get(key);
+    
+    try {
+        const response = await axios.post(LIBRE_TRANSLATE_URL, {
+            q: text.substring(0, 2000), // Limit text length per request
+            source: 'id',
+            target: 'en',
+            format: 'text'
+        }, { timeout: 5000 });
+        
+        if (response.data && response.data.translatedText) {
+            const translated = response.data.translatedText;
+            translationCache.set(key, translated);
+            return translated;
+        }
+    } catch (e) {
+        console.error('Translation error (non-fatal):', e.message);
+    }
+    return text; // Fallback to original
+}
+
 // API Endpoints
 const XOFTWARE_API_KEY = process.env.XOFTWARE_API_KEY;
 const XOFTWARE_API_BASE_URL = 'https://backend-s2.xoftware.id/v1';
@@ -793,41 +822,29 @@ app.get('/api/xoftware/products', async (req, res) => {
             const globalVal = globalData[p.id] || {};
 
             return {
-                id: String(p.id),
-                name: p.title,
-                code: p.code,
-                stock: globalVal.stock !== undefined ? globalVal.stock : (p.stock || 0),
-                sold: globalVal.sold !== undefined ? globalVal.sold : (p.sold || 0),
-                imageUrl: globalVal.imageUrl || null,
-                description: p.description || 'Layanan premium otomatis berkualitas.',
-                category,
-                icon,
-                price_min: priceMin,
-                price_max: priceMax,
-                displayPrice,
-                is_variation: p.is_variation,
-                variations: (p.variations || []).map(v => {
-                    const globalVarVal = globalData[v.id] || {};
-                    return { 
-                        ...v, 
-                        sold: globalVarVal.sold !== undefined ? globalVarVal.sold : (v.sold || 0),
-                        stock: globalVarVal.stock !== undefined ? globalVarVal.stock : (v.stock || 0)
-                    };
-                })
+                ...p,
+                description: p.description || 'Premium automated quality service.'
             };
         });
+        
+        // Translate descriptions in parallel
+        const translatedProducts = await Promise.all(transformedProducts.map(async (p) => {
+            const desc = await translateId(p.description || '');
+            return { ...p, description: desc };
+        }));
 
-        const ids = transformedProducts.map(p => p.id);
+        const ids = translatedProducts.map(p => p.id);
         const cachedMap = await getCachedProducts(ids);
         const now = Date.now();
-        const productsWithImages = await Promise.all(transformedProducts.map(async (p) => {
+        const productsWithImages = await Promise.all(translatedProducts.map(async (p) => {
             const memCached = productCache.get(p.id);
             if (memCached && (now - memCached._ts < CACHE_TTL)) {
                 return memCached;
             }
             const cached = cachedMap.get(p.id);
             const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name);
-            const snk = (cached && cached.snk) || 'Tidak ada syarat dan ketentuan.';
+            const rawSnk = (cached && cached.snk) || 'No terms and conditions available.';
+            const snk = await translateId(rawSnk);
             
             if (!cached || cached.imageUrl !== imageUrl) {
                 await cacheProduct({ ...p, snk }, imageUrl);
@@ -929,7 +946,8 @@ app.get('/api/xoftware/products/reseller', async (req, res) => {
             const hargaModal = (cached && cached.harga_modal > 0) ? cached.harga_modal : Math.round(retailPrice * 0.85);
             
             const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name);
-            const snk = (cached && cached.snk) || 'Tidak ada syarat dan ketentuan.';
+            const rawSnk = (cached && cached.snk) || 'No terms and conditions available.';
+            const snk = await translateId(rawSnk);
             
             return { 
                 ...p, 
