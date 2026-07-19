@@ -1086,12 +1086,12 @@ app.post('/api/xoftware/register', async (req, res) => {
 
 app.post('/api/xoftware/pay', async (req, res) => {
     try {
-        const { sender, code, quantity, target, role } = req.body;
+        const { sender, code, quantity, target } = req.body;
         db.get('SELECT * FROM users WHERE phone = ? OR username = ?', [sender, sender], async (err, user) => {
             if (err || !user) return res.status(400).json({ error: 'User not found' });
             
             // Reseller pricing: add owner profit on top of xoftware cost
-                    const isReseller = user.role === 'reseller' || role === 'reseller';
+                    const isReseller = user.role === 'reseller';
                     var resellerProfit = 0;
                     if (isReseller) {
                         try {
