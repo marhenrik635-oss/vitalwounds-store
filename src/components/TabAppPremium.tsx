@@ -203,7 +203,7 @@ export default function TabAppPremium({
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 card-stagger">
         {loading ? (
           [1, 2, 3, 4, 5, 6].map((n) => (
-            <div key={n} className="bg-white border border-vw-border rounded-xl p-3 md:p-4 flex flex-col gap-3 text-left md:h-[320px] animate-pulse">
+            <div key={n} className="bg-white border border-vw-border rounded-xl p-3 md:p-4 flex flex-col gap-3 text-left min-h-[200px] md:h-[320px] animate-pulse">
               <div className="w-full h-28 md:h-40 rounded-lg bg-zinc-200 mb-1"></div>
               <div className="h-5 bg-zinc-200 rounded w-3/4"></div>
               <div className="h-4 bg-zinc-200 rounded w-1/2"></div>
@@ -222,7 +222,7 @@ export default function TabAppPremium({
                   </div>
                 ) : (
                   <div className="w-full h-28 md:h-40 rounded-lg mb-2 md:mb-3 bg-gradient-to-br from-vw-accent/5 to-vw-accent/10 flex items-center justify-center">
-                    <Sparkles size={24} className="text-vw-accent/30 md:size-8" />
+                    <Sparkles className="text-vw-accent/30 w-6 h-6 md:w-8 md:h-8" />
                   </div>
                 )}
                 <div className="space-y-1 md:space-y-2">
