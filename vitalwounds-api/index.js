@@ -937,7 +937,7 @@ app.get('/api/xoftware/products/reseller', async (req, res) => {
                 snk,
                 harga_modal: hargaModal,
                 reseller_price: resellerPrice,
-                reseller_profit: resellerProfit,
+                reseller_profit: resellerDiscount,
                 reseller_discount_pct: Math.max(0, discountPct)
             };
         }));
