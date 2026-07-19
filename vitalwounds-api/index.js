@@ -1090,9 +1090,10 @@ app.post('/api/xoftware/pay', async (req, res) => {
         db.get('SELECT * FROM users WHERE phone = ? OR username = ?', [sender, sender], async (err, user) => {
             if (err || !user) return res.status(400).json({ error: 'User not found' });
             
-            // Reseller pricing: add owner profit on top of xoftware cost
+            try {
+                    // Reseller pricing: add owner profit on top of xoftware cost
                     const isReseller = user.role === 'reseller';
-                    var resellerProfit = 0;
+                    let resellerProfit = 0;
                     if (isReseller) {
                         try {
                             const cachedReseller = await new Promise((resolve, reject) => {
@@ -1127,7 +1128,7 @@ app.post('/api/xoftware/pay', async (req, res) => {
                     const totalPrice = Number(orderData.total_price || 0);
                     
                     // For reseller: charge modal + profit instead of full price
-                    var finalPrice = isReseller ? (totalPrice + resellerProfit) : totalPrice;
+                    let finalPrice = isReseller ? (totalPrice + resellerProfit) : totalPrice;
                     if (isReseller) {
                         console.log('[Reseller] cost=' + totalPrice + ' profit=' + resellerProfit + ' finalPrice=' + finalPrice);
                     }
