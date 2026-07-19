@@ -200,11 +200,11 @@ export default function TabAppPremium({
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 card-stagger">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 card-stagger">
         {loading ? (
           [1, 2, 3, 4, 5, 6].map((n) => (
-            <div key={n} className="bg-white border border-vw-border rounded-xl p-5 flex flex-col gap-4 text-left h-[320px] animate-pulse">
-              <div className="w-full h-48 rounded-lg bg-zinc-200 mb-2"></div>
+            <div key={n} className="bg-white border border-vw-border rounded-xl p-3 md:p-4 flex flex-col gap-3 text-left md:h-[320px] animate-pulse">
+              <div className="w-full h-28 md:h-40 rounded-lg bg-zinc-200 mb-1"></div>
               <div className="h-5 bg-zinc-200 rounded w-3/4"></div>
               <div className="h-4 bg-zinc-200 rounded w-1/2"></div>
               <div className="h-8 bg-zinc-200 rounded-lg w-full mt-auto"></div>
@@ -213,23 +213,23 @@ export default function TabAppPremium({
         ) : filteredProducts.length > 0 ? (
           filteredProducts.map((prod) => (
             <div key={prod.id || prod.code}
-              className="group relative bg-white border border-vw-border rounded-xl p-5 flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-vw-accent/5 hover:border-vw-accent/20">
+              className="group relative bg-white border border-vw-border rounded-xl p-3 md:p-4 flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-vw-accent/5 hover:border-vw-accent/20">
               <div className="flex-1">
                 {prod.imageUrl ? (
-                  <div className="relative overflow-hidden rounded-lg mb-4">
-                    <img src={prod.imageUrl} alt={prod.name} className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="relative overflow-hidden rounded-lg mb-2 md:mb-3">
+                    <img src={prod.imageUrl} alt={prod.name} className="w-full h-28 md:h-40 object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
                   </div>
                 ) : (
-                  <div className="w-full h-48 rounded-lg mb-4 bg-gradient-to-br from-vw-accent/5 to-vw-accent/10 flex items-center justify-center">
-                    <Sparkles size={32} className="text-vw-accent/30" />
+                  <div className="w-full h-28 md:h-40 rounded-lg mb-2 md:mb-3 bg-gradient-to-br from-vw-accent/5 to-vw-accent/10 flex items-center justify-center">
+                    <Sparkles size={24} className="text-vw-accent/30 md:size-8" />
                   </div>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-1 md:space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-base text-vw-text leading-snug line-clamp-2">{prod.name}</h3>
+                    <h3 className="font-semibold text-sm md:text-base text-vw-text leading-snug line-clamp-2">{prod.name}</h3>
                   </div>
-                  <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs">
                     <span className="inline-flex items-center gap-1 text-vw-muted">
                       <Package size={12} />
                       <span className={prod.stock > 10 ? 'text-emerald-600' : prod.stock > 0 ? 'text-amber-600' : 'text-red-500'}>
@@ -243,10 +243,10 @@ export default function TabAppPremium({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-vw-muted leading-relaxed line-clamp-2">{prod.description}</p>
+                  <p className="text-[11px] md:text-sm text-vw-muted leading-relaxed line-clamp-1 md:line-clamp-2">{prod.description}</p>
                   {/* === HARGA — defensive render with try-catch fallback === */}
-                  <div className="flex items-center gap-2 flex-wrap min-h-[28px]">
-                    <p className="text-lg font-bold text-vw-accent tracking-tight">
+                  <div className="flex items-center gap-1 md:gap-2 flex-wrap min-h-[24px] md:min-h-[28px]">
+                    <p className="text-sm md:text-lg font-bold text-vw-accent tracking-tight">
                       {(() => {
                         try {
                           if (prod.is_variation && prod.variations && prod.variations.length > 1) {
@@ -278,9 +278,9 @@ export default function TabAppPremium({
                   </div>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-vw-border/60">
+              <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-vw-border/60">
                 <button onClick={() => handleOpenPurchase(prod)}
-                  className="group/btn w-full px-4 py-2.5 rounded-lg bg-vw-accent text-white text-xs font-semibold transition-all duration-200 hover:bg-vw-accent-hover active:scale-[0.98] flex items-center justify-center gap-2">
+                  className="group/btn w-full px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-vw-accent text-white text-[10px] md:text-xs font-semibold transition-all duration-200 hover:bg-vw-accent-hover active:scale-[0.98] flex items-center justify-center gap-1 md:gap-2">
                   <span>Beli Sekarang</span>
                   <ShoppingCart size={14} className="transition-transform duration-200 group-hover/btn:translate-x-0.5" />
                 </button>
