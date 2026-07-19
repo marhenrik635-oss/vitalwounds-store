@@ -40,7 +40,7 @@ export default function TabAppPremium({
                             sortBy === "stok-asc" ? ["stock", "asc"] :
                             ["stock", "desc"];
     
-    fetch(`/api/xoftware/products?sortBy=${sortKey}&sortOrder=${order}`)
+    fetch(`/api/xoftware/products/${isReseller ? 'reseller' : ''}?sortBy=${sortKey}&sortOrder=${order}`)
       .then(res => res.json())
       .then(data => {
         setLiveProducts(data.data || []);
@@ -129,8 +129,7 @@ export default function TabAppPremium({
         setBoughtCredentials(formattedCreds);
 
         // Deduct balance locally to prevent double-spending
-        const totalPrice = selectedVariation ? selectedVariation.price : selectedProduct.price_min;
-        onDeductBalance(totalPrice);
+        onDeductBalance(payPrice);
 
         onAddOrder({
           id: `ORD-${data.data?.transaction_id || Math.floor(100 + Math.random() * 900)}`,
