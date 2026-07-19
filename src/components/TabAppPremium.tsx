@@ -80,10 +80,15 @@ export default function TabAppPremium({
     setTargetEmail(userProfile.email);
   };
 
-  const formatRupiah = (num: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })
-      .format(num)
-      .replace(/\u00A0/g, " ");
+  const formatRupiah = (num: any) => {
+    try {
+      const value = Number(num) || 0;
+      return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 })
+        .format(value)
+        .replace(/\u00A0/g, " ");
+    } catch {
+      return "Rp " + (Number(num) || 0).toLocaleString("id-ID");
+    }
   };
 
   const categories = ["ALL", "Streaming", "Music", "Productivity", "AI Tools", "Editing"];
@@ -239,33 +244,34 @@ export default function TabAppPremium({
                     )}
                   </div>
                   <p className="text-sm text-vw-muted leading-relaxed line-clamp-2">{prod.description}</p>
-                  {/* Always show price range for products with variations */}
-                  {prod.is_variation && prod.variations && prod.variations.length > 1 ? (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-lg font-bold text-vw-accent tracking-tight">
-                        {formatRupiah(prod.price_min)} - {formatRupiah(prod.price_max)}
-                      </p>
-                      {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                          -{prod.reseller_discount_pct}%
-                        </span>
-                      )}
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold">
+                  {/* === HARGA — defensive render with try-catch fallback === */}
+                  <div className="flex items-center gap-2 flex-wrap min-h-[28px]">
+                    <p className="text-lg font-bold text-vw-accent tracking-tight">
+                      {(() => {
+                        try {
+                          if (prod.is_variation && prod.variations && prod.variations.length > 1) {
+                            return formatRupiah(prod.price_min) + ' - ' + formatRupiah(prod.price_max);
+                          }
+                          if (isReseller && prod.reseller_price) {
+                            return formatRupiah(prod.reseller_price);
+                          }
+                          return formatRupiah(prod.price_min);
+                        } catch {
+                          return 'Rp ' + Number(prod.price_min || 0).toLocaleString('id-ID');
+                        }
+                      })()}
+                    </p>
+                    {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold whitespace-nowrap">
+                        -{prod.reseller_discount_pct}%
+                      </span>
+                    )}
+                    {prod.is_variation && prod.variations && prod.variations.length > 1 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold whitespace-nowrap">
                         {prod.variations.length} variasi
                       </span>
-                    </div>
-                  ) : isReseller && prod.reseller_price ? (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.reseller_price)}</p>
-                      {prod.reseller_discount_pct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                          -{prod.reseller_discount_pct}%
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.price_min)}</p>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-vw-border/60">
