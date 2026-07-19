@@ -65,9 +65,9 @@ export default function TabAppPremium({
     try {
       const snkRes = await fetch("/api/snk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: product.id || product.code }) });
       const snkData = await snkRes.json();
-      setSnkContent(snkData.snk || "Tidak ada syarat dan ketentuan.");
+      setSnkContent(snkData.snk || "No terms and conditions available.");
     } catch {
-      setSnkContent(detail.snk || "Tidak ada syarat dan ketentuan.");
+      setSnkContent(detail.snk || "No terms and conditions available.");
     }
 
     setLoading(false);
@@ -108,7 +108,7 @@ export default function TabAppPremium({
     if (!selectedProduct) return;
 
     if (userProfile.balance < payPrice) {
-      alert("Saldo Anda tidak mencukupi. Silakan deposit terlebih dahulu!");
+      alert("Insufficient balance. Please deposit first!");
       return;
     }
 
@@ -131,7 +131,7 @@ export default function TabAppPremium({
           ? (Array.isArray(data.data.accounts)
               ? data.data.accounts.map((acc: any) => Object.entries(acc).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n')
               : JSON.stringify(data.data.accounts))
-          : typeof data.message === 'string' ? data.message : "Pembelian sukses! Kredensial diproses.";
+          : typeof data.message === 'string' ? data.message : "Purchase successful! Credentials processed.";
           
         setBoughtCredentials(formattedCreds);
 
@@ -151,11 +151,11 @@ export default function TabAppPremium({
         });
       } else {
         console.error('Purchase response data:', data);
-        alert(data.error || data.message || "Pembelian gagal. Coba lagi nanti.");
+        alert(data.error || data.message || "Purchase failed. Try again later.");
       }
     } catch (error) {
       console.error("Purchase error:", error);
-      alert("Terjadi kesalahan saat memproses pembelian.");
+      alert("An error occurred while processing your purchase.");
       setIsProcessing(false);
     }
   };
@@ -168,7 +168,7 @@ export default function TabAppPremium({
   };
 
   if (error) {
-    return <div className="p-10 text-red-500 text-center">Terjadi kesalahan: {error} Silakan coba refresh halaman.</div>;
+    return <div className="p-10 text-red-500 text-center">Error: {error} Please try refreshing the page.</div>;
   }
 
   return (
@@ -176,7 +176,7 @@ export default function TabAppPremium({
       {/* Search & Categories */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 sticky top-16 z-20 bg-vw-bg pt-4">
         <div className="relative w-full md:max-w-sm">
-          <input type="text" placeholder="Cari layanan premium..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+          <input type="text" placeholder="Search premium services..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-vw-border bg-white text-vw-text placeholder-vw-muted focus:outline-none focus:ring-2 focus:ring-vw-accent focus:border-vw-accent transition-all shadow-sm" />
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-vw-muted" />
         </div>
@@ -191,10 +191,10 @@ export default function TabAppPremium({
           <select value={sortBy} onChange={(e) => setSortByState(e.target.value)}
             className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white border border-vw-border text-vw-text hover:bg-zinc-50 focus:outline-none cursor-pointer">
             <option value="a-z">A-Z</option>
-            <option value="harga-asc">Harga Terendah &gt; Tertinggi</option>
-            <option value="harga-desc">Harga Tertinggi &gt; Terendah</option>
-            <option value="stok-desc">Stock Tersedia &gt; Terbatas</option>
-            <option value="stok-asc">Stock Terbatas &gt; Tersedia</option>
+            <option value="harga-asc">Price: Low to High</option>
+            <option value="harga-desc">Price: High to Low</option>
+            <option value="stok-desc">Stock: Available to Low</option>
+            <option value="stok-asc">Stock: Low to Available</option>
           </select>
         </div>
       </div>
@@ -233,13 +233,13 @@ export default function TabAppPremium({
                     <span className="inline-flex items-center gap-1 text-vw-muted">
                       <Package size={12} />
                       <span className={prod.stock > 10 ? 'text-emerald-600' : prod.stock > 0 ? 'text-amber-600' : 'text-red-500'}>
-                        {prod.stock > 0 ? `Sisa ${prod.stock}` : 'Habis'}
+                        {prod.stock > 0 ? `${prod.stock} left` : 'Out of Stock'}
                       </span>
                     </span>
                     {prod.sold > 0 && (
                       <span className="inline-flex items-center gap-1 text-vw-muted">
                         <TrendingUp size={12} />
-                        {prod.sold} terjual
+                        {prod.sold} sold
                       </span>
                     )}
                   </div>
@@ -287,7 +287,7 @@ export default function TabAppPremium({
                       )}
                       {prod.is_variation && prod.variations && prod.variations.length > 1 && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold whitespace-nowrap">
-                          {prod.variations.length} variasi
+                          {prod.variations.length} variants
                         </span>
                       )}
                     </div>
@@ -297,7 +297,7 @@ export default function TabAppPremium({
               <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-vw-border/60">
                 <button onClick={() => handleOpenPurchase(prod)}
                   className="group/btn w-full px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-vw-accent text-white text-[10px] md:text-xs font-semibold transition-all duration-200 hover:bg-vw-accent-hover active:scale-[0.98] flex items-center justify-center gap-1 md:gap-2">
-                  <span>Beli Sekarang</span>
+                  <span>Buy Now</span>
                   <ShoppingCart size={14} className="transition-transform duration-200 group-hover/btn:translate-x-0.5" />
                 </button>
               </div>
@@ -308,7 +308,7 @@ export default function TabAppPremium({
             <div className="flex flex-col items-center gap-3 py-6">
               <Package size={48} className="text-vw-muted/40" />
               <p className="text-vw-muted font-medium">
-                {selectedCategory === "ALL" && searchTerm === "" ? "Tidak ada produk tersedia" : "Produk tidak ditemukan. Coba ubah kata kunci atau filter."}
+                {selectedCategory === "ALL" && searchTerm === "" ? "No products available" : "Product not found. Try different keywords or filters."}
               </p>
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function TabAppPremium({
 
             <div className="flex items-center gap-2 mb-1">
               <Sparkles size={14} className="text-amber-500" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-vw-muted">Produk Premium</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-vw-muted">Premium Product</span>
             </div>
 
             <h2 className="text-xl font-bold text-vw-text leading-tight mb-4">{selectedProduct.name}</h2>
@@ -337,12 +337,12 @@ export default function TabAppPremium({
               </div>
               <span className="text-xs text-vw-muted">5.0</span>
               <span className="text-xs text-vw-muted">•</span>
-              <span className="text-xs text-vw-muted">{selectedProduct.sold || 0} terjual</span>
+              <span className="text-xs text-vw-muted">{selectedProduct.sold || 0} sold</span>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-vw-accent-subtle rounded-xl mb-4">
               <div>
-                <p className="text-xs text-vw-muted font-medium">{isReseller ? "Harga Khusus Reseller" : "Total Harga"}</p>
+                <p className="text-xs text-vw-muted font-medium">{isReseller ? "Reseller Price" : "Total Price"}</p>
                 {isReseller && payPrice < (selectedVariation ? selectedVariation.price : selectedProduct.price_min) ? (
                   <div>
                     <p className="text-xl font-bold text-vw-accent">{formatRupiah(payPrice)}</p>
@@ -353,14 +353,14 @@ export default function TabAppPremium({
                 )}
               </div>
               <div className="text-right">
-                <p className="text-xs text-vw-muted font-medium">Status Stok</p>
+                <p className="text-xs text-vw-muted font-medium">Stock Status</p>
                 {selectedProduct.stock <= 1 ? (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
-                    <ShieldAlert size={14} /> {selectedProduct.stock === 0 ? 'Habis' : 'Terbatas'}
+                    <ShieldAlert size={14} /> {selectedProduct.stock === 0 ? 'Out of Stock' : 'Limited'}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                    <Check size={14} /> Tersedia
+                    <Check size={14} /> Available
                   </span>
                 )}
               </div>
@@ -368,7 +368,7 @@ export default function TabAppPremium({
 
             {selectedProduct.is_variation && selectedProduct.variations && (
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-vw-text mb-2">Pilih Variasi:</label>
+                <label className="block text-sm font-semibold text-vw-text mb-2">Select Variation:</label>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedProduct.variations.map((v: any, idx: number) => (
                     <button key={idx} type="button" onClick={() => setSelectedVariation(v)}
@@ -384,11 +384,11 @@ export default function TabAppPremium({
               <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
                 <button type="button" onClick={() => setActiveTab('desc')}
                   className={`flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${activeTab === 'desc' ? 'bg-white text-vw-text shadow-sm' : 'text-vw-muted hover:text-vw-text'}`}>
-                  Deskripsi
+                  Description
                 </button>
                 <button type="button" onClick={() => setActiveTab('snk')}
                   className={`flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${activeTab === 'snk' ? 'bg-white text-vw-text shadow-sm' : 'text-vw-muted hover:text-vw-text'}`}>
-                  Syarat & Ketentuan
+                  Terms & Conditions
                 </button>
               </div>
               
@@ -400,17 +400,17 @@ export default function TabAppPremium({
               )}
 
               <div className="pt-4 mt-2 border-t border-vw-border/60">
-                <label htmlFor="targetEmail" className="block text-xs font-semibold text-vw-text mb-1.5">Email Penerima</label>
+                <label htmlFor="targetEmail" className="block text-xs font-semibold text-vw-text mb-1.5">Recipient Email</label>
                 <input id="targetEmail" type="email" value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} required
                   className="w-full px-4 py-2.5 rounded-lg border border-vw-border bg-white text-vw-text text-sm placeholder-vw-muted/60 focus:outline-none focus:ring-2 focus:ring-vw-accent/20 focus:border-vw-accent transition-all"
-                  placeholder="Masukkan email tujuan" />
+                  placeholder="Enter recipient email" />
               </div>
 
               {boughtCredentials ? (
                 <div className="bg-emerald-50 border border-emerald-200/60 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Check size={16} className="text-emerald-600" />
-                    <h3 className="font-bold text-sm text-emerald-800">Kredensial Anda:</h3>
+                    <h3 className="font-bold text-sm text-emerald-800">Your Credentials:</h3>
                   </div>
                   <p className="text-sm text-emerald-700 break-all leading-relaxed font-mono text-xs bg-white/60 p-3 rounded-lg border border-emerald-100">{boughtCredentials}</p>
                 </div>
@@ -425,9 +425,9 @@ export default function TabAppPremium({
                   }`}>
                   <span className="inline-flex items-center justify-center gap-2">
                     {isProcessing ? (
-                      <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Memproses...</>
+                      <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Processing...</>
                     ) : (
-                      <><ShoppingCart size={16} /> Beli {formatRupiah(payPrice)}</>
+                      <><ShoppingCart size={16} /> Buy {formatRupiah(payPrice)}</>
                     )}
                   </span>
                 </button>
