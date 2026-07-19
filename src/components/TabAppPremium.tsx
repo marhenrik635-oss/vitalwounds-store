@@ -16,6 +16,7 @@ export default function TabAppPremium({
   userProfile, products, onDeductBalance, onAddOrder, onTabChange
 }: TabAppPremiumProps) {
   if (!userProfile) return null;
+  const isReseller = userProfile.role === 'reseller';
   const [liveProducts, setLiveProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +98,7 @@ export default function TabAppPremium({
     e.preventDefault();
     if (!selectedProduct) return;
 
+    const payPrice = isReseller && selectedProduct.reseller_price ? selectedProduct.reseller_price : (selectedVariation ? selectedVariation.price : selectedProduct.price_min);
     if (userProfile.balance < (selectedVariation ? selectedVariation.price : selectedProduct.price_min)) {
       alert("Saldo Anda tidak mencukupi. Silakan deposit terlebih dahulu!");
       return;
