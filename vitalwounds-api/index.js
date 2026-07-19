@@ -248,7 +248,7 @@ async function fetchRealProductDetailFromXoftware(productId) {
 
         if (response.data && response.data.data) {
             const d = response.data.data;
-            const snk = d.snk || (d.variations && d.variations.length > 0 ? d.variations[0].snk : 'Tidak ada syarat dan ketentuan.');
+            const snk = d.snk || (d.variations && d.variations.length > 0 ? d.variations[0].snk : 'No terms and conditions available.');
             const img = d.thumbnail || d.image || d.image_url || d.photo || d.picture || (d.variations && d.variations.length > 0 ? (d.variations[0].thumbnail || d.variations[0].image) : null);
             return {
                 imageUrl: img ? (img.startsWith('http') ? img : `https://s3.xoftware.id${img}`) : null,
@@ -1037,7 +1037,7 @@ app.get('/api/xoftware/product-detail/:productId', async (req, res) => {
 
         const realDetail = await fetchRealProductDetailFromXoftware(product.id);
         const imageUrl = realDetail && realDetail.imageUrl ? realDetail.imageUrl : (cached ? cached.imageUrl : getImageUrlForProduct(product.name));
-        const snk = realDetail && realDetail.snk ? realDetail.snk : (cached && cached.snk ? cached.snk : 'Tidak ada syarat dan ketentuan.');
+        const snk = realDetail && realDetail.snk ? realDetail.snk : (cached && cached.snk ? cached.snk : 'No terms and conditions available.');
 
         await cacheProduct({ ...product, snk }, imageUrl);
 
@@ -1172,7 +1172,7 @@ app.post('/api/xoftware/pay', async (req, res) => {
                                 : JSON.stringify(orderData.accounts || orderData);
                             
                             // Fetch SNK from product cache
-                            var productSnk = 'Tidak ada syarat dan ketentuan.';
+                            var productSnk = 'No terms and conditions available.';
                             try {
                                 const cachedProduct = await new Promise((resolve, reject) => {
                                     db.get('SELECT snk FROM product_cache WHERE code = ? OR id = ?', [code, code], (err, row) => {
