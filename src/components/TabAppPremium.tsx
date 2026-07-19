@@ -112,8 +112,7 @@ export default function TabAppPremium({
         sender: userProfile.username, 
         code: selectedVariation ? selectedVariation.code : selectedProduct.code, 
         quantity: 1, 
-        target: targetEmail,
-        role: isReseller ? 'reseller' : 'member'
+        target: targetEmail
       };
       const res = await fetch("/api/xoftware/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyPayload) });
       const data = await res.json();
@@ -300,8 +299,15 @@ export default function TabAppPremium({
 
             <div className="flex items-center justify-between p-4 bg-vw-accent-subtle rounded-xl mb-4">
               <div>
-                <p className="text-xs text-vw-muted font-medium">Total Harga</p>
-                <p className="text-xl font-bold text-vw-accent">{formatRupiah(selectedVariation ? selectedVariation.price : selectedProduct.price_min)}</p>
+                <p className="text-xs text-vw-muted font-medium">{isReseller ? "Harga Khusus Reseller" : "Total Harga"}</p>
+                {isReseller && payPrice < (selectedVariation ? selectedVariation.price : selectedProduct.price_min) ? (
+                  <div>
+                    <p className="text-xl font-bold text-vw-accent">{formatRupiah(payPrice)}</p>
+                    <p className="text-[10px] text-vw-muted line-through">{formatRupiah(selectedVariation ? selectedVariation.price : selectedProduct.price_min)}</p>
+                  </div>
+                ) : (
+                  <p className="text-xl font-bold text-vw-accent">{formatRupiah(selectedVariation ? selectedVariation.price : selectedProduct.price_min)}</p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs text-vw-muted font-medium">Status Stok</p>
