@@ -245,36 +245,52 @@ export default function TabAppPremium({
                   </div>
                   <p className="text-[11px] md:text-sm text-vw-muted leading-relaxed line-clamp-1 md:line-clamp-2">{prod.description}</p>
                   {/* === HARGA — defensive render with try-catch fallback === */}
-                  <div className="flex items-center gap-1 md:gap-2 flex-wrap min-h-[24px] md:min-h-[28px]">
-                    <p className="text-sm md:text-lg font-bold text-vw-accent tracking-tight">
-                      {(() => {
-                        try {
-                          if (prod.is_variation && prod.variations && prod.variations.length > 1) {
-                            if (isReseller && prod.reseller_price && prod.reseller_discount_pct > 0) {
-                              const factor = (100 - prod.reseller_discount_pct) / 100;
-                              return formatRupiah(Math.round(prod.price_min * factor)) + ' - ' + formatRupiah(Math.round(prod.price_max * factor));
-                            }
-                            return formatRupiah(prod.price_min) + ' - ' + formatRupiah(prod.price_max);
-                          }
-                          if (isReseller && prod.reseller_price) {
-                            return formatRupiah(prod.reseller_price);
-                          }
-                          return formatRupiah(prod.price_min);
-                        } catch {
-                          return 'Rp ' + Number(prod.price_min || 0).toLocaleString('id-ID');
-                        }
-                      })()}
-                    </p>
+                  <div className="min-h-[24px] md:min-h-[28px]">
+                    {/* Original retail price (small strikethrough) — only for resellers */}
                     {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold whitespace-nowrap">
-                        -{prod.reseller_discount_pct}%
-                      </span>
+                      <p className="text-[9px] md:text-[11px] text-vw-muted line-through leading-tight mb-0.5">
+                        {(() => {
+                          try {
+                            if (prod.is_variation && prod.variations && prod.variations.length > 1) {
+                              return formatRupiah(prod.price_min) + ' - ' + formatRupiah(prod.price_max);
+                            }
+                            return formatRupiah(prod.price_min);
+                          } catch { return ''; }
+                        })()}
+                      </p>
                     )}
-                    {prod.is_variation && prod.variations && prod.variations.length > 1 && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold whitespace-nowrap">
-                        {prod.variations.length} variasi
-                      </span>
-                    )}
+                    {/* Discounted price + badges row */}
+                    <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                      <p className="text-sm md:text-lg font-bold text-vw-accent tracking-tight">
+                        {(() => {
+                          try {
+                            if (prod.is_variation && prod.variations && prod.variations.length > 1) {
+                              if (isReseller && prod.reseller_price && prod.reseller_discount_pct > 0) {
+                                const factor = (100 - prod.reseller_discount_pct) / 100;
+                                return formatRupiah(Math.round(prod.price_min * factor)) + ' - ' + formatRupiah(Math.round(prod.price_max * factor));
+                              }
+                              return formatRupiah(prod.price_min) + ' - ' + formatRupiah(prod.price_max);
+                            }
+                            if (isReseller && prod.reseller_price) {
+                              return formatRupiah(prod.reseller_price);
+                            }
+                            return formatRupiah(prod.price_min);
+                          } catch {
+                            return 'Rp ' + Number(prod.price_min || 0).toLocaleString('id-ID');
+                          }
+                        })()}
+                      </p>
+                      {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold whitespace-nowrap">
+                          -{prod.reseller_discount_pct}%
+                        </span>
+                      )}
+                      {prod.is_variation && prod.variations && prod.variations.length > 1 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold whitespace-nowrap">
+                          {prod.variations.length} variasi
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
