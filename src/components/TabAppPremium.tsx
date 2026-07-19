@@ -239,7 +239,22 @@ export default function TabAppPremium({
                     )}
                   </div>
                   <p className="text-sm text-vw-muted leading-relaxed line-clamp-2">{prod.description}</p>
-                  {isReseller && prod.reseller_price ? (
+                  {/* Always show price range for products with variations */}
+                  {prod.is_variation && prod.variations && prod.variations.length > 1 ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-lg font-bold text-vw-accent tracking-tight">
+                        {formatRupiah(prod.price_min)} - {formatRupiah(prod.price_max)}
+                      </p>
+                      {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                          -{prod.reseller_discount_pct}%
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold">
+                        {prod.variations.length} variasi
+                      </span>
+                    </div>
+                  ) : isReseller && prod.reseller_price ? (
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.reseller_price)}</p>
                       {prod.reseller_discount_pct > 0 && (
@@ -247,20 +262,6 @@ export default function TabAppPremium({
                           -{prod.reseller_discount_pct}%
                         </span>
                       )}
-                      {prod.is_variation && prod.variations && prod.variations.length > 1 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold">
-                          {prod.variations.length} variasi
-                        </span>
-                      )}
-                    </div>
-                  ) : prod.is_variation && prod.variations && prod.variations.length > 1 ? (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-lg font-bold text-vw-accent tracking-tight">
-                        {formatRupiah(prod.price_min)} - {formatRupiah(prod.price_max)}
-                      </p>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-vw-accent/10 text-vw-accent text-[10px] font-bold">
-                        {prod.variations.length} variasi
-                      </span>
                     </div>
                   ) : (
                     <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.price_min)}</p>
