@@ -1037,11 +1037,12 @@ app.get('/api/xoftware/product-detail/:productId', async (req, res) => {
 
         const realDetail = await fetchRealProductDetailFromXoftware(product.id);
         const imageUrl = realDetail && realDetail.imageUrl ? realDetail.imageUrl : (cached ? cached.imageUrl : getImageUrlForProduct(product.name));
-        const snk = realDetail && realDetail.snk ? realDetail.snk : (cached && cached.snk ? cached.snk : 'No terms and conditions available.');
+        const rawSnk = realDetail && realDetail.snk ? realDetail.snk : (cached && cached.snk ? cached.snk : 'No terms and conditions available.');
+        const snk = await translateId(rawSnk);
 
         await cacheProduct({ ...product, snk }, imageUrl);
 
-        res.json({ ...product, imageUrl, snk });
+        res.json({ ...product, imageUrl, snk: snk, description: await translateId(product.description || '') });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
