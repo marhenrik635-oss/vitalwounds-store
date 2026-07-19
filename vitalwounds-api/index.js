@@ -919,10 +919,14 @@ app.get('/api/xoftware/products/reseller', async (req, res) => {
         const now = Date.now();
         const productsWithResellerPrices = await Promise.all(transformedProducts.map(async (p) => {
             const cached = cachedMap.get(p.id);
-            const hargaModal = (cached && cached.harga_modal) ? cached.harga_modal : (p.price_min || 0);
-            const resellerProfit = (cached && cached.reseller_profit) ? cached.reseller_profit : 2000;
-            const resellerPrice = hargaModal + resellerProfit;
-            const discountPct = p.price_min > 0 ? Math.round(((p.price_min - resellerPrice) / p.price_min) * 100) : 0;
+            // Harga reseller = harga retail DIKURANG diskon (sebelumnya: cost + profit -> bikin mahal)
+            // reseller_profit di sini berarti BESARAN DISKON dari harga retail (default 2000 = potongan 2K)
+            const retailPrice = p.price_min || 0;
+            const resellerDiscount = (cached && cached.reseller_profit) ? cached.reseller_profit : 2000;
+            // Pastikan reseller price tidak kurang dari 30% harga retail (batas aman) dan minimal 1K
+            const resellerPrice = Math.max(1000, Math.round(retailPrice * 0.3), retailPrice - resellerDiscount);
+            const discountPct = retailPrice > 0 ? Math.round(((retailPrice - resellerPrice) / retailPrice) * 100) : 0;
+            const hargaModal = (cached && cached.harga_modal > 0) ? cached.harga_modal : Math.round(retailPrice * 0.85);
             
             const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name);
             const snk = (cached && cached.snk) || 'Tidak ada syarat dan ketentuan.';
@@ -1127,8 +1131,8 @@ app.post('/api/xoftware/pay', async (req, res) => {
                     const orderData = response.data.data;
                     const totalPrice = Number(orderData.total_price || 0);
                     
-                    // For reseller: charge modal + profit instead of full price
-                    let finalPrice = isReseller ? (totalPrice + resellerProfit) : totalPrice;
+                    // For reseller: charge totalPrice MINUS discount (sebelumnya: totalPrice + profit -> bikin mahal)
+                    let finalPrice = isReseller ? Math.max(1000, Math.round(totalPrice * 0.3), totalPrice - resellerProfit) : totalPrice;
                     if (isReseller) {
                         console.log('[Reseller] cost=' + totalPrice + ' profit=' + resellerProfit + ' finalPrice=' + finalPrice);
                     }
