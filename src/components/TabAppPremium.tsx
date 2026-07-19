@@ -200,7 +200,7 @@ export default function TabAppPremium({
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 card-stagger">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 card-stagger">
         {loading ? (
           [1, 2, 3, 4, 5, 6].map((n) => (
             <div key={n} className="bg-white border border-vw-border rounded-xl p-5 flex flex-col gap-4 text-left h-[320px] animate-pulse">
@@ -250,6 +250,10 @@ export default function TabAppPremium({
                       {(() => {
                         try {
                           if (prod.is_variation && prod.variations && prod.variations.length > 1) {
+                            if (isReseller && prod.reseller_price && prod.reseller_discount_pct > 0) {
+                              const factor = (100 - prod.reseller_discount_pct) / 100;
+                              return formatRupiah(Math.round(prod.price_min * factor)) + ' - ' + formatRupiah(Math.round(prod.price_max * factor));
+                            }
                             return formatRupiah(prod.price_min) + ' - ' + formatRupiah(prod.price_max);
                           }
                           if (isReseller && prod.reseller_price) {
