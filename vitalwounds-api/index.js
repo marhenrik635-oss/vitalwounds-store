@@ -1132,7 +1132,7 @@ app.post('/api/xoftware/pay', async (req, res) => {
                     const totalPrice = Number(orderData.total_price || 0);
                     
                     // For reseller: charge totalPrice MINUS discount (sebelumnya: totalPrice + profit -> bikin mahal)
-                    let finalPrice = isReseller ? Math.max(1000, Math.round(totalPrice * 0.3), totalPrice - resellerProfit) : totalPrice;
+                    let finalPrice = isReseller ? Math.max(totalPrice, 1000, Math.round(totalPrice * 0.3), totalPrice - resellerProfit) : totalPrice;
                     if (isReseller) {
                         console.log('[Reseller] cost=' + totalPrice + ' profit=' + resellerProfit + ' finalPrice=' + finalPrice);
                     }
