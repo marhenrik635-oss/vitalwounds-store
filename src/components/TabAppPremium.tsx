@@ -105,7 +105,14 @@ export default function TabAppPremium({
     setIsProcessing(true);
 
     try {
-      const res = await fetch("/api/xoftware/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sender: userProfile.username, code: selectedVariation ? selectedVariation.code : selectedProduct.code, quantity: 1, target: targetEmail }) });
+      const bodyPayload = { 
+        sender: userProfile.username, 
+        code: selectedVariation ? selectedVariation.code : selectedProduct.code, 
+        quantity: 1, 
+        target: targetEmail,
+        role: isReseller ? 'reseller' : 'member'
+      };
+      const res = await fetch("/api/xoftware/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyPayload) });
       const data = await res.json();
       
       setIsProcessing(false);
@@ -129,7 +136,7 @@ export default function TabAppPremium({
           productName: selectedProduct.name + (selectedVariation ? ` (${selectedVariation.title})` : ""),
           target: targetEmail,
           quantity: 1,
-          price: selectedVariation ? selectedVariation.price : selectedProduct.price_min,
+          price: payPrice,
           status: "Success",
           date: new Date().toLocaleDateString("id-ID"),
           details: formattedCreds
@@ -229,7 +236,18 @@ export default function TabAppPremium({
                     )}
                   </div>
                   <p className="text-sm text-vw-muted leading-relaxed line-clamp-2">{prod.description}</p>
-                  <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.price_min)}</p>
+                  {isReseller && prod.reseller_price ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.reseller_price)}</p>
+                      {prod.reseller_discount_pct > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                          -{prod.reseller_discount_pct}%
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-lg font-bold text-vw-accent tracking-tight">{formatRupiah(prod.price_min)}</p>
+                  )}
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-vw-border/60">
@@ -347,10 +365,10 @@ export default function TabAppPremium({
                 </div>
               ) : (
                 <button type="submit"
-                  disabled={isProcessing || (selectedProduct.is_variation && !selectedVariation) || userProfile.balance < (selectedVariation ? selectedVariation.price : selectedProduct.price_min)}
+                  disabled={isProcessing || (selectedProduct.is_variation && !selectedVariation) || userProfile.balance < payPrice}
                   className={`w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
                     isProcessing ? 'bg-vw-accent/60 text-white cursor-wait'
-                      : (selectedProduct.is_variation && !selectedVariation) || userProfile.balance < (selectedVariation ? selectedVariation.price : selectedProduct.price_min)
+                      : (selectedProduct.is_variation && !selectedVariation) || userProfile.balance < payPrice
                         ? 'bg-gray-100 text-vw-muted cursor-not-allowed'
                         : 'bg-vw-accent text-white hover:bg-vw-accent-hover shadow-lg shadow-vw-accent/20'
                   }`}>
@@ -358,7 +376,7 @@ export default function TabAppPremium({
                     {isProcessing ? (
                       <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Memproses...</>
                     ) : (
-                      <><ShoppingCart size={16} /> Beli {formatRupiah(selectedVariation ? selectedVariation.price : selectedProduct.price_min)}</>
+                      <><ShoppingCart size={16} /> Beli {formatRupiah(payPrice)}</>
                     )}
                   </span>
                 </button>

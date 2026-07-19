@@ -24,7 +24,6 @@ const TabDeposit = lazy(() => import("./components/TabDeposit"));
 const TabRiwayatDeposit = lazy(() => import("./components/TabRiwayatDeposit"));
 const TabRiwayatOrder = lazy(() => import("./components/TabRiwayatOrder"));
 const TabAppPremium = lazy(() => import("./components/TabAppPremium"));
-const TabAutopost = lazy(() => import("./components/TabAutopost"));
 const TosPage = lazy(() => import("./components/TosPage"));
 
 const TabContact = lazy(() => import("./components/TabContact"));
@@ -221,7 +220,7 @@ export default function App() {
           setScreenView("auth");
         } else {
           setScreenView("dashboard-panel");
-          const validTabs = ["dashboard", "profile", "deposit", "riwayat-deposit", "riwayat-order", "layanan/app-premium", "layanan/autopost", "contact", "admin"];
+          const validTabs = ["dashboard", "profile", "deposit", "riwayat-deposit", "riwayat-order", "layanan/app-premium", "contact", "admin"];
                     const tabKey = route.replace(/^\/|\/$/g, "");
                     setActiveTab(validTabs.includes(tabKey) ? tabKey : "dashboard");
                   }
@@ -503,9 +502,6 @@ export default function App() {
                       )}
                       {activeTab === "layanan/app-premium" && (
                         <TabAppPremium userProfile={userProfile} products={appProducts} onDeductBalance={handleDeductBalance} onAddOrder={handleAddOrder} onTabChange={(tabId) => navigateTo("dashboard-panel", tabId)} />
-                      )}
-                      {activeTab === "layanan/autopost" && (
-                        <TabAutopost />
                       )}
                       {activeTab === "contact" && (
                         <TabContact />

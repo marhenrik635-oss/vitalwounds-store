@@ -116,6 +116,8 @@ db.run(`CREATE TABLE IF NOT EXISTS tickets (id TEXT PRIMARY KEY, username TEXT, 
 db.run(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'member'`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'Regular'`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE product_cache ADD COLUMN snk TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE product_cache ADD COLUMN harga_modal INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE product_cache ADD COLUMN reseller_profit INTEGER DEFAULT 2000`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 
 const productCache = new Map();
 const CACHE_TTL = 30 * 60 * 1000; // 30 menit
@@ -840,6 +842,106 @@ app.get('/api/xoftware/products', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+
+// ===== RESELLER PRODUCTS ENDPOINT =====
+app.get('/api/xoftware/products/reseller', async (req, res) => {
+    try {
+        const response = await axios.get(`${XOFTWARE_API_BASE_URL}/product`, { headers: xoftHeaders });
+        const globalData = await getGlobalProductsData();
+        
+        const rawProducts = response.data.data;
+        const transformedProducts = rawProducts.map(p => {
+            const title = (p.title || '').toUpperCase();
+            let category = 'Streaming';
+            let icon = 'Tv';
+
+            if (title.includes('SPOTIFY') || title.includes('MUSIC')) {
+                category = 'Music';
+                icon = 'Music';
+            } else if (title.includes('CANVA') || title.includes('OFFICE') || title.includes('PICSART')) {
+                category = 'Productivity';
+                icon = 'Palette';
+            } else if (title.includes('GEMINI') || title.includes('GROK') || title.includes('GPT') || title.includes('LEONARDO')) {
+                category = 'AI Tools';
+                icon = 'BrainCircuit';
+            } else if (title.includes('CAPCUT') || title.includes('WINK') || title.includes('ALIGHT')) {
+                category = 'Editing';
+                icon = 'Video';
+            } else if (title.includes('YOUTUBE') || title.includes('YT')) {
+                category = 'Streaming';
+                icon = 'Youtube';
+            }
+
+            let priceMin = p.price || 0;
+            let priceMax = p.price || 0;
+
+            if (p.is_variation && p.variations && p.variations.length > 0) {
+                const prices = p.variations.map(v => v.price).filter(pr => pr > 0);
+                if (prices.length > 0) {
+                    priceMin = Math.min(...prices);
+                    priceMax = Math.max(...prices);
+                }
+            }
+
+            const displayPrice = priceMin !== priceMax 
+                ? `Rp ${priceMin.toLocaleString('id-ID')} - Rp ${priceMax.toLocaleString('id-ID')}`
+                : `Rp ${priceMin.toLocaleString('id-ID')}`;
+
+            const globalVal = globalData[p.id] || {};
+
+            return {
+                id: String(p.id),
+                name: p.title,
+                code: p.code,
+                stock: globalVal.stock !== undefined ? globalVal.stock : (p.stock || 0),
+                sold: globalVal.sold !== undefined ? globalVal.sold : (p.sold || 0),
+                imageUrl: globalVal.imageUrl || null,
+                description: p.description || 'Layanan premium otomatis berkualitas.',
+                category,
+                icon,
+                price_min: priceMin,
+                price_max: priceMax,
+                displayPrice,
+                is_variation: p.is_variation,
+                variations: (p.variations || []).map(v => {
+                    const globalVarVal = globalData[v.id] || {};
+                    return { 
+                        ...v, 
+                        sold: globalVarVal.sold !== undefined ? globalVarVal.sold : (v.sold || 0),
+                        stock: globalVarVal.stock !== undefined ? globalVarVal.stock : (v.stock || 0)
+                    };
+                })
+            };
+        });
+
+        const ids = transformedProducts.map(p => p.id);
+        const cachedMap = await getCachedProducts(ids);
+        const now = Date.now();
+        const productsWithResellerPrices = await Promise.all(transformedProducts.map(async (p) => {
+            const cached = cachedMap.get(p.id);
+            const hargaModal = (cached && cached.harga_modal) ? cached.harga_modal : (p.price_min || 0);
+            const resellerProfit = (cached && cached.reseller_profit) ? cached.reseller_profit : 2000;
+            const resellerPrice = hargaModal + resellerProfit;
+            const discountPct = p.price_min > 0 ? Math.round(((p.price_min - resellerPrice) / p.price_min) * 100) : 0;
+            
+            const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name);
+            const snk = (cached && cached.snk) || 'Tidak ada syarat dan ketentuan.';
+            
+            return { 
+                ...p, 
+                imageUrl, 
+                snk,
+                harga_modal: hargaModal,
+                reseller_price: resellerPrice,
+                reseller_profit: resellerProfit,
+                reseller_discount_pct: Math.max(0, discountPct)
+            };
+        }));
+
+        res.json({ data: productsWithResellerPrices });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
 app.get('/api/xoftware/product-detail/:productId', async (req, res) => {
     const { productId } = req.params;
 
@@ -984,11 +1086,29 @@ app.post('/api/xoftware/register', async (req, res) => {
 
 app.post('/api/xoftware/pay', async (req, res) => {
     try {
-        const { sender, code, quantity, target } = req.body;
+        const { sender, code, quantity, target, role } = req.body;
         db.get('SELECT * FROM users WHERE phone = ? OR username = ?', [sender, sender], async (err, user) => {
             if (err || !user) return res.status(400).json({ error: 'User not found' });
             
-            try {
+            // Reseller pricing: add owner profit on top of xoftware cost
+                    const isReseller = user.role === 'reseller' || role === 'reseller';
+                    var resellerProfit = 0;
+                    if (isReseller) {
+                        try {
+                            const cachedReseller = await new Promise((resolve, reject) => {
+                                db.get('SELECT reseller_profit FROM product_cache WHERE code = ? OR id = ?', [code, code], (err, row) => {
+                                    if (err) reject(err);
+                                    else resolve(row);
+                                });
+                            });
+                            resellerProfit = (cachedReseller && cachedReseller.reseller_profit) ? cachedReseller.reseller_profit : 2000;
+                            console.log('[Reseller] Reseller checkout, profit=' + resellerProfit);
+                        } catch (e) {
+                            console.error('[Reseller] Error fetching reseller profit:', e.message);
+                            resellerProfit = 2000;
+                        }
+                    }
+                
                 console.log('Mencoba order ke Xoftware API dengan payload:', JSON.stringify({
                     sender: '6726742120',
                     code,
@@ -1006,14 +1126,20 @@ app.post('/api/xoftware/pay', async (req, res) => {
                     const orderData = response.data.data;
                     const totalPrice = Number(orderData.total_price || 0);
                     
+                    // For reseller: charge modal + profit instead of full price
+                    var finalPrice = isReseller ? (totalPrice + resellerProfit) : totalPrice;
+                    if (isReseller) {
+                        console.log('[Reseller] cost=' + totalPrice + ' profit=' + resellerProfit + ' finalPrice=' + finalPrice);
+                    }
+                    
                     // Atomic balance deduction — check AND deduct in one query to prevent race conditions
-                    db.run('UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?', [totalPrice, user.id, totalPrice], async function(upErr) {
+                    db.run('UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?', [finalPrice, user.id, finalPrice], async function(upErr) {
                         if (upErr) {
                             console.error('Failed to deduct balance:', upErr);
                             return res.status(500).json({ error: 'Gagal memproses pembayaran. Coba lagi.' });
                         }
                         if (this.changes === 0) {
-                            return res.status(400).json({ error: 'Saldo tidak mencukupi untuk memproses pesanan ini.' });
+                            return res.status(400).json({ error: 'Saldo tidak mencukupi.' });
                         }
                         
                         // Balance deducted successfully — proceed with order fulfillment
