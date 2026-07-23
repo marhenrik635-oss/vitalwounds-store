@@ -129,14 +129,14 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, transition: { duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] } })}
                 className="lg:col-span-5 flex justify-center lg:justify-end"
               >
-                <Card className="w-full max-w-sm bg-vw-surface rounded-2xl p-8 border border-vw-border">
-                  <CardHeader className="p-0 mb-4">
-                    <CardDescription className="text-xs text-vw-text-muted font-bold">Mulai dari</CardDescription>
-                    <CardTitle className="text-4xl sm:text-5xl font-bold tracking-tight text-vw-text">
-                      Rp 800<span className="text-sm font-normal text-vw-text-muted">/unit</span>
+                <Card className="w-full max-w-sm bg-vw-surface rounded-2xl border border-vw-border shadow-elevated">
+                  <CardHeader className="p-6 pb-0">
+                    <CardDescription className="text-xs text-vw-text-muted font-bold tracking-wider uppercase">Mulai dari</CardDescription>
+                    <CardTitle className="text-5xl font-bold tracking-tight text-vw-text mt-2">
+                      Rp 800<span className="text-base font-normal text-vw-text-muted">/unit</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0 mt-8 space-y-4">
+                  <CardContent className="p-6 space-y-4">
                     {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
                       <div key={item} className="flex items-center gap-3.5 text-sm text-vw-text-muted font-medium">
                         <div className="w-2 h-2 rounded-full bg-vw-accent" />
@@ -144,11 +144,11 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                       </div>
                     ))}
                   </CardContent>
-                  <CardFooter className="p-0 flex flex-col mt-8">
-                    <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="w-full py-6 bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl">
+                  <CardFooter className="p-6 pt-0 flex flex-col gap-4">
+                    <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="w-full h-12 bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl text-sm font-semibold transition-all">
                       Mulai Belanja
                     </Button>
-                    <div className="w-full mt-5 pt-4 border-t border-vw-border/60 flex items-center justify-between text-[10px] text-vw-muted">
+                    <div className="w-full flex items-center justify-between text-[10px] text-vw-muted">
                       <span className="flex items-center gap-1">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
