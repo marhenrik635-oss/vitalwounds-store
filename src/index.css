@@ -15,6 +15,27 @@
   --font-sans: "Outfit", sans-serif;
   --font-display: "Outfit", sans-serif;
 
+  /* === MAPPING SHADCN TO VW THEME === */
+  --color-background: var(--color-vw-bg);
+  --color-foreground: var(--color-vw-text);
+  --color-card: var(--color-vw-surface);
+  --color-card-foreground: var(--color-vw-text);
+  --color-popover: var(--color-vw-surface);
+  --color-popover-foreground: var(--color-vw-text);
+  --color-primary: var(--color-vw-accent);
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: var(--color-vw-accent-light);
+  --color-secondary-foreground: var(--color-vw-accent);
+  --color-muted: var(--color-vw-accent-subtle);
+  --color-muted-foreground: var(--color-vw-text-muted);
+  --color-accent: var(--color-vw-accent-light);
+  --color-accent-foreground: var(--color-vw-accent);
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-vw-border);
+  --color-input: var(--color-vw-border);
+  --color-ring: var(--color-vw-accent);
+
   /* === LIGHT MODE (default) === */
   --color-vw-bg: #F8F9FA;
   --color-vw-surface: #FFFFFF;
