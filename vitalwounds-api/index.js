@@ -822,8 +822,27 @@ app.get('/api/xoftware/products', async (req, res) => {
             const globalVal = globalData[p.id] || {};
 
             return {
-                ...p,
-                description: p.description || 'Premium automated quality service.'
+                id: String(p.id),
+                name: p.title,
+                code: p.code,
+                stock: globalVal.stock !== undefined ? globalVal.stock : (p.stock || 0),
+                sold: globalVal.sold !== undefined ? globalVal.sold : (p.sold || 0),
+                imageUrl: globalVal.imageUrl || null,
+                description: p.description || 'Premium automated quality service.',
+                category,
+                icon,
+                price_min: priceMin,
+                price_max: priceMax,
+                displayPrice,
+                is_variation: p.is_variation,
+                variations: (p.variations || []).map(v => {
+                    const globalVarVal = globalData[v.id] || {};
+                    return { 
+                        ...v, 
+                        sold: globalVarVal.sold !== undefined ? globalVarVal.sold : (v.sold || 0),
+                        stock: globalVarVal.stock !== undefined ? globalVarVal.stock : (v.stock || 0)
+                    };
+                })
             };
         });
         
@@ -842,7 +861,7 @@ app.get('/api/xoftware/products', async (req, res) => {
                 return memCached;
             }
             const cached = cachedMap.get(p.id);
-            const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name);
+            const imageUrl = p.imageUrl || (cached && cached.imageUrl) || getImageUrlForProduct(p.name || p.title);
             const rawSnk = (cached && cached.snk) || 'No terms and conditions available.';
             const snk = await translateId(rawSnk);
             
