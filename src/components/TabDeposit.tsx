@@ -24,6 +24,7 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
   const [isChecking, setIsChecking] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const handleCreateDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,19 +66,12 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
       const data = await res.json();
       const statusFromData = (data.data && data.data.status) ? data.data.status : (data.status || "");
       const statusLower = statusFromData.toLowerCase();
-      if (statusLower === "success" || statusLower === "paid") {
+      if (statusLower === "success" || statusLower === "paid" || data.detected_by === "xoftware_balance_increase") {
         onUpdateBalance(activeInvoice.amount);
         onAddDeposit({ id: "DEP-" + Math.floor(100+Math.random()*905), invoiceNo: activeInvoice.invoiceNo, amount: activeInvoice.amount, paymentMethod: "QRIS", status: "SUCCESS", date: new Date().toISOString().replace("T"," ").substring(0,19) });
-        alert("Pembayaran Berhasil! Saldo Anda telah bertambah.");
-        setActiveInvoice(null); setQrImageUrl("");
-      } else if (data.detected_by === "xoftware_balance_increase") {
-        // Sudah terdeteksi via balance check - seharusnya masuk ke case di atas
-        onUpdateBalance(activeInvoice.amount);
-        onAddDeposit({ id: "DEP-" + Math.floor(100+Math.random()*905), invoiceNo: activeInvoice.invoiceNo, amount: activeInvoice.amount, paymentMethod: "QRIS", status: "SUCCESS", date: new Date().toISOString().replace("T"," ").substring(0,19) });
-        alert("Pembayaran Berhasil! Saldo Anda telah bertambah.");
+        setIsSuccessModalOpen(true);
         setActiveInvoice(null); setQrImageUrl("");
       } else if (data.source === "local") {
-        // Masih pending - cek apakah balanceBefore ada (berarti balance check akan dilakukan)
         if (data.xoftBalanceBefore && data.xoftBalanceBefore > 0) {
           setError("Pembayaran belum masuk. Sistem akan otomatis mendeteksi pembayaran Anda dalam beberapa detik.");
         } else {
@@ -91,6 +85,7 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
     }
     finally { setIsChecking(false); }
   };
+  
   // Auto-poll every 15 seconds when invoice is active
   useEffect(() => {
     if (!activeInvoice) return;
@@ -202,6 +197,21 @@ export default function TabDeposit({ userProfile, onAddDeposit, onUpdateBalance 
           </div>
         </div>
       </div>
+
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-vw-surface rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-vw-border animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-500 animate-in zoom-in duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-vw-text mb-2">Deposit Sukses!</h3>
+            <p className="text-vw-muted text-sm mb-8">Saldo Anda telah berhasil diperbarui. Selamat bertransaksi!</p>
+            <button onClick={() => setIsSuccessModalOpen(false)} className="btn-primary w-full py-3 rounded-xl font-bold">Tutup</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
