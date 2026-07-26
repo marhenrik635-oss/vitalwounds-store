@@ -513,7 +513,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         href="https://wa.me/6288983082523?text=Halo%20Vitalwounds%20Store%2C%20saya%20mau%20tanya%20produk"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
         aria-label="Hubungi via WhatsApp"
       >
         <MessageCircle size={26} />

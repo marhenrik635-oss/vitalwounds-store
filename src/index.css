@@ -34,7 +34,7 @@
   --color-input: var(--color-vw-border);
   --color-ring: var(--color-vw-accent);
 
-  /* === LIGHT MODE (default) — distinctive emerald palette === */
+  /* === LIGHT MODE (default) — distinctive sky palette === */
   --color-vw-bg: #F4F6F4;
   --color-vw-surface: #FFFFFF;
   --color-vw-text: #141A16;
@@ -42,8 +42,8 @@
   --color-vw-muted: #8A9A8A;
   --color-vw-border: rgba(0, 0, 0, 0.07);
   --color-vw-border-medium: rgba(0, 0, 0, 0.12);
-  --color-vw-accent: #059669;
-  --color-vw-accent-hover: #047857;
+  --color-vw-accent: #0284c7;
+  --color-vw-accent-hover: #0369a1;
   --color-vw-accent-light: rgba(5, 150, 105, 0.10);
   --color-vw-accent-subtle: rgba(5, 150, 105, 0.05);
 
@@ -103,8 +103,8 @@ html.light {
   --color-vw-muted: #8A9A8A;
   --color-vw-border: rgba(0, 0, 0, 0.07);
   --color-vw-border-medium: rgba(0, 0, 0, 0.12);
-  --color-vw-accent: #059669;
-  --color-vw-accent-hover: #047857;
+  --color-vw-accent: #0284c7;
+  --color-vw-accent-hover: #0369a1;
   --color-vw-accent-light: rgba(5, 150, 105, 0.10);
   --color-vw-accent-subtle: rgba(5, 150, 105, 0.05);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -268,7 +268,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.75rem;
   font-weight: 600;
 }
-.badge-success { background: rgba(16, 185, 129, 0.08); color: #059669; }
+.badge-success { background: rgba(16, 185, 129, 0.08); color: #0284c7; }
 .badge-danger { background: rgba(239, 68, 68, 0.08); color: #DC2626; }
 .badge-warning { background: rgba(245, 158, 11, 0.08); color: #D97706; }
 .badge-info { background: rgba(5, 150, 105, 0.08); color: var(--color-vw-accent); }

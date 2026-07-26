@@ -352,7 +352,7 @@ export default function TosPage() {
             className="mt-16 text-center"
           >
             <div className="bg-vw-surface rounded-2xl border border-vw-border p-6 sm:p-8">
-              <CheckCircle size={20} className="text-emerald-500 mx-auto mb-3" />
+              <CheckCircle size={20} className="text-sky-500 mx-auto mb-3" />
               <p className="text-sm font-medium text-vw-text mb-1">Ada pertanyaan?</p>
               <p className="text-xs text-vw-text-muted mb-4 max-w-sm mx-auto">
                 Tim support kami siap membantu 7 hari seminggu. Jangan ragu untuk menghubungi kami.
