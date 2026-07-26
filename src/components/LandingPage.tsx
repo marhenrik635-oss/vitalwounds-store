@@ -52,16 +52,20 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
     { name: "ChatGPT Plus", icon: BrainCircuit, price: "Rp 42.000", original: "Rp 49.000", discount: "Hemat 14%" },
   ]
 
-  const animProps = (delay = 0) => {
+  const animProps = (delay = 0, scaleUp = false) => {
     if (reduceMotion) return {}
     const easeVal: [number, number, number, number] = [0.16, 1, 0.3, 1]
     return {
-      initial: { opacity: 0, y: 24 },
-      whileInView: { opacity: 1, y: 0 },
-      viewport: { once: true, amount: 0.15 },
-      transition: { duration: 0.7, ease: easeVal, delay: delay / 1000 }
+      initial: scaleUp ? { opacity: 0, y: 30, scale: 0.92 } : { opacity: 0, y: 24 },
+      whileInView: scaleUp ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1, y: 0 },
+      viewport: { once: true, amount: 0.1 },
+      transition: { duration: scaleUp ? 0.9 : 0.7, ease: easeVal, delay: delay / 1000 }
     }
   }
+
+  // Word-by-word stagger for hero heading
+  const heroTitle = "Pusat Layanan Digital Premium Terlengkap"
+  const heroWords = heroTitle.split(" ")
 
   return (
     <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/20 pb-16 sm:pb-0">
@@ -98,32 +102,63 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <motion.div
                 {...(reduceMotion ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } })}
               >
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-vw-accent/8 border border-vw-accent/15 text-xs font-medium text-vw-accent mb-8">
-                  <Zap size={12} />
-                  Instant Delivery &bull; Support 24/7
-                </div>
+                <motion.div
+                  initial={reduceMotion ? {} : { opacity: 0, scale: 0.9, filter: 'blur(4px)' }}
+                  animate={reduceMotion ? {} : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                >
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-vw-accent/8 border border-vw-accent/15 text-xs font-medium text-vw-accent mb-8">
+                    <Zap size={12} />
+                    Instant Delivery &bull; Support 24/7
+                  </div>
+                </motion.div>
 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.05] text-balance max-w-2xl mx-auto">
-                  Pusat Layanan Digital{" "}
-                  <span className="text-vw-accent">Premium</span>{" "}
-                  Terlengkap
+                  {heroWords.map((word, i) => (
+                    <motion.span
+                      key={i}
+                      className="inline-block mr-[0.3em]"
+                      initial={reduceMotion ? {} : { opacity: 0, y: 40, rotateX: -20, transformPerspective: 800 }}
+                      animate={reduceMotion ? {} : { opacity: 1, y: 0, rotateX: 0, transformPerspective: 800 }}
+                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.4 + i * 0.08 }}
+                    >
+                      {word === "Premium" ? (
+                        <span className="text-vw-accent">Premium</span>
+                      ) : word}
+                    </motion.span>
+                  ))}
                 </h1>
 
-                <p className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-lg mx-auto mt-6">
+                <motion.p
+                  className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-lg mx-auto mt-6"
+                  initial={reduceMotion ? {} : { opacity: 0, y: 20 }}
+                  animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 1.0 }}
+                >
                   {t("landing.hero.desc")}
-                </p>
+                </motion.p>
 
-                <div className="flex flex-col sm:flex-row justify-center gap-3 mt-10">
-                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white py-6 px-8 rounded-xl text-sm font-semibold shadow-btn hover:shadow-btn-hover transition-all">
-                    {t("landing.hero.cta")} <ArrowRight size={16} />
+                <motion.div
+                  className="flex flex-col sm:flex-row justify-center gap-3 mt-10"
+                  initial={reduceMotion ? {} : { opacity: 0, y: 20 }}
+                  animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 1.2 }}
+                >
+                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white py-6 px-8 rounded-xl text-sm font-semibold shadow-btn hover:shadow-btn-hover transition-all group">
+                    {t("landing.hero.cta")} <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
                   </Button>
                   <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="outline" className="border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface py-6 px-8 rounded-xl text-vw-text-muted hover:text-vw-text text-sm">
                     {t("landing.hero.lihat")}
                   </Button>
-                </div>
+                </motion.div>
 
-                {/* Trust indicators — simple, no fake numbers */}
-                <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-xs text-vw-text-muted">
+                {/* Trust indicators — no fake numbers */}
+                <motion.div
+                  className="flex flex-wrap items-center justify-center gap-6 mt-12 text-xs text-vw-text-muted"
+                  initial={reduceMotion ? {} : { opacity: 0, y: 15 }}
+                  animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 1.5 }}
+                >
                   <span className="flex items-center gap-1.5">
                     <Shield size={14} className="text-vw-accent" />
                     Garansi 100%
@@ -136,7 +171,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     <MessageCircle size={14} className="text-vw-accent" />
                     Support 24/7
                   </span>
-                </div>
+                </motion.div>
               </motion.div>
             </div>
           </div>

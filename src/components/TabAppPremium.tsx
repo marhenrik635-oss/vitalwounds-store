@@ -232,7 +232,7 @@ export default function TabAppPremium({
                   <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs">
                     <span className="inline-flex items-center gap-1 text-vw-muted">
                       <Package size={12} />
-                      <span className={prod.stock > 10 ? 'text-emerald-600' : prod.stock > 0 ? 'text-amber-600' : 'text-red-500'}>
+                      <span className={prod.stock > 10 ? 'text-sky-600' : prod.stock > 0 ? 'text-amber-600' : 'text-red-500'}>
                         {prod.stock > 0 ? `${prod.stock} left` : 'Out of Stock'}
                       </span>
                     </span>
@@ -281,7 +281,7 @@ export default function TabAppPremium({
                         })()}
                       </p>
                       {isReseller && prod.reseller_price && prod.reseller_discount_pct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold whitespace-nowrap">
                           -{prod.reseller_discount_pct}%
                         </span>
                       )}
@@ -359,7 +359,7 @@ export default function TabAppPremium({
                     <ShieldAlert size={14} /> {selectedProduct.stock === 0 ? 'Out of Stock' : 'Limited'}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600">
                     <Check size={14} /> Available
                   </span>
                 )}
@@ -407,12 +407,12 @@ export default function TabAppPremium({
               </div>
 
               {boughtCredentials ? (
-                <div className="bg-emerald-50 border border-emerald-200/60 rounded-xl p-4">
+                <div className="bg-sky-50 border border-sky-200/60 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Check size={16} className="text-emerald-600" />
-                    <h3 className="font-bold text-sm text-emerald-800">Your Credentials:</h3>
+                    <Check size={16} className="text-sky-600" />
+                    <h3 className="font-bold text-sm text-sky-800">Your Credentials:</h3>
                   </div>
-                  <p className="text-sm text-emerald-700 break-all leading-relaxed font-mono text-xs bg-white/60 p-3 rounded-lg border border-emerald-100">{boughtCredentials}</p>
+                  <p className="text-sm text-sky-700 break-all leading-relaxed font-mono text-xs bg-white/60 p-3 rounded-lg border border-sky-100">{boughtCredentials}</p>
                 </div>
               ) : (
                 <button type="submit"

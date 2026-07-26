@@ -57,7 +57,7 @@ type PageState = "loading" | "member" | "no_subscription" | "not_authorized" | "
 
 const PLANS = [
   { key: '1month',  label: '1 Bulan',     price: 10000, originalPrice: null,     duration: '30 Hari',     icon: 'star',    color: 'from-blue-500 to-blue-600',     badge: null },
-  { key: '3months', label: '3 Bulan',     price: 25000, originalPrice: 30000,    duration: '90 Hari',     icon: 'sparkles', color: 'from-emerald-500 to-emerald-600', badge: 'Populer' },
+  { key: '3months', label: '3 Bulan',     price: 25000, originalPrice: 30000,    duration: '90 Hari',     icon: 'sparkles', color: 'from-sky-500 to-sky-600', badge: 'Populer' },
   { key: '6months', label: '6 Bulan',     price: 45000, originalPrice: 54000,    duration: '180 Hari',    icon: 'zap',     color: 'from-violet-500 to-violet-600',   badge: 'Irit' },
   { key: '1year',   label: '1 Tahun',     price: 90000, originalPrice: 120000,   duration: '365 Hari',    icon: 'crown',   color: 'from-amber-500 to-amber-600',     badge: 'Best Value' },
   { key: 'lifetime',label: 'Seumur Hidup', price: 100000, originalPrice: 200000,  duration: 'Selamanya',   icon: 'gem',     color: 'from-rose-500 to-purple-600',     badge: 'Diskon 50%' },
@@ -455,7 +455,7 @@ export default function TabAutopost() {
   const statusBadge = (status: string) => {
     switch (status) {
       case "running":
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"><Zap size={10} /> Aktif</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700"><Zap size={10} /> Aktif</span>;
       case "paused":
         return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700"><Pause size={10} /> Jeda</span>;
       case "error":
@@ -652,13 +652,13 @@ export default function TabAutopost() {
       <div className="p-6 lg:p-8 animate-fade-in">
         <div className="max-w-lg mx-auto py-10">
           {/* Success banner */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6 flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle size={22} className="text-emerald-600" />
+              <CheckCircle size={22} className="text-sky-600" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-emerald-800">Paket Berhasil Diaktifkan!</h3>
-              <p className="text-xs text-emerald-600 mt-0.5">
+              <h3 className="font-bold text-sm text-sky-800">Paket Berhasil Diaktifkan!</h3>
+              <p className="text-xs text-sky-600 mt-0.5">
                 {subscription?.planLabel} — {subscription?.endDate ? `Berlaku hingga ${formatDate(subscription.endDate)}` : 'Berlaku seumur hidup'}
               </p>
             </div>
@@ -833,7 +833,7 @@ export default function TabAutopost() {
             </div>
             <div className="bg-vw-surface border border-vw-border rounded-xl p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-vw-muted/70">Aktif</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">{missions.filter(m => m.status === "running").length}</p>
+              <p className="text-2xl font-bold text-sky-600 mt-1">{missions.filter(m => m.status === "running").length}</p>
             </div>
             <div className="bg-vw-surface border border-vw-border rounded-xl p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-vw-muted/70">Tertunda</p>
@@ -904,7 +904,7 @@ export default function TabAutopost() {
                       className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                         mission.status === "running"
                           ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          : "bg-emerald-50 text-sky-600 hover:bg-emerald-100"
                       }`}>
                       {mission.status === "running" ? <Pause size={12} /> : <Play size={12} />}
                       {mission.status === "running" ? "Jeda" : "Mulai"}

@@ -43,7 +43,7 @@ const tierBadge = (tier: string) => {
 
 const statusBadge = (status: string) => {
   const s = (status || "").toLowerCase();
-  if (s === "success" || s === "paid") return "bg-emerald-100 text-emerald-700";
+  if (s === "success" || s === "paid") return "bg-sky-100 text-sky-700";
   if (s === "pending" || s === "processing") return "bg-amber-100 text-amber-700";
   return "bg-red-100 text-red-700";
 };
@@ -169,7 +169,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
 
   const statCards = stats ? [
     { label: "Total Users", value: stats.totalUsers || 0, icon: Users, color: "#3B82F6" },
-    { label: "Total Revenue", value: fmt(stats.totalRevenue || 0), icon: DollarSign, color: "#10B981" },
+    { label: "Total Revenue", value: fmt(stats.totalRevenue || 0), icon: DollarSign, color: "#0284c7" },
     { label: "Total Orders", value: stats.totalOrders || 0, icon: ShoppingBag, color: "#8B5CF6" },
     { label: "Order Value", value: fmt(stats.totalOrderValue || 0), icon: TrendingUp, color: "#F59E0B" },
     { label: "Pending Deposit", value: stats.pendingDeposits || 0, icon: Clock, color: "#EF4444" },
@@ -191,7 +191,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
       {/* Notification */}
       {actionMsg && (
         <div className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm ${
-          actionMsg.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"
+          actionMsg.type === "success" ? "bg-sky-50 text-sky-700 border border-sky-200" : "bg-red-50 text-red-700 border border-red-200"
         }`}>
           {actionMsg.type === "success" ? <Check size={16} /> : <AlertTriangle size={16} />}
           {actionMsg.text}
@@ -414,7 +414,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                         </div>
                         <div className="flex gap-2 mt-2">
                           <button onClick={() => handleUpdateBalance(selectedUser.id, Math.abs(editBalance || 0), "add")}
-                            className="flex-1 px-3 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 cursor-pointer">+ Tambah</button>
+                            className="flex-1 px-3 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600 cursor-pointer">+ Tambah</button>
                           <button onClick={() => handleUpdateBalance(selectedUser.id, Math.abs(editBalance || 0), "deduct")}
                             className="flex-1 px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 cursor-pointer">- Kurangi</button>
                         </div>
@@ -505,7 +505,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                           <td className="p-3 text-center">
                             {(d.status === "pending" || d.status === "Pending") && (
                               <button onClick={() => handleConfirmDeposit(d.id)}
-                                className="px-3 py-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-600 cursor-pointer">Konfirmasi</button>
+                                className="px-3 py-1.5 bg-sky-500 text-white text-[10px] font-bold rounded-lg hover:bg-sky-600 cursor-pointer">Konfirmasi</button>
                             )}
                             {(d.status !== "pending" && d.status !== "Pending") && <span className="text-[10px] text-vw-muted">-</span>}
                           </td>
@@ -637,7 +637,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                         {/* Area fill */}
                         <polygon points={areaPts} fill={chartMode === "revenue" ? "url(#revGrad)" : "url(#countGrad)"} opacity="0.25" />
                         {/* Line */}
-                        <polyline points={polylinePts} fill="none" stroke={chartMode === "revenue" ? "#2563eb" : "#10B981"} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                        <polyline points={polylinePts} fill="none" stroke={chartMode === "revenue" ? "#2563eb" : "#0284c7"} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                         {/* Data dots */}
                         {daily.map((d: any, i: number) => {
                           const x = pad.left + i * stepX;
@@ -645,7 +645,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                           const isHighlight = d[chartMode] > 0 && (i === 0 || i === daily.length - 1 || d[chartMode] === maxVal);
                           return (
                             <g key={i}>
-                              <circle cx={x} cy={y} r={isHighlight ? 3.5 : 2} fill={chartMode === "revenue" ? "#2563eb" : "#10B981"} stroke="#fff" strokeWidth="1.5" />
+                              <circle cx={x} cy={y} r={isHighlight ? 3.5 : 2} fill={chartMode === "revenue" ? "#2563eb" : "#0284c7"} stroke="#fff" strokeWidth="1.5" />
                             </g>
                           );
                         })}
@@ -663,8 +663,8 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                         {/* Gradients */}
                         <defs>
                           <linearGradient id="countGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10B981" />
-                            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#0284c7" />
+                            <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
                           </linearGradient>
                           <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#2563eb" />
@@ -675,7 +675,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                     </div>
                     {/* Legend */}
                     <div className="flex items-center gap-4 mt-2 text-[10px] text-vw-muted">
-                      <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 rounded bg-emerald-500" /> Jumlah Order</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 rounded bg-sky-500" /> Jumlah Order</span>
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 rounded bg-blue-500" /> Revenue</span>
                       <span className="ml-auto font-semibold text-vw-text">
                         {chartMode === "revenue"
@@ -702,7 +702,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                     const sPct = (success / total) * 100;
                     const pPct = (processing / total) * 100;
                     const fPct = (failed / total) * 100;
-                    const donutGrad = `conic-gradient(#10B981 0% ${sPct}%, #F59E0B ${sPct}% ${sPct + pPct}%, #EF4444 ${sPct + pPct}% 100%)`;
+                    const donutGrad = `conic-gradient(#0284c7 0% ${sPct}%, #F59E0B ${sPct}% ${sPct + pPct}%, #EF4444 ${sPct + pPct}% 100%)`;
                     return (
                       <div className="flex items-center gap-8">
                         <div className="relative shrink-0">
@@ -717,7 +717,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                         </div>
                         <div className="flex-1 space-y-3">
                           {[
-                            { label: "Berhasil", count: success, pct: sPct, bg: "bg-emerald-50", dot: "bg-emerald-500", text: "text-emerald-700" },
+                            { label: "Berhasil", count: success, pct: sPct, bg: "bg-sky-50", dot: "bg-sky-500", text: "text-sky-700" },
                             { label: "Pending", count: processing, pct: pPct, bg: "bg-amber-50", dot: "bg-amber-500", text: "text-amber-700" },
                             { label: "Gagal", count: failed, pct: fPct, bg: "bg-red-50", dot: "bg-red-500", text: "text-red-700" },
                           ].map(item => (
@@ -747,7 +747,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                     {(() => {
                       const total = orderStats.totalRevenue || 1;
                       const items = [
-                        { label: "Berhasil", value: orderStats.success?.revenue || 0, color: "bg-emerald-500", bg: "bg-emerald-100", text: "text-emerald-700" },
+                        { label: "Berhasil", value: orderStats.success?.revenue || 0, color: "bg-sky-500", bg: "bg-sky-100", text: "text-sky-700" },
                         { label: "Pending", value: orderStats.processing?.revenue || 0, color: "bg-amber-500", bg: "bg-amber-100", text: "text-amber-700" },
                         { label: "Gagal", value: orderStats.failed?.revenue || 0, color: "bg-red-500", bg: "bg-red-100", text: "text-red-700" },
                       ];
@@ -775,7 +775,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { label: "Total Revenue", value: fmt(orderStats.totalRevenue || 0), color: "" },
-                  { label: "Revenue Berhasil", value: fmt(orderStats.success?.revenue || 0), color: "text-emerald-600" },
+                  { label: "Revenue Berhasil", value: fmt(orderStats.success?.revenue || 0), color: "text-sky-600" },
                   { label: "Revenue Pending", value: fmt(orderStats.processing?.revenue || 0), color: "text-amber-600" },
                 ].map(s => (
                   <div key={s.label} className="bg-white border border-vw-border rounded-xl p-4">
@@ -795,7 +795,7 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                     <span className="text-vw-muted">
                       Total: <span className="font-bold text-vw-text">{fmt(deposits.reduce((s: number, d: any) => s + (d.amount || 0), 0))}</span>
                     </span>
-                    <span className="text-emerald-600 font-semibold">
+                    <span className="text-sky-600 font-semibold">
                       Sukses: {fmt(deposits.filter((d: any) => d.status === 'success').reduce((s: number, d: any) => s + (d.amount || 0), 0))}
                     </span>
                     <span className="text-amber-600 font-semibold">
@@ -991,11 +991,11 @@ export default function TabAdmin({ userProfile }: TabAdminProps) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                     <span className="text-xs text-vw-muted">Backend API</span>
-                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Online</span>
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-sky-600"><span className="w-2 h-2 rounded-full bg-sky-500" /> Online</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                     <span className="text-xs text-vw-muted">Database</span>
-                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Connected</span>
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-sky-600"><span className="w-2 h-2 rounded-full bg-sky-500" /> Connected</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                     <span className="text-xs text-vw-muted">Total Users</span>

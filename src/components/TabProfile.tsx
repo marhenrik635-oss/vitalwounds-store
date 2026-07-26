@@ -65,7 +65,7 @@ export default function TabProfile({ userProfile, onUpdateProfile }: TabProfileP
             </div>
 
             {isSaved && (
-              <div className="mb-5 px-4 py-3 rounded-xl flex items-center gap-2 text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/50">
+              <div className="mb-5 px-4 py-3 rounded-xl flex items-center gap-2 text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200/50">
                 <CheckCircle size={15} /> Profil berhasil diperbarui!
               </div>
             )}

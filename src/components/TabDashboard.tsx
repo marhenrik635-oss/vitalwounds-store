@@ -284,7 +284,7 @@ export default function TabDashboard({ userProfile, orders, deposits, onTabChang
               {recentOrders.map((o) => (
                 <div key={o.id} className="flex items-center gap-3 p-3.5 rounded-xl bg-vw-bg">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                    o.status === "Success" ? "bg-emerald-500/10 text-emerald-400" :
+                    o.status === "Success" ? "bg-sky-500/10 text-sky-400" :
                     o.status === "Processing" ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
                   }`}>
                     {o.status === "Success" ? <CheckCircle2 size={16} /> :
@@ -295,7 +295,7 @@ export default function TabDashboard({ userProfile, orders, deposits, onTabChang
                     <p className="text-xs text-vw-muted mt-0.5">{o.date}</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md ${
-                    o.status === "Success" ? "bg-emerald-500/10 text-emerald-400" :
+                    o.status === "Success" ? "bg-sky-500/10 text-sky-400" :
                     o.status === "Processing" ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
                   }`}>{o.status === "Success" ? t("dashboard.sukses") : o.status === "Processing" ? t("dashboard.proses") : t("riwayat-order.gagal")}</span>
                 </div>

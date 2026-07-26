@@ -34,7 +34,7 @@
   --color-input: var(--color-vw-border);
   --color-ring: var(--color-vw-accent);
 
-  /* === LIGHT MODE (default) — distinctive sky palette === */
+  /* === LIGHT MODE (default) — clean sky-blue palette === */
   --color-vw-bg: #F4F6F4;
   --color-vw-surface: #FFFFFF;
   --color-vw-text: #141A16;
@@ -44,14 +44,14 @@
   --color-vw-border-medium: rgba(0, 0, 0, 0.12);
   --color-vw-accent: #0284c7;
   --color-vw-accent-hover: #0369a1;
-  --color-vw-accent-light: rgba(59, 130, 246, 0.10);
-  --color-vw-accent-subtle: rgba(59, 130, 246, 0.05);
+  --color-vw-accent-light: rgba(2, 132, 199, 0.10);
+  --color-vw-accent-subtle: rgba(2, 132, 199, 0.05);
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.1);
-  --shadow-btn: 0 4px 12px rgba(59, 130, 246, 0.2);
-  --shadow-btn-hover: 0 8px 24px rgba(59, 130, 246, 0.3);
+  --shadow-btn: 0 4px 12px rgba(2, 132, 199, 0.2);
+  --shadow-btn-hover: 0 8px 24px rgba(2, 132, 199, 0.3);
 
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -68,10 +68,10 @@
     --color-vw-muted: #7A8A7A;
     --color-vw-border: rgba(255, 255, 255, 0.07);
     --color-vw-border-medium: rgba(255, 255, 255, 0.12);
-    --color-vw-accent: #34D399;
-    --color-vw-accent-hover: #6EE7B7;
-    --color-vw-accent-light: rgba(52, 211, 153, 0.12);
-    --color-vw-accent-subtle: rgba(52, 211, 153, 0.06);
+    --color-vw-accent: #38bdf8;
+    --color-vw-accent-hover: #7dd3fc;
+    --color-vw-accent-light: rgba(56, 189, 248, 0.12);
+    --color-vw-accent-subtle: rgba(56, 189, 248, 0.06);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.6);
     --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
@@ -86,10 +86,10 @@ html.dark {
   --color-vw-muted: #7A8A7A;
   --color-vw-border: rgba(255, 255, 255, 0.07);
   --color-vw-border-medium: rgba(255, 255, 255, 0.12);
-  --color-vw-accent: #34D399;
-  --color-vw-accent-hover: #6EE7B7;
-  --color-vw-accent-light: rgba(52, 211, 153, 0.12);
-  --color-vw-accent-subtle: rgba(52, 211, 153, 0.06);
+  --color-vw-accent: #38bdf8;
+  --color-vw-accent-hover: #7dd3fc;
+  --color-vw-accent-light: rgba(56, 189, 248, 0.12);
+  --color-vw-accent-subtle: rgba(56, 189, 248, 0.06);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.6);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
@@ -105,13 +105,13 @@ html.light {
   --color-vw-border-medium: rgba(0, 0, 0, 0.12);
   --color-vw-accent: #0284c7;
   --color-vw-accent-hover: #0369a1;
-  --color-vw-accent-light: rgba(59, 130, 246, 0.10);
-  --color-vw-accent-subtle: rgba(59, 130, 246, 0.05);
+  --color-vw-accent-light: rgba(2, 132, 199, 0.10);
+  --color-vw-accent-subtle: rgba(2, 132, 199, 0.05);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.1);
-  --shadow-btn: 0 4px 12px rgba(59, 130, 246, 0.2);
-  --shadow-btn-hover: 0 8px 24px rgba(59, 130, 246, 0.3);
+  --shadow-btn: 0 4px 12px rgba(2, 132, 199, 0.2);
+  --shadow-btn-hover: 0 8px 24px rgba(2, 132, 199, 0.3);
 }
 
 /* === Dark mode: override bg-white utilities === */
@@ -268,7 +268,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.75rem;
   font-weight: 600;
 }
-.badge-success { background: rgba(16, 185, 129, 0.08); color: #0284c7; }
+.badge-success { background: rgba(2, 132, 199, 0.08); color: #0284c7; }
 .badge-danger { background: rgba(239, 68, 68, 0.08); color: #DC2626; }
 .badge-warning { background: rgba(245, 158, 11, 0.08); color: #D97706; }
 .badge-info { background: rgba(59, 130, 246, 0.08); color: var(--color-vw-accent); }

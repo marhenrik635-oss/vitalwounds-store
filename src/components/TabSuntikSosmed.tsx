@@ -107,8 +107,8 @@ export default function TabSuntikSosmed({ userProfile, services, onDeductBalance
         <div className="lg:col-span-2">
           {receipt ? (
             <div className="rounded-2xl border border-vw-border/60 bg-white p-6 text-center space-y-5">
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto bg-emerald-100">
-                <Check size={28} className="text-emerald-600" />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto bg-sky-100">
+                <Check size={28} className="text-sky-600" />
               </div>
               <div><h3 className="text-lg font-bold text-vw-text">Order Terkirim!</h3><span className="badge badge-success mt-2 inline-block">{receipt.orderId}</span></div>
               <p className="text-sm text-vw-muted">Proses booster dimulai dalam 5-30 menit.</p>

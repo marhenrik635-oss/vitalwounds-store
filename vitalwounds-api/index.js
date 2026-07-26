@@ -135,6 +135,7 @@ db.run(`ALTER TABLE deposits ADD COLUMN qrInfo TEXT`, (err) => { if (err && !err
 db.run(`ALTER TABLE deposits ADD COLUMN totalToPay INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE deposits ADD COLUMN expiredAt TEXT`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE deposits ADD COLUMN xoftBalanceBefore INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
+db.run(`ALTER TABLE deposits ADD COLUMN balance_before INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`ALTER TABLE deposits ADD COLUMN balanceCheckedAt INTEGER DEFAULT 0`, (err) => { if (err && !err.message.includes('duplicate') && !err.message.includes('already exists')) console.error(err.message); });
 db.run(`CREATE TABLE IF NOT EXISTS product_cache (id TEXT PRIMARY KEY, name TEXT, code TEXT, stock INTEGER, description TEXT, category TEXT, icon TEXT, price_min INTEGER, price_max INTEGER, displayPrice TEXT, is_variation INTEGER, variations TEXT, imageUrl TEXT, snk TEXT, updatedAt INTEGER)`);
 db.run(`CREATE TABLE IF NOT EXISTS password_resets (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, token TEXT, expiredAt INTEGER)`);
