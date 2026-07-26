@@ -240,50 +240,52 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== FLASH SALE ====== */}
-        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-gradient-to-r from-amber-50/60 to-orange-50/30 dark:from-amber-950/10 dark:to-orange-950/5">
+        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12">
               <motion.div {...animProps()}>
-                <div className="flex items-center gap-2.5 mb-2">
-                  <Zap size={16} className="text-amber-500 fill-amber-500" />
-                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-[0.15em]">Flash Sale</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Flash Sale</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">Harga spesial hari ini</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Harga spesial hari ini</h2>
               </motion.div>
               <motion.div {...animProps(100)}>
-                <span className="flex items-center gap-1.5 text-xs text-vw-muted font-medium bg-vw-surface px-4 py-2 rounded-full border border-vw-border">
+                <span className="flex items-center gap-1.5 text-xs text-vw-text-muted bg-vw-surface/40 px-3 py-1.5 rounded-full border border-vw-border/50">
                   <Timer size={12} className="text-amber-500" />
                   Promo berlaku 08:00 - 23:59 WIB
                 </span>
               </motion.div>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-3 gap-6">
               {FLASH_SALE.map((item, i) => {
                 const Icon = item.icon
                 return (
-                  <motion.div key={item.name} {...animProps(i * 80)}>
-                    <Card className="relative bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-amber-300/50 transition-all duration-300 group flex flex-col justify-between">
-                      <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  <motion.div key={item.name} {...animProps(i * 80)} className="flex">
+                    <Card className="relative bg-vw-surface/40 backdrop-blur-sm rounded-2xl p-6 border border-vw-border hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between w-full">
+                      <div className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
                         HEMAT {Math.round((1 - parseInt(item.price.replace(/\D/g,'')) / parseInt(item.original.replace(/\D/g,''))) * 100)}%
                       </div>
-                      <CardHeader className="p-0 flex flex-row items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
-                          <Icon size={18} className="text-amber-600" />
-                        </div>
-                        <CardTitle className="text-base font-semibold text-vw-text">{item.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0 mb-4">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-vw-text">{item.price}</span>
-                          <span className="text-sm text-vw-muted line-through">{item.original}</span>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="p-0 flex items-center justify-between">
-                        <span className="text-[10px] text-vw-muted">
-                          Sisa <span className="font-bold text-amber-600">{item.stock}</span> slot
+                      <div>
+                        <CardHeader className="p-0 flex flex-row items-center gap-3 mb-5">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                            <Icon size={16} className="text-amber-500" />
+                          </div>
+                          <CardTitle className="text-sm font-semibold text-vw-text">{item.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 mb-6">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xl font-bold text-vw-text">{item.price}</span>
+                            <span className="text-xs text-vw-text-muted line-through">{item.original}</span>
+                          </div>
+                        </CardContent>
+                      </div>
+                      <CardFooter className="p-0 flex items-center justify-between border-t border-vw-border/40 pt-4 mt-2">
+                        <span className="text-[10px] text-vw-text-muted">
+                          Sisa <span className="font-bold text-amber-500">{item.stock}</span> slot
                         </span>
-                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg">
+                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-1.5 h-auto rounded-lg transition-colors cursor-pointer">
                           Pesan
                         </Button>
                       </CardFooter>
