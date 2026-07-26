@@ -44,6 +44,16 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
     { name: "Rina Marlina", role: "Ibu Rumah Tangga", text: "Spotify Premium buat anak-anak belajar online. Murah meriah, recomended buat emak-emak.", rating: 5 },
     { name: "Fajar Nugroho", role: "Freelancer", text: "ChatGPT Plus ngebantu banget buat riset artikel. Udah langganan 3 bulan, no drama.", rating: 5 },
     { name: "Dewi Sartika", role: "Guru", text: "YouTube Premium buat nonton video pembelajaran tanpa iklan. Anak didik senang, saya pun senang.", rating: 4 },
+    { name: "Bambang Wijaya", role: "Wirausaha", text: "Canva Pro bikin desain produk aku keliatan premium banget. Order dari luar kota percaya.", rating: 5 },
+    { name: "Alya Putri", role: "UI/UX Designer", text: "Figma dan Canva Pro combo favorit. Vitalwounds emang paling murah dan fast respon.", rating: 5 },
+    { name: "Hendra Kurniawan", role: "Gamer", text: "Netflix 4K buat nonton drakor sama istri. Gambar bening, ga pake buffering.", rating: 5 },
+    { name: "Maya Sari", role: "Mahasiswi", text: "Langganan Spotify Premium ramean bareng temen kos. Hemat banget, recommended!", rating: 4 },
+    { name: "Agus Setiawan", role: "Karyawan Swasta", text: "ChatGPT Plus bantu aku bikin laporan kerja. Ide-ide jadi cepet keluar. Worth it!", rating: 5 },
+    { name: "Rizky Pratama", role: "YouTuber Pemula", text: "YouTube Premium buat riset konten tanpa iklan. subscribe bulanan ga nyesel.", rating: 5 },
+    { name: "Lisa Nurhaliza", role: "Ibu Muda", text: "Spotify Premium buat nemenin masak. Anak-anak juga suka dengerin lagu. Murah!", rating: 5 },
+    { name: "David Hartono", role: "Digital Marketer", text: "Canva Pro bikin konten feed Instagram makin cetar. Udah langganan 6 bulan puas.", rating: 5 },
+    { name: "Winda Anggraini", role: "Mahasiswa", text: "CapCut Pro edit video tugas kelompok jadi keliatan profesional. Pas banget!", rating: 4 },
+    { name: "Yoga Permana", role: "Freelancer", text: "Netflix Premium jadi hadiah buat adik. Order tinggal chat, langsung diproses. Top!", rating: 5 },
   ]
 
   const FLASH_SALE = [
@@ -197,39 +207,40 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         {/* ====== TESTIMONIALS ====== */}
         <section className="py-24 sm:py-28 px-6 border-t border-vw-border overflow-hidden">
           <div className="max-w-6xl mx-auto">
+            {/* ====== TESTIMONIALS ====== */}
             <div className="text-center mb-16">
               <motion.div {...animProps()}>
                 <div className="flex items-center justify-center gap-1.5 mb-4">
                   {[1,2,3,4,5].map(i => (
                     <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
                   ))}
-                  <span className="text-xs font-semibold text-vw-muted ml-2">4.8 dari 2.000+ ulasan</span>
+                  <span className="text-xs font-semibold text-vw-text-muted ml-2">4.8 dari 2.000+ ulasan</span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">Apa kata mereka?</h2>
               </motion.div>
             </div>
 
-            <div className="relative">
-              <div className="flex gap-5 animate-marquee mb-5 w-max">
+            <div className="relative w-full overflow-hidden py-4 mask-marquee">
+              <div className="flex gap-5 animate-marquee w-max">
                 {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                  <Card key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface rounded-2xl p-6 border border-vw-border flex flex-col justify-between">
-                    <CardHeader className="p-0 mb-3">
+                  <Card key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface/40 backdrop-blur-sm rounded-2xl p-6 border border-vw-border hover:border-vw-border/80 transition-colors flex flex-col justify-between">
+                    <CardHeader className="p-0 mb-4">
                       <div className="flex items-center gap-1">
                         {Array.from({length: 5}, (_, j) => (
                           <Star key={j} size={12} className={j < t.rating ? "text-amber-400 fill-amber-400" : "text-vw-border/60"} />
                         ))}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-0 text-sm text-vw-text leading-relaxed mb-4">
+                    <CardContent className="p-0 text-sm text-vw-text/90 leading-relaxed mb-6 italic">
                       "{t.text}"
                     </CardContent>
-                    <CardFooter className="p-0 flex items-center gap-2.5 pt-3 border-t border-vw-border/50">
-                      <div className="w-8 h-8 rounded-full bg-vw-accent/10 flex items-center justify-center text-[11px] font-bold text-vw-accent shrink-0">
+                    <CardFooter className="p-0 flex items-center gap-3 pt-4 border-t border-vw-border/30">
+                      <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-bold text-amber-500 shrink-0">
                         {t.name.charAt(0)}
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-vw-text">{t.name}</p>
-                        <p className="text-[10px] text-vw-muted">{t.role}</p>
+                        <p className="text-[10px] text-vw-text-muted">{t.role}</p>
                       </div>
                     </CardFooter>
                   </Card>

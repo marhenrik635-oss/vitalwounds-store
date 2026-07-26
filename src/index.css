@@ -400,8 +400,13 @@ h1, h2, h3, h4, h5, h6 {
 .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-shimmer { animation: shimmer 2s linear infinite; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size: 200% 100%; }
-.animate-marquee { animation: marquee 60s linear infinite; }
+.animate-marquee { animation: marquee 80s linear infinite; }
 .animate-marquee:hover { animation-play-state: paused; }
+
+.mask-marquee {
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+}
 
 /* Skeleton loading animation */
 .skeleton {
