@@ -2,14 +2,11 @@
 
 /* Make Tailwind's `dark:` variant respond to html.dark class instead of prefers-color-scheme */
 @variant dark (&:where(.dark, .dark *));
-@import "@fontsource/geist-sans/400.css";
-@import "@fontsource/geist-sans/500.css";
-@import "@fontsource/geist-sans/600.css";
-@import "@fontsource/geist-sans/700.css";
-@import "@fontsource/geist-sans/800.css";
 @import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
 @import "@fontsource/outfit/600.css";
 @import "@fontsource/outfit/700.css";
+@import "@fontsource/outfit/800.css";
 
 @theme {
   --font-sans: "Outfit", sans-serif;
@@ -133,9 +130,7 @@ html.dark [class*="btn-ghost"] {
   background-color: var(--color-vw-surface) !important;
 }
 
-html.dark .grain-overlay {
-  opacity: 0.15;
-}
+
 
 html.dark img[class*="invert-on-dark"] {
   filter: invert(1) hue-rotate(180deg);
@@ -180,17 +175,7 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
 }
 
-/* === Grain/Noise texture overlay === */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-}
+
 
 /* === Cards === */
 .card {
@@ -322,7 +307,7 @@ h1, h2, h3, h4, h5, h6 {
 .heading-xl { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
 .heading-lg { font-size: clamp(1.125rem, 3vw, 1.5rem); font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; text-wrap: balance; }
 .heading-base { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
-.caption { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; color: var(--color-vw-text-muted); }
+.caption { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: var(--color-vw-text-muted); }
 
 /* === Scrollbar === */
 ::-webkit-scrollbar { width: 5px; }
@@ -363,6 +348,16 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes waveBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -429,7 +424,7 @@ h1, h2, h3, h4, h5, h6 {
 /* === Utility classes === */
 .nest-card {
   border: 1px solid var(--color-vw-border);
-  border-radius: 1.25rem;
+  border-radius: 0.75rem;
   background: var(--color-vw-surface);
   overflow: hidden;
 }
@@ -465,25 +460,12 @@ h1, h2, h3, h4, h5, h6 {
 .stagger-enter > *:nth-child(9) { animation-delay: 1350ms; }
 .stagger-enter > *:nth-child(10) { animation-delay: 1500ms; }
 
-/* Gradient accent strip */
-.gradient-accent {
-  background: linear-gradient(135deg, var(--color-vw-accent), #1D4ED8);
+/* Solid accent strip */
+.solid-accent {
+  background: var(--color-vw-accent);
 }
 
-/* Glass card effect */
-.glass-card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-}
 
-@media (prefers-color-scheme: dark) {
-  .glass-card {
-    background: rgba(19, 27, 46, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-}
 
 /* Hide scrollbar for horizontal scroll sections */
 .scrollbar-none {
@@ -543,17 +525,7 @@ h1, h2, h3, h4, h5, h6 {
 .card-stagger > *:nth-child(7) { animation-delay: 830ms; }
 .card-stagger > *:nth-child(8) { animation-delay: 960ms; }
 
-/* Star twinkle animation */
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
 
-/* Ocean wave bob animation */
-@keyframes waveBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

@@ -18,7 +18,7 @@ interface LPProps {
 
 export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   const t = useT()
-  const scrolled = false // simplified scrolled state check logic for compile safety
+  const scrolled = false
   const reduceMotion = useReducedMotion()
 
   const APP_CARDS = [
@@ -83,7 +83,6 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   return (
     <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30 pb-16 sm:pb-0">
       <OceanBg />
-      <div className="grain-overlay" aria-hidden="true" />
       <a href="#content" className="fixed -top-full left-0 z-50 px-4 py-2 bg-vw-text text-vw-bg text-xs font-semibold rounded-br-lg transition-all focus:top-0">Skip to content</a>
 
       {/* ====== HEADER ====== */}
@@ -139,9 +138,9 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, transition: { duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] } })}
                 className="lg:col-span-5 flex justify-center lg:justify-end"
               >
-                <Card className="w-full max-w-sm bg-vw-surface rounded-2xl border border-vw-border/80 shadow-lg pb-4">
+                <Card className="w-full max-w-sm bg-vw-surface rounded-xl border border-vw-border/80 shadow-lg pb-4">
                   <CardHeader className="p-6 pb-2">
-                    <CardDescription className="text-xs text-vw-text-muted font-bold tracking-wider uppercase">Mulai dari</CardDescription>
+                    <CardDescription className="text-xs text-vw-text-muted font-bold">Mulai dari</CardDescription>
                     <CardTitle className="text-5xl font-bold tracking-tight text-vw-text mt-3">
                       Rp 800<span className="text-base font-normal text-vw-text-muted">/unit</span>
                     </CardTitle>
@@ -180,25 +179,25 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
         {/* ====== STATS ====== */}
         <section className="py-24 sm:py-28 px-6 border-t border-vw-border bg-vw-surface">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid sm:grid-cols-3 gap-8 text-center">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-12 text-center">
               <motion.div {...animProps(0)}>
-                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
                   <CountUp end={43} suffix="+" />
                 </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-2">Total Produk</p>
+                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Total Produk<br />Premium Tersedia</p>
               </motion.div>
               <motion.div {...animProps(100)}>
-                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
                   <CountUp end={2000} suffix="+" />
                 </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-2">User Aktif</p>
+                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Pengguna<br />Aktif Setiap Bulan</p>
               </motion.div>
               <motion.div {...animProps(200)}>
-                <div className="text-4xl lg:text-5xl font-bold tracking-tight text-vw-accent">
+                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
                   <CountUp end={2} suffix="Jt+" />
                 </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-2">Transaksi Berhasil</p>
+                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Transaksi<br />Berhasil Diproses</p>
               </motion.div>
             </div>
           </div>
@@ -207,7 +206,6 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         {/* ====== TESTIMONIALS ====== */}
         <section className="py-24 sm:py-28 px-6 border-t border-vw-border overflow-hidden">
           <div className="max-w-6xl mx-auto">
-            {/* ====== TESTIMONIALS ====== */}
             <div className="text-center mb-16">
               <motion.div {...animProps()}>
                 <div className="flex items-center justify-center gap-1.5 mb-4">
@@ -223,7 +221,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <div className="relative w-full overflow-hidden py-4 mask-marquee">
               <div className="flex gap-5 animate-marquee w-max">
                 {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                  <Card key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface/40 backdrop-blur-sm rounded-2xl p-6 border border-vw-border hover:border-vw-border/80 transition-colors flex flex-col justify-between">
+                  <Card key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-border/80 transition-colors flex flex-col justify-between">
                     <CardHeader className="p-0 mb-4">
                       <div className="flex items-center gap-1">
                         {Array.from({length: 5}, (_, j) => (
@@ -232,7 +230,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                       </div>
                     </CardHeader>
                     <CardContent className="p-0 text-sm text-vw-text/90 leading-relaxed mb-6 italic">
-                      "{t.text}"
+                      &ldquo;{t.text}&rdquo;
                     </CardContent>
                     <CardFooter className="p-0 flex items-center gap-3 pt-4 border-t border-vw-border/30">
                       <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-bold text-amber-500 shrink-0">
@@ -251,18 +249,18 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== FLASH SALE ====== */}
-        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent">
+        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-amber-500/[0.01]">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12">
               <motion.div {...animProps()}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap size={14} className="text-amber-500 fill-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Flash Sale</span>
+                  <Zap size={14} className="text-amber-500 fill-amber-500" />
+                  <span className="text-xs font-bold text-amber-500">Flash Sale</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Harga spesial hari ini</h2>
               </motion.div>
               <motion.div {...animProps(100)}>
-                <span className="flex items-center gap-1.5 text-xs text-vw-text-muted bg-vw-surface/40 px-3 py-1.5 rounded-full border border-vw-border/50">
+                <span className="flex items-center gap-1.5 text-xs text-vw-text-muted bg-vw-surface px-3 py-1.5 rounded-full border border-vw-border/50">
                   <Timer size={12} className="text-amber-500" />
                   Promo berlaku 08:00 - 23:59 WIB
                 </span>
@@ -274,13 +272,13 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                 const Icon = item.icon
                 return (
                   <motion.div key={item.name} {...animProps(i * 80)} className="flex">
-                    <Card className="relative bg-vw-surface/40 backdrop-blur-sm rounded-2xl p-6 border border-vw-border hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between w-full">
+                    <Card className="relative bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between w-full">
                       <div className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
                         HEMAT {Math.round((1 - parseInt(item.price.replace(/\D/g,'')) / parseInt(item.original.replace(/\D/g,''))) * 100)}%
                       </div>
                       <div>
                         <CardHeader className="p-0 flex flex-row items-center gap-3 mb-5">
-                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
                             <Icon size={16} className="text-amber-500" />
                           </div>
                           <CardTitle className="text-sm font-semibold text-vw-text">{item.name}</CardTitle>
@@ -323,12 +321,15 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
             <div className="grid lg:grid-cols-12 gap-8 items-start">
               {/* Left Column */}
               <div className="lg:col-span-7 space-y-6">
-                <p className="text-xs text-vw-accent font-bold mb-4">Entertainment Essentials</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full bg-vw-accent" />
+                  <p className="text-xs font-semibold text-vw-accent">Entertainment</p>
+                </div>
                 {APP_CARDS.slice(0, 3).map((app, i) => {
                   const Icon = app.icon
                   return (
                     <motion.div key={app.name} {...animProps(i * 100)}>
-                      <Card className="bg-vw-surface rounded-2xl p-6 sm:p-8 border border-vw-border hover:border-vw-accent/30 transition-all duration-300">
+                      <Card className="bg-vw-surface rounded-xl p-6 sm:p-8 border border-vw-border hover:border-vw-accent/30 transition-all duration-300">
                         <CardHeader className="p-0 mb-4">
                           <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center transition-all">
                             <Icon size={20} className="text-vw-accent" />
@@ -354,11 +355,14 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
               {/* Right Column */}
               <div className="lg:col-span-5 space-y-6">
-                <p className="text-xs text-vw-accent font-bold mb-4">Work & Creation</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full bg-vw-accent" />
+                  <p className="text-xs font-semibold text-vw-accent">Productivity</p>
+                </div>
 
                 {/* Canva Pro featured */}
                 <motion.div {...animProps(150)}>
-                  <Card className="bg-vw-accent/[0.03] rounded-2xl p-6 sm:p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300">
+                  <Card className="bg-vw-accent/[0.03] rounded-xl p-6 sm:p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300">
                     <CardHeader className="p-0 flex justify-between items-start mb-5">
                       <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center transition-all">
                         <Palette size={20} className="text-vw-accent" />
@@ -387,7 +391,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     const Icon = app.icon
                     return (
                       <motion.div key={app.name} {...animProps(200 + i * 100)} className="h-full">
-                        <Card className="bg-vw-surface rounded-2xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between">
+                        <Card className="bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between">
                           <CardHeader className="p-0 mb-4">
                             <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center transition-all">
                               <Icon size={18} className="text-vw-accent" />
@@ -430,7 +434,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               ].map((item, i) => (
                 <motion.div key={item.label} {...animProps(i * 120)}>
                   <div className="text-center sm:text-left relative">
-                    <div className="w-14 h-14 rounded-2xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10 transition-all">
+                    <div className="w-14 h-14 rounded-xl bg-vw-bg flex items-center justify-center mx-auto sm:mx-0 mb-6 border border-vw-border relative z-10 transition-all">
                       <item.icon size={22} className="text-vw-accent" />
                     </div>
                     <h3 className="text-lg font-semibold mb-2 text-vw-text">{item.label}</h3>
@@ -460,7 +464,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   { title: "landing.why4.title", desc: "landing.why4.desc", accent: false },
                 ].map((w, i) => (
                   <motion.div key={w.title} {...animProps(i * 80)}>
-                    <Card className={`p-6 rounded-2xl transition-colors border ${w.accent ? "bg-vw-accent/[0.04] border-vw-accent/[0.15]" : "bg-vw-surface border-vw-border"}`}>
+                    <Card className={`p-6 rounded-xl transition-colors border ${w.accent ? "bg-vw-accent/[0.04] border-vw-accent/[0.15]" : "bg-vw-surface border-vw-border"}`}>
                       <CardHeader className="p-0 mb-2">
                         <CardTitle className="text-base font-semibold text-vw-text">{t(w.title as TranslationKey)}</CardTitle>
                       </CardHeader>
@@ -492,7 +496,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     { icon: Store, name: "Retail", desc: "Indomaret, Alfamart" },
                   ].map((pm, i) => (
                     <motion.div key={pm.name} {...animProps(i * 50)}>
-                      <Card className="flex items-center gap-4 bg-vw-surface border border-vw-border rounded-2xl px-5 py-3">
+                      <Card className="flex items-center gap-4 bg-vw-surface border border-vw-border rounded-xl px-5 py-3">
                         <pm.icon size={18} className="text-vw-accent shrink-0" />
                         <div>
                           <div className="text-sm font-semibold text-vw-text">{pm.name}</div>
@@ -562,7 +566,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <p className="text-sm text-vw-text-muted leading-relaxed max-w-xs">{t("landing.footer.desc")}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-vw-text-muted mb-4">{t("landing.footer.layanan")}</p>
+              <p className="text-xs font-semibold text-vw-text-muted mb-4">{t("landing.footer.layanan")}</p>
               <ul className="space-y-3">
                 {["Netflix Premium", "Spotify Premium", "Canva Pro", "ChatGPT Plus"].map(l => (
                   <li key={l}><a href="#layanan" className="text-sm text-vw-text-muted hover:text-vw-text transition-colors">{l}</a></li>
@@ -570,7 +574,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               </ul>
             </div>
             <div>
-              <p className="text-xs font-bold text-vw-text-muted mb-4">{t("landing.footer.kontak")}</p>
+              <p className="text-xs font-semibold text-vw-text-muted mb-4">{t("landing.footer.kontak")}</p>
               <ul className="space-y-3">
                 <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><HeadphonesIcon size={14} className="text-vw-accent" />088983082523</li>
                 <li className="flex items-center gap-2.5 text-sm text-vw-text-muted"><MessageSquare size={14} className="text-vw-accent" />vitalwoundsstore@gmail.com</li>
