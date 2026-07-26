@@ -1,19 +1,16 @@
 import { useTheme } from "../contexts/ThemeContext"
 
-export default function OceanBg() {
+export default function BgGradient() {
   const { theme } = useTheme()
   const isLight = theme === "light"
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Clean gradient background — no decorative waves, stars, or sun/moon */}
       <div className={`absolute inset-0 transition-colors duration-1000 ${
         isLight
-          ? "bg-gradient-to-b from-sky-50 via-white to-sky-50/60"
-          : "bg-gradient-to-b from-[#0A0A0F] via-[#0E1420] to-[#121825]"
+          ? "bg-gradient-to-b from-emerald-50/60 via-vw-bg to-emerald-50/30"
+          : "bg-gradient-to-b from-emerald-950/10 via-vw-bg to-emerald-950/5"
       }`} />
-
-      {/* Subtle vignette overlay */}
       <div className={`absolute inset-0 transition-colors duration-1000 ${
         isLight
           ? "bg-[radial-gradient(ellipse_at_top,transparent_40%,rgba(0,0,0,0.02)_100%)]"

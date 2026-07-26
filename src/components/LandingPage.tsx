@@ -1,14 +1,9 @@
-import { useState, useEffect } from "react"
-import { ArrowRight, Plus, Smartphone, Banknote, Wallet, Store, Film, Music, Youtube, Palette, BrainCircuit, Video, HeadphonesIcon, MessageSquare, Star, MessageCircle, ShoppingCart, Zap, Timer } from "lucide-react"
+import { ArrowRight, Film, Music, Youtube, Palette, BrainCircuit, Video, Smartphone, Wallet, Banknote, Store, Star, MessageCircle, ShoppingCart, Zap, HeadphonesIcon, MessageSquare, Shield, Clock } from "lucide-react"
 import { useT } from "../i18n/LanguageContext"
-import OceanBg from "./OceanBg"
-import type { TranslationKey } from "../i18n/translations"
+import BgGradient from "./BgGradient"
 import { motion, useReducedMotion } from "framer-motion"
-import CountUp from "./CountUp"
 
-// Import Shadcn UI Components
 import { Button } from "../../components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../../components/ui/card"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../components/ui/accordion"
 
 interface LPProps {
@@ -18,16 +13,15 @@ interface LPProps {
 
 export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   const t = useT()
-  const scrolled = false
   const reduceMotion = useReducedMotion()
 
   const APP_CARDS = [
-    { icon: Film, name: "Netflix Premium", desc: "4K UHD, semua konten, shared screen, garansi 30 hari.", price: "Rp 30.000" },
-    { icon: Music, name: "Spotify Premium", desc: "Bebas iklan, download offline, kualitas audio tinggi.", price: "Rp 15.000" },
-    { icon: Youtube, name: "YouTube Premium", desc: "Tanpa iklan, putar background, YouTube Music included.", price: "Rp 12.000" },
-    { icon: Palette, name: "Canva Pro", desc: "Akses lifetime, template premium, 1TB cloud storage.", price: "Rp 25.000" },
-    { icon: BrainCircuit, name: "ChatGPT Plus", desc: "GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.", price: "Rp 49.000" },
-    { icon: Video, name: "CapCut Pro", desc: "Bebas watermark, semua efek pro, ekspor maksimal.", price: "Rp 18.000" },
+    { icon: Film, name: "Netflix Premium", desc: "4K UHD, semua konten, shared screen, garansi 30 hari.", price: "Rp 30.000", popular: false },
+    { icon: Music, name: "Spotify Premium", desc: "Bebas iklan, download offline, kualitas audio tinggi.", price: "Rp 15.000", popular: false },
+    { icon: Youtube, name: "YouTube Premium", desc: "Tanpa iklan, putar background, YouTube Music included.", price: "Rp 12.000", popular: false },
+    { icon: Palette, name: "Canva Pro", desc: "Akses lifetime, template premium, 1TB cloud storage.", price: "Rp 25.000", popular: true },
+    { icon: BrainCircuit, name: "ChatGPT Plus", desc: "GPT-4o, DALL-E 3, custom GPTs, tanpa batas chat.", price: "Rp 49.000", popular: false },
+    { icon: Video, name: "CapCut Pro", desc: "Bebas watermark, semua efek pro, ekspor maksimal.", price: "Rp 18.000", popular: false },
   ]
 
   const FAQS = [
@@ -38,68 +32,59 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
   ]
 
   const TESTIMONIALS = [
-    { name: "Andi Pratama", role: "Pengguna Setia", text: "Baru 5 menit setelah bayar, akun Netflix langsung aktif. Recommended banget!", rating: 5 },
-    { name: "Siti Rahmawati", role: "Mahasiswa", text: "Canva Pro-nya works 100%. Desain tugas jadi lebih cepet beres. Makasih Vitalwounds!", rating: 5 },
+    { name: "Andi Pratama", role: "Pengguna Setia", text: "Baru 5 menit setelah bayar, akun Netflix langsung aktif. Recommended!", rating: 5 },
+    { name: "Siti Rahmawati", role: "Mahasiswa", text: "Canva Pro-nya works 100%. Desain tugas jadi lebih cepet beres.", rating: 5 },
     { name: "Dimas Ardiansyah", role: "Content Creator", text: "Udah order berkali-kali, gapernah zonk. CapCut Pro buat konten TikTok jadi makin gacor.", rating: 5 },
-    { name: "Rina Marlina", role: "Ibu Rumah Tangga", text: "Spotify Premium buat anak-anak belajar online. Murah meriah, recomended buat emak-emak.", rating: 5 },
-    { name: "Fajar Nugroho", role: "Freelancer", text: "ChatGPT Plus ngebantu banget buat riset artikel. Udah langganan 3 bulan, no drama.", rating: 5 },
-    { name: "Dewi Sartika", role: "Guru", text: "YouTube Premium buat nonton video pembelajaran tanpa iklan. Anak didik senang, saya pun senang.", rating: 4 },
-    { name: "Bambang Wijaya", role: "Wirausaha", text: "Canva Pro bikin desain produk aku keliatan premium banget. Order dari luar kota percaya.", rating: 5 },
-    { name: "Alya Putri", role: "UI/UX Designer", text: "Figma dan Canva Pro combo favorit. Vitalwounds emang paling murah dan fast respon.", rating: 5 },
+    { name: "Rina Marlina", role: "Ibu Rumah Tangga", text: "Spotify Premium buat anak-anak belajar online. Murah meriah.", rating: 5 },
+    { name: "Fajar Nugroho", role: "Freelancer", text: "ChatGPT Plus ngebantu banget buat riset artikel. Udah langganan 3 bulan.", rating: 5 },
+    { name: "Dewi Sartika", role: "Guru", text: "YouTube Premium buat nonton video pembelajaran tanpa iklan. Anak didik senang.", rating: 4 },
+    { name: "Bambang Wijaya", role: "Wirausaha", text: "Canva Pro bikin desain produk aku keliatan premium banget.", rating: 5 },
+    { name: "Alya Putri", role: "UI/UX Designer", text: "Vitalwounds emang paling murah dan fast respon. Udah langganan 6 bulan.", rating: 5 },
     { name: "Hendra Kurniawan", role: "Gamer", text: "Netflix 4K buat nonton drakor sama istri. Gambar bening, ga pake buffering.", rating: 5 },
-    { name: "Maya Sari", role: "Mahasiswi", text: "Langganan Spotify Premium ramean bareng temen kos. Hemat banget, recommended!", rating: 4 },
-    { name: "Agus Setiawan", role: "Karyawan Swasta", text: "ChatGPT Plus bantu aku bikin laporan kerja. Ide-ide jadi cepet keluar. Worth it!", rating: 5 },
-    { name: "Rizky Pratama", role: "YouTuber Pemula", text: "YouTube Premium buat riset konten tanpa iklan. subscribe bulanan ga nyesel.", rating: 5 },
-    { name: "Lisa Nurhaliza", role: "Ibu Muda", text: "Spotify Premium buat nemenin masak. Anak-anak juga suka dengerin lagu. Murah!", rating: 5 },
-    { name: "David Hartono", role: "Digital Marketer", text: "Canva Pro bikin konten feed Instagram makin cetar. Udah langganan 6 bulan puas.", rating: 5 },
-    { name: "Winda Anggraini", role: "Mahasiswa", text: "CapCut Pro edit video tugas kelompok jadi keliatan profesional. Pas banget!", rating: 4 },
-    { name: "Yoga Permana", role: "Freelancer", text: "Netflix Premium jadi hadiah buat adik. Order tinggal chat, langsung diproses. Top!", rating: 5 },
+    { name: "Maya Sari", role: "Mahasiswi", text: "Langganan Spotify Premium ramean bareng temen kos. Hemat banget!", rating: 4 },
+    { name: "Agus Setiawan", role: "Karyawan Swasta", text: "ChatGPT Plus bantu aku bikin laporan kerja. Ide-ide jadi cepet keluar.", rating: 5 },
+    { name: "Rizky Pratama", role: "YouTuber Pemula", text: "YouTube Premium buat riset konten tanpa iklan, subscribe bulanan ga nyesel.", rating: 5 },
   ]
 
-  const FLASH_SALE = [
-    { name: "Netflix Premium", icon: Film, price: "Rp 25.000", original: "Rp 30.000", stock: 12 },
-    { name: "Spotify Premium", icon: Music, price: "Rp 10.000", original: "Rp 15.000", stock: 8 },
-    { name: "ChatGPT Plus", icon: BrainCircuit, price: "Rp 42.000", original: "Rp 49.000", stock: 5 },
+  const PROMO_ITEMS = [
+    { name: "Netflix Premium", icon: Film, price: "Rp 25.000", original: "Rp 30.000", discount: "Hemat 17%" },
+    { name: "Spotify Premium", icon: Music, price: "Rp 10.000", original: "Rp 15.000", discount: "Hemat 33%" },
+    { name: "ChatGPT Plus", icon: BrainCircuit, price: "Rp 42.000", original: "Rp 49.000", discount: "Hemat 14%" },
   ]
-
-  const [liveViewers] = useState(() => Math.floor(Math.random() * 20) + 8)
-
-  const fadeInVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
-  }
 
   const animProps = (delay = 0) => {
     if (reduceMotion) return {}
+    const easeVal: [number, number, number, number] = [0.16, 1, 0.3, 1]
     return {
-      initial: "hidden",
-      whileInView: "visible",
-      viewport: { once: true, amount: 0.1 },
-      variants: fadeInVariants,
-      transition: { delay: delay / 1000 }
+      initial: { opacity: 0, y: 24 },
+      whileInView: { opacity: 1, y: 0 },
+      viewport: { once: true, amount: 0.15 },
+      transition: { duration: 0.7, ease: easeVal, delay: delay / 1000 }
     }
   }
 
   return (
-    <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/30 pb-16 sm:pb-0">
-      <OceanBg />
+    <div className="min-h-[100dvh] text-vw-text antialiased overflow-x-hidden relative selection:bg-vw-accent/20 pb-16 sm:pb-0">
+      <BgGradient />
       <a href="#content" className="fixed -top-full left-0 z-50 px-4 py-2 bg-vw-text text-vw-bg text-xs font-semibold rounded-br-lg transition-all focus:top-0">Skip to content</a>
 
       {/* ====== HEADER ====== */}
-      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? "bg-vw-bg/85 backdrop-blur-md border-b border-vw-border" : "bg-transparent"}`}>
+      <header className="fixed top-0 left-0 right-0 z-40 bg-vw-bg/80 backdrop-blur-lg border-b border-vw-border/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }}
             className="flex items-center gap-3 group">
-            <img src="/logo.png" alt="Vitalwounds Store" className="w-8 h-8 rounded-lg group-hover:scale-[0.97] transition-transform object-contain bg-white" />
+            <img src="/logo.png" alt="Vitalwounds Store" className="w-8 h-8 rounded-lg object-contain bg-white transition-transform duration-300 group-hover:scale-95" />
             <span className="font-semibold tracking-tight text-vw-text">Vitalwounds Store</span>
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
             <a href="#layanan" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Layanan</a>
+            <a href="#promo" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Promo</a>
+            <a href="#testimoni" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">Testimoni</a>
             <a href="#faq" className="text-sm font-medium text-vw-text-muted hover:text-vw-text transition-colors">FAQ</a>
           </nav>
 
-          <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" size="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl">
+          <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" size="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl text-sm">
             {isLoggedIn ? t("nav.dashboard") : t("auth.login")}
           </Button>
         </div>
@@ -107,198 +92,140 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
 
       <main id="content">
         {/* ====== HERO ====== */}
-        <section className="relative pt-24 pt-28 md:pt-32 pb-20 px-6 min-h-[90dvh] flex items-center">
+        <section className="relative pt-28 md:pt-36 pb-24 px-6 min-h-[80dvh] flex items-center">
           <div className="max-w-6xl mx-auto w-full">
-            <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-              <motion.div 
-                {...(reduceMotion ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } })}
-                className="lg:col-span-7 space-y-8 max-w-xl"
+            <div className="max-w-3xl mx-auto text-center">
+              <motion.div
+                {...(reduceMotion ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } })}
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.05] text-balance">
-                  {t("landing.hero.h1")}{" "}
-                  <span className="text-vw-accent">{t("landing.hero.h1.premium")}</span>{" "}
-                  {t("landing.hero.h1.suffix")}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-vw-accent/8 border border-vw-accent/15 text-xs font-medium text-vw-accent mb-8">
+                  <Zap size={12} />
+                  Instant Delivery &bull; Support 24/7
+                </div>
+
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.04em] leading-[1.05] text-balance max-w-2xl mx-auto">
+                  Pusat Layanan Digital{" "}
+                  <span className="text-vw-accent">Premium</span>{" "}
+                  Terlengkap
                 </h1>
 
-                <p className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-md">
+                <p className="text-base sm:text-lg text-vw-text-muted leading-relaxed max-w-lg mx-auto mt-6">
                   {t("landing.hero.desc")}
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white py-6 px-8 rounded-xl flex items-center justify-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 mt-10">
+                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="default" className="bg-vw-accent hover:bg-vw-accent-hover text-white py-6 px-8 rounded-xl text-sm font-semibold shadow-btn hover:shadow-btn-hover transition-all">
                     {t("landing.hero.cta")} <ArrowRight size={16} />
                   </Button>
-                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="outline" className="border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface py-6 px-8 rounded-xl text-vw-text-muted hover:text-vw-text">
+                  <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="outline" className="border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface py-6 px-8 rounded-xl text-vw-text-muted hover:text-vw-text text-sm">
                     {t("landing.hero.lihat")}
                   </Button>
                 </div>
-              </motion.div>
 
-              <motion.div 
-                {...(reduceMotion ? {} : { initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, transition: { duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] } })}
-                className="lg:col-span-5 flex justify-center lg:justify-end"
-              >
-                <Card className="w-full max-w-sm bg-vw-surface rounded-xl border border-vw-border/80 shadow-lg pb-4">
-                  <CardHeader className="p-6 pb-2">
-                    <CardDescription className="text-xs text-vw-text-muted font-bold">Mulai dari</CardDescription>
-                    <CardTitle className="text-5xl font-bold tracking-tight text-vw-text mt-3">
-                      Rp 800<span className="text-base font-normal text-vw-text-muted">/unit</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 py-4 space-y-4">
-                    {["Netflix 4K UHD", "Spotify Premium", "YouTube Premium", "Canva Pro"].map((item) => (
-                      <div key={item} className="flex items-center gap-3.5 text-sm text-vw-text-muted font-medium">
-                        <div className="w-2 h-2 rounded-full bg-vw-accent" />
-                        {item}
-                      </div>
-                    ))}
-                  </CardContent>
-                  <CardFooter className="p-6 pt-2 flex flex-col gap-5">
-                    <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="w-full h-12 bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl text-sm font-semibold transition-all shadow-md shadow-vw-accent/10">
-                      Mulai Belanja
-                    </Button>
-                    <div className="w-full flex items-center justify-between text-[10px] text-vw-muted pt-2 border-t border-vw-border/40">
-                      <span className="flex items-center gap-1">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        {liveViewers} orang sedang lihat
-                      </span>
-                      <span className="flex items-center gap-1 font-medium text-amber-600/80">
-                        <Timer size={10} />
-                        Stok terbatas
-                      </span>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* ====== STATS ====== */}
-        <section className="py-24 sm:py-28 px-6 border-t border-vw-border bg-vw-surface">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid sm:grid-cols-3 gap-12 text-center">
-              <motion.div {...animProps(0)}>
-                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
-                  <CountUp end={43} suffix="+" />
+                {/* Trust indicators — simple, no fake numbers */}
+                <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-xs text-vw-text-muted">
+                  <span className="flex items-center gap-1.5">
+                    <Shield size={14} className="text-vw-accent" />
+                    Garansi 100%
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock size={14} className="text-vw-accent" />
+                    Proses Instan
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MessageCircle size={14} className="text-vw-accent" />
+                    Support 24/7
+                  </span>
                 </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Total Produk<br />Premium Tersedia</p>
-              </motion.div>
-              <motion.div {...animProps(100)}>
-                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
-                  <CountUp end={2000} suffix="+" />
-                </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Pengguna<br />Aktif Setiap Bulan</p>
-              </motion.div>
-              <motion.div {...animProps(200)}>
-                <div className="text-5xl lg:text-6xl font-bold tracking-tight text-vw-accent">
-                  <CountUp end={2} suffix="Jt+" />
-                </div>
-                <p className="text-sm font-medium text-vw-text-muted mt-3 leading-relaxed">Transaksi<br />Berhasil Diproses</p>
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* ====== TESTIMONIALS ====== */}
-        <section className="py-24 sm:py-28 px-6 border-t border-vw-border overflow-hidden">
+        <section id="testimoni" className="py-24 sm:py-28 px-6 border-t border-vw-border overflow-hidden">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <motion.div {...animProps()}>
-                <div className="flex items-center justify-center gap-1.5 mb-4">
-                  {[1,2,3,4,5].map(i => (
-                    <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                  ))}
-                  <span className="text-xs font-semibold text-vw-text-muted ml-2">4.8 dari 2.000+ ulasan</span>
-                </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">Apa kata mereka?</h2>
+                <p className="text-sm text-vw-text-muted mt-4 max-w-md mx-auto">Pengalaman nyata dari ribuan pelanggan yang sudah merasakan layanan kami</p>
               </motion.div>
             </div>
 
             <div className="relative w-full overflow-hidden py-4 mask-marquee">
               <div className="flex gap-5 animate-marquee w-max">
                 {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                  <Card key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-border/80 transition-colors flex flex-col justify-between">
-                    <CardHeader className="p-0 mb-4">
-                      <div className="flex items-center gap-1">
-                        {Array.from({length: 5}, (_, j) => (
-                          <Star key={j} size={12} className={j < t.rating ? "text-amber-400 fill-amber-400" : "text-vw-border/60"} />
-                        ))}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0 text-sm text-vw-text/90 leading-relaxed mb-6 italic">
+                  <div key={i} className="w-72 sm:w-80 shrink-0 bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-border/80 transition-colors flex flex-col justify-between">
+                    <div className="flex items-center gap-1 mb-4">
+                      {Array.from({length: 5}, (_, j) => (
+                        <Star key={j} size={12} className={j < t.rating ? "text-amber-400 fill-amber-400" : "text-vw-border/60"} />
+                      ))}
+                    </div>
+                    <p className="text-sm text-vw-text/90 leading-relaxed mb-6 italic">
                       &ldquo;{t.text}&rdquo;
-                    </CardContent>
-                    <CardFooter className="p-0 flex items-center gap-3 pt-4 border-t border-vw-border/30">
-                      <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-bold text-amber-500 shrink-0">
+                    </p>
+                    <div className="flex items-center gap-3 pt-4 border-t border-vw-border/30 mt-auto">
+                      <div className="w-8 h-8 rounded-full bg-vw-accent/10 flex items-center justify-center text-xs font-bold text-vw-accent shrink-0">
                         {t.name.charAt(0)}
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-vw-text">{t.name}</p>
                         <p className="text-[10px] text-vw-text-muted">{t.role}</p>
                       </div>
-                    </CardFooter>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ====== FLASH SALE ====== */}
-        <section className="py-16 sm:py-20 px-6 border-t border-vw-border bg-amber-500/[0.01]">
+        {/* ====== PROMO ====== */}
+        <section id="promo" className="py-16 sm:py-20 px-6 border-t border-vw-border">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12">
               <motion.div {...animProps()}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap size={14} className="text-amber-500 fill-amber-500" />
-                  <span className="text-xs font-bold text-amber-500">Flash Sale</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Harga spesial hari ini</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Promo hari ini</h2>
+                <p className="text-sm text-vw-text-muted mt-2">Harga spesial untuk produk pilihan</p>
               </motion.div>
               <motion.div {...animProps(100)}>
                 <span className="flex items-center gap-1.5 text-xs text-vw-text-muted bg-vw-surface px-3 py-1.5 rounded-full border border-vw-border/50">
-                  <Timer size={12} className="text-amber-500" />
+                  <Clock size={12} className="text-vw-accent" />
                   Promo berlaku 08:00 - 23:59 WIB
                 </span>
               </motion.div>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-6">
-              {FLASH_SALE.map((item, i) => {
+              {PROMO_ITEMS.map((item, i) => {
                 const Icon = item.icon
                 return (
                   <motion.div key={item.name} {...animProps(i * 80)} className="flex">
-                    <Card className="relative bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-amber-500/30 transition-all duration-300 group flex flex-col justify-between w-full">
-                      <div className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
-                        HEMAT {Math.round((1 - parseInt(item.price.replace(/\D/g,'')) / parseInt(item.original.replace(/\D/g,''))) * 100)}%
+                    <div className="relative bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 group flex flex-col justify-between w-full">
+                      <div className="absolute top-4 right-4 bg-vw-accent/10 text-vw-accent text-[10px] font-bold px-2 py-0.5 rounded-full border border-vw-accent/20">
+                        {item.discount}
                       </div>
                       <div>
-                        <CardHeader className="p-0 flex flex-row items-center gap-3 mb-5">
-                          <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <Icon size={16} className="text-amber-500" />
+                        <div className="flex flex-row items-center gap-3 mb-5">
+                          <div className="w-9 h-9 rounded-lg bg-vw-accent/10 flex items-center justify-center shrink-0">
+                            <Icon size={16} className="text-vw-accent" />
                           </div>
-                          <CardTitle className="text-sm font-semibold text-vw-text">{item.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 mb-6">
+                          <h3 className="text-sm font-semibold text-vw-text">{item.name}</h3>
+                        </div>
+                        <div className="mb-6">
                           <div className="flex items-baseline gap-2">
                             <span className="text-xl font-bold text-vw-text">{item.price}</span>
                             <span className="text-xs text-vw-text-muted line-through">{item.original}</span>
                           </div>
-                        </CardContent>
+                        </div>
                       </div>
-                      <CardFooter className="p-0 flex items-center justify-between border-t border-vw-border/40 pt-4 mt-2">
-                        <span className="text-[10px] text-vw-text-muted">
-                          Sisa <span className="font-bold text-amber-500">{item.stock}</span> slot
-                        </span>
-                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-1.5 h-auto rounded-lg transition-colors cursor-pointer">
+                      <div className="flex items-center justify-between pt-4 border-t border-vw-border/40 mt-auto">
+                        <span className="text-xs font-semibold text-vw-accent">{item.discount}</span>
+                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-xs bg-vw-accent hover:bg-vw-accent-hover text-white font-medium px-4 py-1.5 h-auto rounded-lg transition-colors">
                           Pesan
                         </Button>
-                      </CardFooter>
-                    </Card>
+                      </div>
+                    </div>
                   </motion.div>
                 )
               })}
@@ -309,7 +236,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         {/* ====== SERVICES ====== */}
         <section id="layanan" className="py-24 sm:py-32 px-6 border-t border-vw-border">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 mb-20 items-end">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 mb-16 items-end">
               <motion.div {...animProps()}>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.services.title")}</h2>
               </motion.div>
@@ -318,111 +245,103 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               </motion.div>
             </div>
 
-            <div className="grid lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column */}
-              <div className="lg:col-span-7 space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-4 rounded-full bg-vw-accent" />
-                  <p className="text-xs font-semibold text-vw-accent">Entertainment</p>
-                </div>
-                {APP_CARDS.slice(0, 3).map((app, i) => {
-                  const Icon = app.icon
-                  return (
-                    <motion.div key={app.name} {...animProps(i * 100)}>
-                      <Card className="bg-vw-surface rounded-xl p-6 sm:p-8 border border-vw-border hover:border-vw-accent/30 transition-all duration-300">
-                        <CardHeader className="p-0 mb-4">
-                          <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.08] flex items-center justify-center transition-all">
-                            <Icon size={20} className="text-vw-accent" />
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-0 flex sm:flex-row flex-col sm:items-center gap-4 sm:gap-6">
-                          <div className="flex-1 space-y-1.5">
-                            <CardTitle className="text-lg font-semibold text-vw-text">{app.name}</CardTitle>
-                            <CardDescription className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{app.desc}</CardDescription>
-                          </div>
-                          <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 pt-4 sm:pt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-vw-border/60">
-                            <span className="text-lg font-bold text-vw-text">{app.price}</span>
-                            <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-xs px-4 py-2 bg-vw-accent/[0.08] hover:bg-vw-accent text-vw-accent hover:text-white rounded-lg">
-                              Pesan
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  )
-                })}
-              </div>
-
-              {/* Right Column */}
-              <div className="lg:col-span-5 space-y-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-4 rounded-full bg-vw-accent" />
-                  <p className="text-xs font-semibold text-vw-accent">Productivity</p>
-                </div>
-
-                {/* Canva Pro featured */}
-                <motion.div {...animProps(150)}>
-                  <Card className="bg-vw-accent/[0.03] rounded-xl p-6 sm:p-8 border border-vw-accent/[0.12] hover:border-vw-accent/40 transition-all duration-300">
-                    <CardHeader className="p-0 flex justify-between items-start mb-5">
-                      <div className="w-11 h-11 rounded-xl bg-vw-accent/[0.1] flex items-center justify-center transition-all">
-                        <Palette size={20} className="text-vw-accent" />
-                      </div>
-                      <span className="text-[10px] font-bold text-vw-accent bg-vw-accent/[0.1] px-3 py-1 rounded-full">POPULAR</span>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <CardTitle className="text-xl font-semibold mb-2 text-vw-text">Canva Pro</CardTitle>
-                      <CardDescription className="text-sm text-vw-text-muted leading-relaxed mb-8 max-w-prose">Akses lifetime, template premium, 1TB cloud storage untuk kebutuhan desain profesional tanpa batas.</CardDescription>
-                    </CardContent>
-                    <CardFooter className="p-0 flex items-center justify-between pt-6 border-t border-vw-accent/[0.12]">
+            {/* Featured product — Canva Pro, large card with emphasis */}
+            <motion.div {...animProps(50)} className="mb-10">
+              <div className="bg-vw-accent/[0.03] rounded-xl p-8 sm:p-10 border border-vw-accent/[0.12]">
+                <div className="grid sm:grid-cols-2 gap-8 items-center">
+                  <div>
+                    <span className="inline-block text-[10px] font-bold text-vw-accent bg-vw-accent/[0.1] px-3 py-1 rounded-full mb-4">Paling Populer</span>
+                    <h3 className="text-2xl font-bold text-vw-text mb-2">Canva Pro</h3>
+                    <p className="text-sm text-vw-text-muted leading-relaxed">Akses lifetime, template premium, 1TB cloud storage untuk kebutuhan desain profesional tanpa batas.</p>
+                    <div className="flex items-center gap-4 mt-6">
                       <div>
                         <span className="text-[10px] text-vw-text-muted block mb-0.5">Harga Spesial</span>
-                        <span className="text-xl font-bold text-vw-text">Rp 25.000</span>
+                        <span className="text-2xl font-bold text-vw-text">Rp 25.000</span>
                       </div>
-                      <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="text-sm bg-vw-accent hover:bg-vw-accent-hover text-white px-5 py-6 rounded-xl">
+                      <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} className="bg-vw-accent hover:bg-vw-accent-hover text-white px-6 py-6 rounded-xl text-sm font-semibold">
                         Pesan Sekarang
                       </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-
-                {/* ChatGPT & CapCut */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {APP_CARDS.slice(4, 6).map((app, i) => {
-                    const Icon = app.icon
-                    return (
-                      <motion.div key={app.name} {...animProps(200 + i * 100)} className="h-full">
-                        <Card className="bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 flex flex-col h-full justify-between">
-                          <CardHeader className="p-0 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center transition-all">
-                              <Icon size={18} className="text-vw-accent" />
-                            </div>
-                            <CardTitle className="text-base font-semibold mb-1 text-vw-text">{app.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-0">
-                            <CardDescription className="text-xs text-vw-text-muted leading-relaxed mb-6 max-w-prose">{app.desc}</CardDescription>
-                          </CardContent>
-                          <CardFooter className="p-0 flex items-center justify-between pt-4 border-t border-vw-border/60 mt-auto">
-                            <span className="text-base font-bold text-vw-text">{app.price}</span>
-                            <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="link" className="text-xs font-semibold text-vw-accent hover:text-vw-text p-0 h-auto">
-                              Pesan
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </motion.div>
-                    )
-                  })}
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center justify-center">
+                    <div className="w-full max-w-[200px] aspect-square rounded-2xl bg-vw-accent/5 border border-vw-accent/10 flex items-center justify-center">
+                      <Palette size={64} className="text-vw-accent/30" />
+                    </div>
+                  </div>
                 </div>
               </div>
+            </motion.div>
+
+            {/* Other services — grid with varied layout, not identical cards */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Entertainment heading row — full width */}
+              {APP_CARDS.slice(0, 3).map((app, i) => {
+                const Icon = app.icon
+                return (
+                  <motion.div key={app.name} {...animProps(100 + i * 80)}>
+                    <div className="bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 h-full flex flex-col justify-between">
+                      <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center mb-4">
+                        <Icon size={20} className="text-vw-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-base font-semibold text-vw-text mb-1.5">{app.name}</h3>
+                        <p className="text-xs text-vw-text-muted leading-relaxed mb-4">{app.desc}</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-vw-border/60">
+                        <span className="text-base font-bold text-vw-text">{app.price}</span>
+                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="link" className="text-xs font-semibold text-vw-accent hover:text-vw-accent-hover p-0 h-auto">
+                          Pesan
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+
+            {/* Bottom row: 2 items (ChatGPT + CapCut) + descriptive card */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+              {APP_CARDS.slice(4, 6).map((app, i) => {
+                const Icon = app.icon
+                return (
+                  <motion.div key={app.name} {...animProps(200 + i * 80)}>
+                    <div className="bg-vw-surface rounded-xl p-6 border border-vw-border hover:border-vw-accent/30 transition-all duration-300 h-full flex flex-col justify-between">
+                      <div>
+                        <div className="w-10 h-10 rounded-xl bg-vw-accent/[0.06] flex items-center justify-center mb-4">
+                          <Icon size={20} className="text-vw-accent" />
+                        </div>
+                        <h3 className="text-base font-semibold text-vw-text mb-1.5">{app.name}</h3>
+                        <p className="text-xs text-vw-text-muted leading-relaxed mb-4">{app.desc}</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-vw-border/60 mt-auto">
+                        <span className="text-base font-bold text-vw-text">{app.price}</span>
+                        <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="link" className="text-xs font-semibold text-vw-accent hover:text-vw-accent-hover p-0 h-auto">
+                          Pesan
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+
+              {/* Summary card — not a product card */}
+              <motion.div {...animProps(300)}>
+                <div className="bg-vw-surface rounded-xl p-6 border border-vw-accent/[0.08] h-full flex flex-col justify-center items-center text-center">
+                  <p className="text-xs font-semibold text-vw-accent mb-2">+20 Produk Lainnya</p>
+                  <p className="text-xs text-vw-text-muted leading-relaxed max-w-[200px]">Netflix, Spotify, YouTube, Canva, dan 20+ aplikasi premium</p>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* ====== HOW IT WORKS ====== */}
-        <section className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
+        <section className="py-24 sm:py-28 px-6 border-t border-vw-border bg-vw-surface">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-20">
               <motion.div {...animProps()}>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.steps.title")}</h2>
+                <p className="text-sm text-vw-text-muted mt-4">Hanya butuh 3 langkah sederhana</p>
               </motion.div>
             </div>
             <div className="grid sm:grid-cols-3 gap-12 relative">
@@ -447,7 +366,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== WHY US ====== */}
-        <section className="py-24 sm:py-32 px-6 border-t border-vw-border">
+        <section className="py-24 sm:py-28 px-6 border-t border-vw-border">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
               <div className="lg:col-span-5">
@@ -456,22 +375,18 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   <p className="text-sm sm:text-base text-vw-text-muted leading-relaxed max-w-prose">Platform yang dirancang untuk memberikan pengalaman terbaik dalam berbelanja layanan digital premium.</p>
                 </motion.div>
               </div>
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-5">
                 {[
-                  { title: "landing.why1.title", desc: "landing.why1.desc", accent: true },
-                  { title: "landing.why2.title", desc: "landing.why2.desc", accent: false },
-                  { title: "landing.why3.title", desc: "landing.why3.desc", accent: false },
-                  { title: "landing.why4.title", desc: "landing.why4.desc", accent: false },
+                  { title: "Proses Instan Otomatis", desc: "Semua order diproses otomatis oleh sistem dalam hitungan detik. Tidak perlu verifikasi manual." },
+                  { title: "Garansi 100% Uang Kembali", desc: "Setiap pembelian dilindungi garansi penuh. Gagal? Uang kembali full tanpa syarat ribet." },
+                  { title: "Customer Service 24/7", desc: "Tim support siap membantu via WhatsApp, Telegram, dan tiket kapan pun Anda butuh bantuan." },
+                  { title: "Harga Termurah & Promo", desc: "Harga lebih murah dari pasaran. Dapatkan diskon, cashback, dan promo spesial setiap minggu." },
                 ].map((w, i) => (
                   <motion.div key={w.title} {...animProps(i * 80)}>
-                    <Card className={`p-6 rounded-xl transition-colors border ${w.accent ? "bg-vw-accent/[0.04] border-vw-accent/[0.15]" : "bg-vw-surface border-vw-border"}`}>
-                      <CardHeader className="p-0 mb-2">
-                        <CardTitle className="text-base font-semibold text-vw-text">{t(w.title as TranslationKey)}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <CardDescription className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{t(w.desc as TranslationKey)}</CardDescription>
-                      </CardContent>
-                    </Card>
+                    <div className={`p-6 rounded-xl border transition-colors ${i === 0 ? "bg-vw-accent/[0.04] border-vw-accent/[0.15]" : "bg-vw-surface border-vw-border"}`}>
+                      <h3 className="text-base font-semibold text-vw-text mb-1.5">{w.title}</h3>
+                      <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{w.desc}</p>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -480,7 +395,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== PAYMENT ====== */}
-        <section className="pb-24 sm:pb-32 px-6">
+        <section className="pb-24 sm:pb-28 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="border-t border-vw-border pt-16">
               <div className="grid lg:grid-cols-3 gap-8 items-start">
@@ -488,7 +403,7 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                   <h3 className="text-lg font-semibold mb-2 text-vw-text">{t("landing.payment.title")}</h3>
                   <p className="text-sm text-vw-text-muted leading-relaxed max-w-prose">{t("landing.payment.desc")}</p>
                 </motion.div>
-                <div className="lg:col-span-2 flex flex-wrap gap-4">
+                <div className="lg:col-span-2 flex flex-wrap gap-3">
                   {[
                     { icon: Smartphone, name: "QRIS", desc: "GoPay, DANA, OVO" },
                     { icon: Banknote, name: "Transfer Bank", desc: "BCA, Mandiri, BNI" },
@@ -496,13 +411,13 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
                     { icon: Store, name: "Retail", desc: "Indomaret, Alfamart" },
                   ].map((pm, i) => (
                     <motion.div key={pm.name} {...animProps(i * 50)}>
-                      <Card className="flex items-center gap-4 bg-vw-surface border border-vw-border rounded-xl px-5 py-3">
+                      <div className="flex items-center gap-4 bg-vw-surface border border-vw-border rounded-xl px-5 py-3 hover:border-vw-accent/30 transition-colors">
                         <pm.icon size={18} className="text-vw-accent shrink-0" />
                         <div>
                           <div className="text-sm font-semibold text-vw-text">{pm.name}</div>
                           <div className="text-[11px] font-medium text-vw-text-muted">{pm.desc}</div>
                         </div>
-                      </Card>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -512,15 +427,16 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
         </section>
 
         {/* ====== FAQ ====== */}
-        <section id="faq" className="py-24 sm:py-32 px-6 border-t border-vw-border bg-vw-surface">
+        <section id="faq" className="py-24 sm:py-28 px-6 border-t border-vw-border bg-vw-surface">
           <div className="max-w-2xl mx-auto">
-            <div className="mb-16">
+            <div className="mb-16 text-center">
               <motion.div {...animProps()}>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-balance">{t("landing.faq.title")}</h2>
+                <p className="text-sm text-vw-text-muted mt-4">Jawaban untuk pertanyaan yang paling sering diajukan</p>
               </motion.div>
             </div>
 
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion className="w-full">
               {FAQS.map((faq, i) => (
                 <AccordionItem key={faq.q} value={`item-${i}`} className="border-b border-vw-border/60 py-2">
                   <AccordionTrigger className="hover:no-underline hover:opacity-80">
@@ -542,10 +458,10 @@ export default function LandingPage({ navigateTo, isLoggedIn }: LPProps) {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-balance">{t("landing.cta.title")}</h2>
               <p className="text-sm sm:text-base text-vw-text-muted mb-8 max-w-sm mx-auto">{t("landing.cta.desc")}</p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <Button onClick={() => navigateTo("auth", "dashboard")} className="px-6 py-6 bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl">
+                <Button onClick={() => navigateTo("auth", "dashboard")} className="px-6 py-6 bg-vw-accent hover:bg-vw-accent-hover text-white rounded-xl text-sm font-semibold shadow-btn hover:shadow-btn-hover transition-all">
                   {t("landing.cta.register")}
                 </Button>
-                <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="outline" className="px-6 py-6 border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface rounded-xl text-vw-text-muted hover:text-vw-text">
+                <Button onClick={() => navigateTo(isLoggedIn ? "dashboard-panel" : "auth", "dashboard")} variant="outline" className="px-6 py-6 border border-vw-border hover:border-vw-text-muted hover:bg-vw-surface rounded-xl text-vw-text-muted hover:text-vw-text text-sm">
                   {t("landing.cta.login")}
                 </Button>
               </div>
