@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import compression from 'compression';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
@@ -33,17 +34,72 @@ const __dirname = dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
 app.use(compression());
 
+// Session secret wajib dari env (SESSION_SECRET / AUTH_SECRET) — TANPA fallback
+// lemah. Kalau keduanya kosong, generate random + warn (jangan pakai 'secret-key').
+const SESSION_SECRET = process.env.SESSION_SECRET || process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.SESSION_SECRET && !process.env.AUTH_SECRET) {
+  console.warn('[AUTH] SESSION_SECRET/AUTH_SECRET tidak ada di .env — pakai random (sesi akan reset tiap restart).');
+}
 app.use(session({
-  secret: process.env.KINDE_CLIENT_SECRET || 'secret-key',
+  secret: SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
+  saveUninitialized: false,
+  // Secure hanya saat lewat HTTPS (Cloudflare). SameSite=Lax anti-CSRF.
+  cookie: {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  }
 }));
+
+// Kinde SDK 2.x attaches session helpers (setSessionItem/getSessionItem/etc.)
+// to `req` via a middleware registered when setupKinde() runs — which happens
+// AFTER all the /api/autopost/* routes below. Express runs middleware in
+// registration order, so requests to autopost routes reach their handlers
+// before the SDK's helper middleware ever runs. kindeClient.isAuthenticated(req)
+// then calls req.getSessionItem() — which is undefined — and throws
+// "sessionManager.getSessionItem is not a function", making getKindeUser()
+// return null and every autopost API respond 401.
+// Register the same helpers right after express-session so every route has them.
+app.use((req, res, next) => {
+  req.setSessionItem = async (key, value) => { req.session[key] = value; };
+  req.getSessionItem = async (key) => req.session[key] ?? null;
+  req.removeSessionItem = async (key) => { delete req.session[key]; };
+  req.destroySession = async () => { req.session.destroy(() => {}); };
+  next();
+});
+
+// ─── Rate limit login (anti brute-force) — manual, tanpa dependency ──
+const loginHits = new Map(); // ip → { count, firstAt }
+function loginLimiter(req, res, next) {
+  const peer = req.socket.remoteAddress || 'unknown';
+  const isTrustedProxy = peer === '127.0.0.1' || peer === '::1' || peer === '::ffff:127.0.0.1';
+  const parts = isTrustedProxy
+    ? String(req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+  const ip = parts.length ? parts[parts.length - 1] : peer;
+  const now = Date.now();
+  const rec = loginHits.get(ip);
+  if (rec && now - rec.firstAt > 10 * 60 * 1000) loginHits.delete(ip);
+  if (rec && now - rec.firstAt <= 10 * 60 * 1000 && rec.count >= 20) {
+    return res.status(429).json({ error: 'Terlalu banyak percobaan. Coba lagi dalam 10 menit.' });
+  }
+  if (!rec) loginHits.set(ip, { count: 1, firstAt: now });
+  else rec.count++;
+  next();
+}
+app.use(['/api/auth/login', '/api/auth/register', '/api/auth/sync'], loginLimiter);
 
 const PORT = process.env.PORT || 3000;
 const API_TARGET = process.env.API_TARGET || 'http://localhost:6768';
+
+// Body parser untuk route autopost saja (express.json global akan memakan
+// stream rawBody yang dipakai proxy /api → vitalwounds-api).
+app.use('/api/autopost', express.json({ limit: '5mb' }));
 
 // --- Collect raw body helper ---
 function rawBody(req, res, next) {
@@ -143,7 +199,7 @@ async function resolveVwUserRole(email) {
 async function deductVwBalance(email, amount) {
   const result = await callVwApi('/api/autopost/deduct', { email, amount });
   if (result.ok && result.data.success) {
-    return { success: true, user: result.data.user };
+    return { success: true, newBalance: result.data.newBalance };
   }
   return { success: false, error: result.data.error || 'Deduction failed' };
 }
@@ -164,15 +220,12 @@ async function checkAutopostAccess(user) {
   const discordId = user.id || user.email;
   const email = user.email || '';
   
-  // 1. Check role via HTTP to vitalwounds-api (with fallback)
+  // Role hanya info — akses autopost diberikan oleh SUBSCRIPTION, bukan role.
+  // Semua user (member/admin/owner) yang sudah membayar berhak akses dashboard.
   const roleResult = await resolveVwUserRole(email);
   const userRole = roleResult.role;
   
-  if (userRole !== 'admin' && userRole !== 'owner') {
-    return { allowed: false, reason: 'role', userRole };
-  }
-  
-  // 2. Check subscription
+  // Check subscription (gate utama)
   const subResult = await safeDb(
     `SELECT * FROM ap_subscriptions WHERE discord_id = ? ORDER BY id DESC LIMIT 1`,
     [discordId]
@@ -243,7 +296,9 @@ app.get('/api/autopost/subscription', async (req, res) => {
       role: userRole,
       balance: userBalance,
       email: email,
-      canAccess: userRole === 'admin' || userRole === 'owner',
+      // Akses autopost diberikan oleh SUBSCRIPTION, bukan role.
+      // User tanpa subscription TIDAK boleh membuka dashboard (no SSO access).
+      canAccess: hasValidSubscription,
       hasValidSubscription,
       subscription,
       plans: Object.fromEntries(
@@ -272,17 +327,15 @@ app.post('/api/autopost/subscribe', async (req, res) => {
     
     const amount = planConfig.price;
     
-    // Get user from vitalwounds-api via HTTP (with fallback)
+    // Get user from vitalwounds-api via HTTP (dengan fallback email admin)
     const roleResult = await resolveVwUserRole(email);
     if (roleResult.source === 'fallback_none') {
       return res.status(404).json({ error: 'User tidak ditemukan. Silakan login ulang.' });
     }
-    
-    // Check if user can access autopost
-    if (roleResult.role !== 'admin' && roleResult.role !== 'owner') {
-      return res.status(403).json({ error: 'Fitur ini hanya untuk Admin & Owner' });
-    }
-    
+
+    // Semua user boleh membeli subscription autopost (bukan cuma admin/owner).
+    // Akses dashboard diberikan oleh subscription aktif.
+
     // Check balance (fallback = balance 0, so skip check)
     if (roleResult.source === 'api' && roleResult.balance < amount) {
       return res.status(400).json({
@@ -326,6 +379,7 @@ app.post('/api/autopost/subscribe', async (req, res) => {
       message: `Paket ${planConfig.label} berhasil diaktifkan! Silakan lakukan authorization.`,
       plan: plan,
       endDate: endDate,
+      balance: deductResult.newBalance ?? null,
     });
   } catch (err) {
     console.error('[AUTOPOST] Subscribe error:', err.message);
@@ -357,6 +411,57 @@ app.post('/api/autopost/authorize', async (req, res) => {
   } catch (err) {
     console.error('[AUTOPOST] Authorize error:', err.message);
     res.status(500).json({ error: 'Gagal melakukan authorization' });
+  }
+});
+
+// GET /api/autopost/sso — redirect ke autopost.vitalwounds.my.id dengan SSO token.
+// User yang sudah login di vitalwounds.my.id langsung dibawa ke dashboard
+// autopost subdomain TANPA login ulang (SSO seamless).
+const AUTOPOST_SSO_SECRET = process.env.AUTOPOST_SSO_SECRET;
+const AUTOPOST_APP_URL = process.env.AUTOPOST_APP_URL || 'https://autopost.vitalwounds.my.id';
+app.get('/api/autopost/sso', async (req, res) => {
+  try {
+    const user = await getKindeUser(req);
+    if (!user || !user.email) {
+      // Belum login di vitalwounds.my.id → suruh login dulu
+      const returnTo = encodeURIComponent('/api/autopost/sso');
+      return res.redirect(`/api/auth/login?redirect=${returnTo}`);
+    }
+    if (!AUTOPOST_SSO_SECRET) {
+      return res.status(500).json({ error: 'AUTOPOST_SSO_SECRET tidak dikonfigurasi di server.' });
+    }
+    const discordId = user.id || user.email;
+    // PENTING: hanya user dengan subscription AKTIF yang boleh dapat SSO token.
+    // User belum beli TIDAK diberi akses dashboard sama sekali.
+    const subResult = await safeDb(
+      `SELECT end_date FROM ap_subscriptions WHERE discord_id = ? AND status = 'active' AND (end_date IS NULL OR end_date > ?) ORDER BY id DESC LIMIT 1`,
+      [discordId, Date.now()]
+    );
+    let subEnd;
+    if (subResult.rows && subResult.rows.length > 0) {
+      subEnd = subResult.rows[0].end_date || null; // null = lifetime
+    } else {
+      // Tidak punya subscription aktif → tolak akses SSO, suruh beli dulu
+      return res.redirect('/layanan/autopost?error=no_subscription');
+    }
+    // Token SSO berumur SANGAT PENDEK (5 menit) + nonce jti anti-replay.
+    // sub_end dikirim terpisah agar autopost app bisa set cookie sesuai sisa
+    // subscription — token-nya sendiri tidak boleh valid berbulan-bulan.
+    const now = Date.now();
+    const tokenPayload = {
+      email: user.email,
+      sub_end: subEnd,
+      iat: now,
+      exp: now + 5 * 60 * 1000,
+      jti: crypto.randomBytes(16).toString('hex'),
+    };
+    const data = Buffer.from(JSON.stringify(tokenPayload)).toString('base64url');
+    const sig = crypto.createHmac('sha256', AUTOPOST_SSO_SECRET).update(data).digest('base64url');
+    const token = `${data}.${sig}`;
+    return res.redirect(`${AUTOPOST_APP_URL}/api/sso?token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    console.error('[AUTOPOST] SSO redirect error:', err.message);
+    return res.status(500).json({ error: 'Gagal membuat SSO token' });
   }
 });
 
@@ -548,7 +653,7 @@ app.get('/api/autopost/channels', requireAutopostAccess, async (req, res) => {
 });
 
 // ─── SNK proxy (call xoftware API with Bearer token) ───
-const XO_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjUzNjc2OCwibmFtZSI6IiIsInJvbGVfaWQiOm51bGwsImdyb3VwIjoidGVsZWdyYW0iLCJib3RfaWQiOjIwNjAsImlhdCI6MTc4MjQ3NjY5OSwiZXhwIjoxNzg1MDY4Njk5fQ.b3j3gscdOrp-nuybMw6uywNfuUygPEhUzWquI15Zuvw';
+const XO_TOKEN='C18bddea9f7447e8fe10f761f39479a530d3e6436ed80d5686341d9171b27755';
 const XO_COOKIE = 'SRVGROUP=common';
 const XO_CLIENT = 'Djati';
 
@@ -641,6 +746,17 @@ app.post('/api/snk', rawBody, function(req, res) {
   proxyReq.end();
 });
 
+// ─── Signed Admin Token (HMAC) — dipakai /api/auth/sync → admin API ──
+// Token ditandatangani server.js dengan AUTH_SECRET. vitalwounds-api
+// memverifikasi HMAC yang sama (bukan username sebagai token!).
+const ADMIN_TOKEN_SECRET = process.env.AUTH_SECRET || SESSION_SECRET;
+function signAdminToken(username, role) {
+  const payload = { u: username, r: role, exp: Date.now() + 24 * 3600 * 1000 };
+  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', ADMIN_TOKEN_SECRET).update(data).digest('base64url');
+  return `${data}.${sig}`;
+}
+
 // --- Kinde User Sync ---
 app.post("/api/auth/sync", async (req, res) => {
   try {
@@ -683,7 +799,9 @@ app.post("/api/auth/sync", async (req, res) => {
         try {
           const data = JSON.parse(body);
           if (data.user) {
-            res.json({ ...data, kindeEmail: email, kindeName: givenName });
+            // Signed admin token untuk pemilik/admin — diverifikasi vitalwounds-api
+            const adminToken = (role === 'owner' || role === 'admin') ? signAdminToken(data.user.username || givenName, role) : undefined;
+            res.json({ ...data, token: adminToken, kindeEmail: email, kindeName: givenName });
           } else {
             res.json({ error: 'Sync failed', detail: data });
           }
@@ -712,6 +830,12 @@ app.post("/api/auth/sync", async (req, res) => {
 
 // --- Kinde Auth Routes ---
 app.get("/api/auth/login", async (req, res) => {
+  // Support ?redirect= (path) — disimpan ke session, dipakai ulang setelah callback.
+  // Utama untuk alur autopost SSO: login → langsung lanjut ke /api/autopost/sso.
+  const redirectParam = String(req.query.redirect || '').trim();
+  if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+    req.session.authRedirect = redirectParam;
+  }
   const loginUrl = await kindeClient.login(req);
   res.redirect(loginUrl.toString());
 });
@@ -724,7 +848,10 @@ app.get("/api/auth/register", async (req, res) => {
 app.get("/api/auth/kinde_callback", async (req, res) => {
   try {
     await kindeClient.handleRedirectToApp(req, new URL(req.protocol + '://' + req.get('host') + req.originalUrl));
-    res.redirect("/");
+    // Balik ke tujuan awal (autopost SSO) jika ada, default "/"
+    const dest = req.session?.authRedirect && req.session.authRedirect.startsWith('/') ? req.session.authRedirect : "/";
+    req.session.authRedirect = null;
+    res.redirect(dest);
   } catch (error) {
     console.error("Callback error:", error);
     res.redirect("/auth?error=kinde_callback_failed");
